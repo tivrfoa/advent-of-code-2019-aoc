@@ -1,31 +1,30 @@
 use std::collections::HashMap;
 use std::collections::HashSet;
 
-fn get_points(input: &str) -> HashSet<(i32, i32)> {
-    dbg!(input);
-    let mut set = HashSet::new();
-    let (mut x, mut y) = (0, 0);
-    let DIRS = HashMap::from([
-        ("R", (1, 0)),
-        ("L", (-1, 0)),
-        ("U", (0, 1)),
-        ("D", (0, -1)),
-    ]);
-
-    for d in input.split(',') {
-        let dir = &d[0..1];
-        let qt = (&d[1..]).parse::<i32>().unwrap();
-        for _ in 0..qt {
-            x += DIRS[dir].0;
-            y += DIRS[dir].1;
-            set.insert((x, y));
-        }
-    }
-
-    set
-}
 
 fn p1(input: &str) -> i32 {
+    fn get_points(input: &str) -> HashSet<(i32, i32)> {
+        let mut set = HashSet::new();
+        let (mut x, mut y) = (0, 0);
+        let DIRS = HashMap::from([
+            ("R", (1, 0)),
+            ("L", (-1, 0)),
+            ("U", (0, 1)),
+            ("D", (0, -1)),
+        ]);
+
+        for d in input.split(',') {
+            let dir = &d[0..1];
+            let qt = (&d[1..]).parse::<i32>().unwrap();
+            for _ in 0..qt {
+                x += DIRS[dir].0;
+                y += DIRS[dir].1;
+                set.insert((x, y));
+            }
+        }
+
+        set
+    }
     let mut lines = input.lines();
     let a = get_points(lines.next().unwrap());
     let b = get_points(lines.next().unwrap());
@@ -33,12 +32,48 @@ fn p1(input: &str) -> i32 {
     a.intersection(&b).map(|(x, y)| x.abs() + y.abs()).min().unwrap()
 }
 
-fn p2(input: &str) {
+fn p2(input: &str) -> usize {
+    fn get_points(input: &str) -> HashMap<(i32, i32), usize> {
+        let mut map = HashMap::new();
+        let (mut x, mut y) = (0, 0);
+        let mut steps = 0;
+        let DIRS = HashMap::from([
+            ("R", (1, 0)),
+            ("L", (-1, 0)),
+            ("U", (0, 1)),
+            ("D", (0, -1)),
+        ]);
+
+        for d in input.split(',') {
+            let dir = &d[0..1];
+            let qt = (&d[1..]).parse::<i32>().unwrap();
+            for _ in 0..qt {
+                steps += 1;
+                x += DIRS[dir].0;
+                y += DIRS[dir].1;
+                if !map.contains_key(&(x, y)) {
+                    map.insert((x, y), steps);
+                }
+            }
+        }
+
+        map
+    }
+
+    let mut lines = input.lines();
+    let a = get_points(lines.next().unwrap());
+    let b = get_points(lines.next().unwrap());
+
+    let a_keys: HashSet<_> = a.keys().collect();
+    let b_keys: HashSet<_> = b.keys().collect();
+
+    a_keys.intersection(&b_keys).map(|k| a[k] + b[k]).min().unwrap()
 }
 
 fn main() {
     assert_eq!(159, p1(SAMPLE1));
-    assert_eq!(159, p1(IN));
+    assert_eq!(2129, p1(IN));
+    assert_eq!(134662, p2(IN));
 }
 
 
