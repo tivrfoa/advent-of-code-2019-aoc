@@ -13,17 +13,8 @@ fn sorted(s: &str) -> String {
     chars.into_iter().collect()
 }
 
-fn p1(a: i32, b: i32) -> i32 {
-    let mut ans = 0;
-
-    for n in a..=b {
-        let s = n.to_string();
-        if set(&s).len() < s.len() && sorted(&s) == s {
-            ans += 1;
-        }
-    }
-
-    ans
+fn p1(a: i32, b: i32) -> usize {
+    (a..=b).map(|n| n.to_string()).filter(|s| set(&s).len() < s.len() && &sorted(&s) == s).count()
 }
 
 
