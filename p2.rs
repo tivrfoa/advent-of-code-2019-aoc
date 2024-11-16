@@ -16,10 +16,16 @@ impl From<u8> for Opcode {
     }
 }
 
-fn p1(input: &str) {
+fn p1(input: &str) -> usize {
     let mut ops: Vec<usize> = input.split(",").map(|v| v.parse::<usize>().unwrap()).collect();
     ops[1] = 12;
     ops[2] = 2;
+    let ret = solve(ops);
+    println!("{}", ret);
+    ret
+}
+
+fn solve(mut ops: Vec<usize>) -> usize {
     let len = ops.len();
 
     for i in (0..len).step_by(4) {
@@ -28,21 +34,31 @@ fn p1(input: &str) {
         let b = ops[ops[i + 2]];
         let dest = ops[i + 3];
 
-        // dbg!(i, a, b, dest);
-
         match ops[i] {
             1 => ops[dest] = a + b,
             2 => ops[dest] = a * b,
             _ => panic!("Invalid opcode: {}", ops[i]),
         }
     }
-    // dbg!(&ops);
 
-    println!("{}", ops[0]);
+    ops[0]
 }
 
+fn p2(input: &str) {
+    let ops: Vec<usize> = input.split(",").map(|v| v.parse::<usize>().unwrap()).collect();
 
-fn p2() {
+    for n in 0..=99 {
+        for v in 0..=99 {
+            let mut copy = ops.clone();
+            copy[1] = n;
+            copy[2] = v;
+            if solve(copy) == 19690720 {
+                println!("{}", 100 * n + v);
+                return;
+            }
+        }
+    }
+    panic!("Failed to find an answer.");
 }
 
 fn main() {
@@ -50,8 +66,8 @@ fn main() {
     // p1(SAMPLE2);
     // p1(SAMPLE3);
     // p1(SAMPLE4);
-    p1(IN);
-    p2();
+    assert_eq!(5534943, p1(IN));
+    p2(IN);
 }
 
 
