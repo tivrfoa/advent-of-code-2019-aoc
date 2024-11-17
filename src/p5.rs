@@ -162,9 +162,9 @@ fn freq(s: &str) -> HashMap<char, usize> {
     map
 }
 
-fn left_pad(n: i32, len: usize, c: char) -> String {
+fn left_pad<T: ToString>(data: T, len: usize, c: char) -> String {
     let mut ret = String::with_capacity(len);
-    let mut s = n.to_string();
+    let mut s = data.to_string();
 
     for _ in 0..len - s.len() {
         ret.push(c);
