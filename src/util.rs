@@ -25,13 +25,31 @@ pub fn freq(s: &str) -> HashMap<char, usize> {
 
 pub fn left_pad<T: ToString>(data: T, len: usize, c: char) -> String {
     let mut ret = String::with_capacity(len);
-    let mut s = data.to_string();
-
-    for _ in 0..len - s.len() {
-        ret.push(c);
+    let s = data.to_string();
+    if len < s.len()  {
+        eprintln!("WARNING: [left_pad] - data length {} is greater than desired length {len}.", s.len());
+        return s;
     }
+    let padding_len = len - s.len();
 
-    ret.push_str(&mut s);
+    ret.extend(std::iter::repeat(c).take(padding_len));
+    ret.push_str(&s);
 
     ret
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_left_pad() {
+        assert_eq!("0001".to_string(), left_pad(1, 4, '0'));
+        assert_eq!("0011".to_string(), left_pad(11, 4, '0'));
+        assert_eq!("0111".to_string(), left_pad(111, 4, '0'));
+        assert_eq!("1111".to_string(), left_pad(1111, 4, '0'));
+
+        // data length bigger than desired length
+        assert_eq!("21111".to_string(), left_pad(21111, 4, '0'));
+    }
 }
