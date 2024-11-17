@@ -1,3 +1,4 @@
+mod util;
 mod p5;
 
 use p5 as Main;
