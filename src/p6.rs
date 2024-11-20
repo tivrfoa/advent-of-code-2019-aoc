@@ -1,25 +1,8 @@
-use crate::util;
-
 use std::collections::HashMap;
-use std::collections::HashSet;
 
-struct SpaceObject<'a> {
-    direct_orbits: Vec<&'a str>,
-    indirect_orbits: Vec<&'a str>,
-}
-
-impl<'a> SpaceObject<'a> {
-    fn new() -> Self {
-        SpaceObject {
-            direct_orbits: vec![],
-            indirect_orbits: vec![],
-        }
-    }
-}
-
-fn find_indirect<'a>(key: &'a str, direct: &'a HashMap<&'a str, Vec<&'a str>>,
-         indirect: &mut HashMap<&'a str, Vec<&'a str>>) -> Vec<&'a str> {
-    if let Some(o) = indirect.get(key) {
+fn find_links<'a>(key: &'a str, direct: &'a HashMap<&'a str, Vec<&'a str>>,
+         all_links: &mut HashMap<&'a str, Vec<&'a str>>) -> Vec<&'a str> {
+    if let Some(o) = all_links.get(key) {
         return o.clone();
     }
 
@@ -27,14 +10,13 @@ fn find_indirect<'a>(key: &'a str, direct: &'a HashMap<&'a str, Vec<&'a str>>,
     if let Some(conn) = direct.get(key) {
         for d in conn {
             links.push(*d);
-            let mut tmp = find_indirect(d, direct, indirect);
-            links.append(&mut tmp.clone());
+            links.append(&mut find_links(d, direct, all_links));
         }
     } else {
         eprintln!("Key not found for {key}");
     }
 
-    indirect.insert(key, links.clone());
+    all_links.insert(key, links.clone());
 
     links
 }
@@ -42,7 +24,7 @@ fn find_indirect<'a>(key: &'a str, direct: &'a HashMap<&'a str, Vec<&'a str>>,
 pub fn p1(input: &str) -> usize {
     let mut total = 0;
     let mut direct: HashMap<&str, Vec<&str>> = HashMap::new();
-    let mut indirect: HashMap<&str, Vec<&str>> = HashMap::new();
+    let mut all_links: HashMap<&str, Vec<&str>> = HashMap::new();
 
     for line in input.lines() {
         let (l, r) = line.split_once(')').unwrap();
@@ -57,8 +39,8 @@ pub fn p1(input: &str) -> usize {
         }
     }
 
-    for (k, direct_orbits) in &direct {
-        let links = find_indirect(k, &direct, &mut indirect);
+    for k in direct.keys() {
+        let links = find_links(k, &direct, &mut all_links);
         total += links.len();
     }
 
