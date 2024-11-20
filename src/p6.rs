@@ -1,4 +1,13 @@
-use std::collections::HashMap;
+use std::cmp::{
+    Ordering,
+    PartialEq,
+    Reverse,
+};
+use std::collections::{
+    BinaryHeap,
+    HashMap,
+    HashSet,
+};
 
 fn find_links<'a>(key: &'a str, direct: &'a HashMap<&'a str, Vec<&'a str>>,
          all_links: &mut HashMap<&'a str, Vec<&'a str>>) -> Vec<&'a str> {
@@ -46,6 +55,96 @@ pub fn p1(input: &str) -> usize {
 
     println!("Total = {total}");
     total
+}
+
+/*
+ *
+ * Another approach:
+ *   - Find all links from start and save number of steps to reach each of them
+ *   - Find all links from end and save number of steps to reach each of them
+ *   - Intersect and return minimum sum.
+ *
+ */
+
+#[derive(Eq)]
+struct State<'a> {
+    steps: usize,
+    obj: &'a str,
+    visited: HashSet<&'a str>
+}
+
+impl<'a> State<'a> {
+    fn new(start_point: &'a str) -> Self {
+        Self {
+            steps: 0,
+            obj: start_point,
+            visited: HashSet::from([start_point]),
+        }
+    }
+
+    fn move_to(&self, dest: &'a str) -> Self {
+        let mut visited = self.visited.clone();
+        visited.insert(dest);
+        Self {
+            steps: self.steps + 1,
+            obj: dest,
+            visited,
+        }
+    }
+}
+impl<'a> Ord for State<'a> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.steps.cmp(&other.steps)
+    }
+}
+
+impl<'a> PartialOrd for State<'a> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl<'a> PartialEq for State<'a> {
+    fn eq(&self, other: &Self) -> bool {
+        self.obj == other.obj && self.steps == other.steps
+    }
+}
+
+pub fn p2(input: &str) -> usize {
+    let mut edges: HashMap<&str, Vec<&str>> = HashMap::new();
+    let mut start_point = "";
+    let mut end_point = "";
+
+    for line in input.lines() {
+        let (l, r) = line.split_once(')').unwrap();
+        if r == "YOU" { start_point = l; }
+        if r == "SAN" { end_point = l; }
+
+        edges.entry(r).and_modify(|v| v.push(l)).or_insert(vec![l]);
+        edges.entry(l).and_modify(|v| v.push(r)).or_insert(vec![r]);
+    }
+
+    let mut heap = BinaryHeap::new();
+    heap.push(Reverse(State::new(start_point)));
+
+    while let Some(obj) = heap.pop() {
+        let obj = obj.0;
+
+        if obj.obj == end_point {
+            dbg!(obj.steps);
+            return obj.steps;
+        }
+
+        if let Some(links) = edges.get(obj.obj) {
+            for l in links {
+                if !obj.visited.contains(l) {
+                    heap.push(Reverse(obj.move_to(l)));
+                }
+            }
+        }
+    }
+
+    panic!("failed to find SAN");
 }
 
 
@@ -1126,6 +1225,11 @@ mod tests {
     #[test]
     fn test_p1() {
         assert_eq!(162439, p1(IN));
+    }
+
+    #[test]
+    fn test_p2() {
+        assert_eq!(367, p2(IN));
     }
 }
 
