@@ -23,18 +23,22 @@ fn find_indirect<'a>(key: &'a str, direct: &'a HashMap<&'a str, Vec<&'a str>>,
         return o.clone();
     }
 
+    let mut ret: Vec<&str> = vec![];
     let mut indirect_links = vec![];
     if let Some(conn) = direct.get(key) {
         for d in conn {
+            ret.push(*d);
             let mut links = find_indirect(d, direct, indirect);
+            ret.append(&mut links.clone());
             indirect_links.append(&mut links);
         }
     } else {
         eprintln!("Key not found for {key}");
     }
 
-    indirect.insert(key, indirect_links.clone());
-    indirect_links
+    indirect.insert(key, indirect_links);
+
+    ret
 }
 
 pub fn p1(input: &str) -> usize {
