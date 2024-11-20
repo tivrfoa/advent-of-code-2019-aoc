@@ -23,22 +23,20 @@ fn find_indirect<'a>(key: &'a str, direct: &'a HashMap<&'a str, Vec<&'a str>>,
         return o.clone();
     }
 
-    let mut ret: Vec<&str> = vec![];
-    let mut indirect_links = vec![];
+    let mut links = vec![];
     if let Some(conn) = direct.get(key) {
         for d in conn {
-            ret.push(*d);
-            let mut links = find_indirect(d, direct, indirect);
-            ret.append(&mut links.clone());
-            indirect_links.append(&mut links);
+            links.push(*d);
+            let mut tmp = find_indirect(d, direct, indirect);
+            links.append(&mut tmp.clone());
         }
     } else {
         eprintln!("Key not found for {key}");
     }
 
-    indirect.insert(key, indirect_links);
+    indirect.insert(key, links.clone());
 
-    ret
+    links
 }
 
 pub fn p1(input: &str) -> usize {
@@ -60,24 +58,8 @@ pub fn p1(input: &str) -> usize {
     }
 
     for (k, direct_orbits) in &direct {
-        if let Some(links) = indirect.get(k) {
-            total += direct_orbits.len();
-            total += links.len();
-            continue;
-        }
-
-        total += direct_orbits.len();
-
-        let mut indirect_links = vec![];
-
-        for d in direct_orbits {
-            let mut links = find_indirect(d, &direct, &mut indirect);
-            indirect_links.append(&mut links.clone());
-            total += links.len();
-            indirect.insert(d, links);
-        }
-
-        indirect.insert(k, indirect_links);
+        let links = find_indirect(k, &direct, &mut indirect);
+        total += links.len();
     }
 
     println!("Total = {total}");
@@ -1161,7 +1143,7 @@ mod tests {
 
     #[test]
     fn test_p1() {
-        assert_eq!(12234644, p1());
+        assert_eq!(162439, p1(IN));
     }
 }
 
