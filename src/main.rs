@@ -1,9 +1,8 @@
 mod util;
-mod p5;
+mod p6;
 
-use p5 as Main;
+use p6 as Main;
 
 fn main() {
-    Main::p1();
-    Main::p2();
+    Main::p1(Main::IN);
 }
