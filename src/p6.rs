@@ -1,6 +1,7 @@
 use crate::util;
 
 use std::collections::HashMap;
+use std::collections::HashSet;
 
 struct SpaceObject<'a> {
     direct_orbits: Vec<&'a str>,
@@ -16,26 +17,67 @@ impl<'a> SpaceObject<'a> {
     }
 }
 
-pub fn p1(input: &str) -> i32 {
-    let mut map: HashMap<&str, SpaceObject> = HashMap::new();
+fn find_indirect<'a>(key: &'a str, direct: &'a HashMap<&'a str, Vec<&'a str>>,
+         indirect: &mut HashMap<&'a str, Vec<&'a str>>) -> Vec<&'a str> {
+    if let Some(o) = indirect.get(key) {
+        return o.clone();
+    }
+
+    let mut indirect_links = vec![];
+    if let Some(conn) = direct.get(key) {
+        for d in conn {
+            let mut links = find_indirect(d, direct, indirect);
+            indirect_links.append(&mut links);
+        }
+    } else {
+        eprintln!("Key not found for {key}");
+    }
+
+    indirect.insert(key, indirect_links.clone());
+    indirect_links
+}
+
+pub fn p1(input: &str) -> usize {
+    let mut total = 0;
+    let mut direct: HashMap<&str, Vec<&str>> = HashMap::new();
+    let mut indirect: HashMap<&str, Vec<&str>> = HashMap::new();
 
     for line in input.lines() {
         let (l, r) = line.split_once(')').unwrap();
 
-        match map.get_mut(r) {
-            Some(obj) => {
-                obj.direct_orbits.push(l);
-            }
+        match direct.get_mut(r) {
+            Some(links) => {
+                links.push(l);
+            },
             None => {
-                map.insert(r, SpaceObject {
-                    direct_orbits: vec![l],
-                    indirect_orbits: vec![],
-                });
-            }
+                direct.insert(r, vec![l]);
+            },
         }
     }
 
-    0
+    for (k, direct_orbits) in &direct {
+        if let Some(links) = indirect.get(k) {
+            total += direct_orbits.len();
+            total += links.len();
+            continue;
+        }
+
+        total += direct_orbits.len();
+
+        let mut indirect_links = vec![];
+
+        for d in direct_orbits {
+            let mut links = find_indirect(d, &direct, &mut indirect);
+            indirect_links.append(&mut links.clone());
+            total += links.len();
+            indirect.insert(d, links);
+        }
+
+        indirect.insert(k, indirect_links);
+    }
+
+    println!("Total = {total}");
+    total
 }
 
 
