@@ -139,7 +139,7 @@ impl Opcode {
 }
 
 pub struct Program {
-    mem: Vec<i32>,
+    pub mem: Vec<i32>,
     input: Vec<i32>,
     output: Vec<i32>,
     in_idx: usize,
@@ -166,6 +166,7 @@ impl Program {
                 self.pc += opcode.advance();
             },
             Opcode::Input { mode } => {
+                println!("   reading input");
                 let dest = mode.get_destination(self.pc + 1, &self.mem);
                 self.mem[dest] = self.input[self.in_idx];
                 self.pc += opcode.advance();
