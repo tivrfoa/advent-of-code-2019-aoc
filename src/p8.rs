@@ -1,6 +1,8 @@
 use crate::util::*;
 
-const LAYER_LEN: usize = 25 * 6;
+const COLS: usize = 25;
+const ROWS: usize = 6;
+const LAYER_LEN: usize = COLS * ROWS;
 
 pub fn parse_layers(input: &str) -> Vec<&str> {
     let len = input.len();
@@ -33,6 +35,40 @@ pub fn p1(input: &str) -> usize {
     println!("{ret}");
 
     ret
+}
+
+pub fn p2(input: &str) -> usize {
+    let input: Vec<char> = input.chars().collect();
+    let qt_layers = input.len() / LAYER_LEN;
+    let mut image = vec!['2'; LAYER_LEN];
+    dbg!(input.len(), qt_layers, LAYER_LEN);
+    
+    for j in 0..LAYER_LEN {
+        for pos in (j..input.len()).step_by(LAYER_LEN) {
+            if input[pos] == '0' || input[pos] == '1' {
+                image[j] = input[pos];
+                // if input[pos] == '0' {
+                //     image[j] = ' ';
+                // } else {
+                //     image[j] = '#';
+                // }
+                break;
+            }
+        }
+    }
+
+    let image: String = image.into_iter().collect();
+    assert_eq!("111000110010010100000110010010100101001010000100101001010000100101000010010111001000010010100001111010000100101001010000100101000001100011001111010010", image);
+
+    let image = image.replace('1', "#");
+    let image = image.replace('0', " ");
+    for r in 0..ROWS {
+        let start = r * COLS;
+        println!("{}", &image[start..start + COLS]);
+    }
+    // dbg!(image); --->> PCULA
+
+    0
 }
 
 
