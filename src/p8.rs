@@ -1,5 +1,3 @@
-use crate::util::*;
-
 const COLS: usize = 25;
 const ROWS: usize = 6;
 const LAYER_LEN: usize = COLS * ROWS;
@@ -17,7 +15,7 @@ pub fn parse_layers(input: &str) -> Vec<&str> {
 }
 
 pub fn p1(input: &str) -> usize {
-    let mut layers = parse_layers(input);
+    let layers = parse_layers(input);
     let mut idx = 0;
     let mut min_zeros = LAYER_LEN + 1;
     for (i, l) in layers.iter().enumerate() {
@@ -39,19 +37,12 @@ pub fn p1(input: &str) -> usize {
 
 pub fn p2(input: &str) -> usize {
     let input: Vec<char> = input.chars().collect();
-    let qt_layers = input.len() / LAYER_LEN;
     let mut image = vec!['2'; LAYER_LEN];
-    dbg!(input.len(), qt_layers, LAYER_LEN);
     
     for j in 0..LAYER_LEN {
         for pos in (j..input.len()).step_by(LAYER_LEN) {
             if input[pos] == '0' || input[pos] == '1' {
                 image[j] = input[pos];
-                // if input[pos] == '0' {
-                //     image[j] = ' ';
-                // } else {
-                //     image[j] = '#';
-                // }
                 break;
             }
         }
