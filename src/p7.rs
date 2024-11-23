@@ -4,14 +4,25 @@ use crate::intcode::*;
 pub fn p1(input: &str) -> i32 {
     let mut mem: Vec<i32> = input.split(',').map(|s| s.parse::<i32>().unwrap()).collect();
     let mut max = 0;
+    let mut amplifiers = vec![];
 
     for perms in (0..5).permutations() {
-        let mut prog = Program::new(mem.clone());
+        for i in 0..5 {
+            let mut prog = Program::new(mem.clone());
+            amplifiers.push(prog);
+        }
         let mut v = 0;
-        for a in perms {
+        for (i, a) in perms.into_iter().enumerate() {
             println!("----- perm {a}");
-            prog.mem = mem.clone();
-            v = prog.run(vec![a, v]).unwrap();
+            v = match amplifiers[i].run(vec![a, v]) {
+                RunStatus::Output(v) => v,
+                RunStatus::NoOutput => {
+                    println!("Iteration produced no output?!");
+                    v = -1;
+                    break;
+                },
+                _ => panic!("Invalid return for part 1?!!"),
+            };
         }
         max = max.max(v);
     }
@@ -21,21 +32,37 @@ pub fn p1(input: &str) -> i32 {
 }
 
 pub fn p2(input: &str) -> i32 {
-    let mut mem: Vec<i32> = input.split(',').map(|s| s.parse::<i32>().unwrap()).collect();
-    let mut max = 0;
+    // let mut mem: Vec<i32> = input.split(',').map(|s| s.parse::<i32>().unwrap()).collect();
+    // let mut max = 0;
+    // let mut amplifiers = vec![];
 
-    for perms in (5..10).permutations() {
-        let mut prog = Program::new(mem.clone());
-        let mut v = 0;
-        for a in perms {
-            println!("----- perm {a}");
-            v = prog.run(vec![a, v]).unwrap();
-        }
-        max = max.max(v);
-    }
+    // for perms in (5..10).permutations() {
+    //     for i in 0..5 {
+    //         let mut prog = Program::new(mem.clone());
+    //         prog.run(vec![perms[i]]);
+    //         amplifiers.push(prog);
+    //     }
 
-    println!("{}", max);
-    max
+    //     let mut v = 0;
+    //     'l: loop {
+    //         for i in 0..5 {
+    //             let loc = amplifiers[i].output.len();
+    //             let resp = amplifiers[i].run(vec![v]);
+    //             if loc == amplifiers[i].output.len() {
+    //                 assert!(resp.is_none());
+    //                 assert_eq!(0, i);
+    //                 break 'l;
+    //             }
+    //             assert_eq!(loc + 1, amplifiers[i].output.len());
+    //             v = amplifiers[i].output[loc];
+    //         }
+    //     }
+    //     max = max.max(v);
+    // }
+
+    // println!("{}", max);
+    // max
+    0
 }
 
 

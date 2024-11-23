@@ -141,7 +141,7 @@ impl Opcode {
 pub struct Program {
     pub mem: Vec<i32>,
     input: Vec<i32>,
-    output: Vec<i32>,
+    pub output: Vec<i32>,
     in_idx: usize,
     pc: usize,
 }
@@ -149,7 +149,7 @@ pub struct Program {
 impl Program {
     /// Process operation and advance program counter
     /// @return optional output
-    fn process_opcode(&mut self, opcode: Opcode) -> Option<i32> {
+    fn process_opcode(&mut self, opcode: Opcode) -> RunStatus {
         match opcode {
             Opcode::Add { a, b, dest } => {
                 let x = a.get_value(self.pc + 1, &self.mem);
@@ -166,7 +166,10 @@ impl Program {
                 self.pc += opcode.advance();
             },
             Opcode::Input { mode } => {
-                println!("   reading input");
+                // println!("   reading input");
+                if self.in_idx == self.input.len() {
+                    return RunStatus::NeedInput;
+                }
                 let dest = mode.get_destination(self.pc + 1, &self.mem);
                 self.mem[dest] = self.input[self.in_idx];
                 self.pc += opcode.advance();
@@ -176,7 +179,7 @@ impl Program {
                 let v = mode.get_value(self.pc + 1, &self.mem);
                 self.pc += opcode.advance();
                 self.output.push(v);
-                return Some(v);
+                return RunStatus::Output(v);
             },
             Opcode::JumpIfTrue { a, b } => {
                 let x = a.get_value(self.pc + 1, &self.mem);
@@ -221,7 +224,7 @@ impl Program {
             _ => panic!("Invalid opcode to compute {:?}", opcode),
         }
 
-        None
+        RunStatus::NoOutput
     }
 
     pub fn new(mem: Vec<i32>) -> Self {
@@ -234,22 +237,38 @@ impl Program {
         }
     }
 
-    pub fn run(&mut self, input: Vec<i32>) -> Option<i32> {
-        self.input = input;
-        self.output = vec![];
-        self.in_idx = 0;
-        self.pc = 0;
+    pub fn run(&mut self, mut input: Vec<i32>) -> RunStatus {
+        use RunStatus::*;
+
+        self.pc = 0; // TODO why?
+        self.input.append(&mut input);
+        let prev_out_len = self.output.len();
         loop {
             let opcode = Opcode::parse(self.mem[self.pc]);
             if opcode == Opcode::Halt { break; }
-            self.process_opcode(opcode);
+            if self.process_opcode(opcode) == NeedInput {
+                return NeedInput;
+            }
         }
 
         if let Some(v) = self.output.last() {
-            Some(*v)
+            Output(*v)
         } else {
-            None
+            NoOutput
         }
+        //if prev_out_len == self.output.len() {
+        //    NoOutput
+        //} else {
+        //    Output(*self.output.last().unwrap())
+        //}
     }
+}
+
+
+#[derive(PartialEq)]
+pub enum RunStatus {
+    NeedInput,
+    Output(i32),
+    NoOutput,
 }
 
