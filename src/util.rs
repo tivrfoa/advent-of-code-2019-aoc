@@ -26,8 +26,11 @@ pub fn freq(s: &str) -> HashMap<char, usize> {
 pub fn left_pad<T: ToString>(data: T, len: usize, c: char) -> String {
     let mut ret = String::with_capacity(len);
     let s = data.to_string();
-    if len < s.len()  {
-        eprintln!("WARNING: [left_pad] - data length {} is greater than desired length {len}.", s.len());
+    if len < s.len() {
+        eprintln!(
+            "WARNING: [left_pad] - data length {} is greater than desired length {len}.",
+            s.len()
+        );
         return s;
     }
     let padding_len = len - s.len();
@@ -41,7 +44,9 @@ pub fn left_pad<T: ToString>(data: T, len: usize, c: char) -> String {
 use std::ops::Range;
 
 pub trait PermutationsExt<I> {
-    fn permutations(self) -> Vec<Vec<I>> where I: Clone + Copy + Ord;
+    fn permutations(self) -> Vec<Vec<I>>
+    where
+        I: Clone + Copy + Ord;
 }
 
 impl<I> PermutationsExt<I> for Range<I>

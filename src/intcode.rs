@@ -19,7 +19,7 @@ impl ParameterMode {
             ParameterMode::PositionMode => mem[idx] as usize,
             ParameterMode::ImmediateMode => {
                 panic!("How to handle this? is this valid?!");
-            },
+            }
         }
     }
 }
@@ -80,7 +80,7 @@ impl Opcode {
         let c_mode = (&opcode_str[0..1]).parse::<u8>().unwrap();
         let b_mode = (&opcode_str[1..2]).parse::<u8>().unwrap();
         let a_mode = (&opcode_str[2..3]).parse::<u8>().unwrap();
-        let oc     = (&opcode_str[3..5]).parse::<u8>().unwrap();
+        let oc = (&opcode_str[3..5]).parse::<u8>().unwrap();
 
         match oc {
             1 => Opcode::Add {
@@ -135,7 +135,6 @@ impl Opcode {
             _ => panic!("Invalid opcode to advance {:?}", self),
         }
     }
-
 }
 
 #[derive(Clone)]
@@ -158,14 +157,14 @@ impl Program {
                 let dest = dest.get_destination(self.pc + 3, &self.mem);
                 self.mem[dest] = x + y;
                 self.pc += opcode.advance();
-            },
+            }
             Opcode::Multiply { a, b, dest } => {
                 let x = a.get_value(self.pc + 1, &self.mem);
                 let y = b.get_value(self.pc + 2, &self.mem);
                 let dest = dest.get_destination(self.pc + 3, &self.mem);
                 self.mem[dest] = x * y;
                 self.pc += opcode.advance();
-            },
+            }
             Opcode::Input { mode } => {
                 // println!("   reading input");
                 if self.in_idx == self.input.len() {
@@ -175,13 +174,13 @@ impl Program {
                 self.mem[dest] = self.input[self.in_idx];
                 self.pc += opcode.advance();
                 self.in_idx += 1;
-            },
+            }
             Opcode::Output { mode } => {
                 let v = mode.get_value(self.pc + 1, &self.mem);
                 self.pc += opcode.advance();
                 self.output.push(v);
                 return RunStatus::Output(v);
-            },
+            }
             Opcode::JumpIfTrue { a, b } => {
                 let x = a.get_value(self.pc + 1, &self.mem);
                 let y = b.get_value(self.pc + 2, &self.mem);
@@ -190,7 +189,7 @@ impl Program {
                 } else {
                     self.pc += opcode.advance();
                 }
-            },
+            }
             Opcode::JumpIfFalse { a, b } => {
                 let x = a.get_value(self.pc + 1, &self.mem);
                 let y = b.get_value(self.pc + 2, &self.mem);
@@ -199,7 +198,7 @@ impl Program {
                 } else {
                     self.pc += opcode.advance();
                 }
-            },
+            }
             Opcode::LessThan { a, b, dest } => {
                 let x = a.get_value(self.pc + 1, &self.mem);
                 let y = b.get_value(self.pc + 2, &self.mem);
@@ -210,7 +209,7 @@ impl Program {
                     self.mem[dest] = 0;
                 }
                 self.pc += opcode.advance();
-            },
+            }
             Opcode::Equals { a, b, dest } => {
                 let x = a.get_value(self.pc + 1, &self.mem);
                 let y = b.get_value(self.pc + 2, &self.mem);
@@ -221,7 +220,7 @@ impl Program {
                     self.mem[dest] = 0;
                 }
                 self.pc += opcode.advance();
-            },
+            }
             _ => panic!("Invalid opcode to compute {:?}", opcode),
         }
 
@@ -245,7 +244,9 @@ impl Program {
         let prev_out_len = self.output.len();
         loop {
             let opcode = Opcode::parse(self.mem[self.pc]);
-            if opcode == Opcode::Halt { break; }
+            if opcode == Opcode::Halt {
+                break;
+            }
             if self.process_opcode(opcode) == NeedInput {
                 return NeedInput;
             }
@@ -259,11 +260,9 @@ impl Program {
     }
 }
 
-
 #[derive(PartialEq)]
 pub enum RunStatus {
     NeedInput,
     Output(i32),
     NoOutput,
 }
-

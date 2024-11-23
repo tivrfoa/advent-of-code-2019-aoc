@@ -1,8 +1,8 @@
 #![feature(step_trait)]
 
-mod util;
 mod intcode;
 mod p7;
+mod util;
 
 use p7 as Main;
 
