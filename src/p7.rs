@@ -2,7 +2,7 @@ use crate::util::*;
 use crate::intcode::*;
 
 pub fn p1(input: &str) -> i32 {
-    let mut mem: Vec<i32> = IN.split(',').map(|s| s.parse::<i32>().unwrap()).collect();
+    let mut mem: Vec<i32> = input.split(',').map(|s| s.parse::<i32>().unwrap()).collect();
     let mut max = 0;
 
     for perms in (0..5).permutations() {
@@ -12,10 +12,6 @@ pub fn p1(input: &str) -> i32 {
         }
         max = max.max(v);
     }
-    // println!("Total number of permutations: {}", perms.len());
-    // for (i, perm) in perms.iter().enumerate().take(5) {
-    //     println!("Permutation {}: {:?}", i + 1, perm);
-    // }
 
     println!("{}", max);
     max

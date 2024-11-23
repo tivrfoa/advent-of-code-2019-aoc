@@ -1,7 +1,5 @@
 use crate::util;
 
-static mut RESULT: i32 = 0;
-
 #[derive(Debug, PartialEq)]
 enum ParameterMode {
     PositionMode,
@@ -139,6 +137,7 @@ impl Opcode {
     }
 
     /// Process operation and advance program counter
+    /// @return optional output
     fn compute(&self, pc: &mut usize, mem: &mut Vec<i32>, input: &[i32],
             in_idx: &mut usize) -> Option<i32> {
         match self {
@@ -166,10 +165,6 @@ impl Opcode {
                 let v = mode.get_value(*pc + 1, mem);
                 *pc += self.advance();
                 return Some(v);
-                // unsafe {
-                //     RESULT = v;
-                // }
-                // println!("{}", v);
             },
             Opcode::JumpIfTrue { a, b } => {
                 let x = a.get_value(*pc + 1, mem);
