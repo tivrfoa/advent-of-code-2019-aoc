@@ -4,9 +4,9 @@ use crate::intcode::*;
 pub fn p1(input: &str) -> i32 {
     let mut mem: Vec<i32> = input.split(',').map(|s| s.parse::<i32>().unwrap()).collect();
     let mut max = 0;
-    let mut amplifiers = vec![Program::new(mem.clone()); 5];
 
     for perms in (0..5).permutations() {
+        let mut amplifiers = vec![Program::new(mem.clone()); 5];
         let mut v = 0;
         for (i, a) in perms.into_iter().enumerate() {
             println!("----- perm {a}");
