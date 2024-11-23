@@ -4,13 +4,12 @@ use crate::intcode::*;
 pub fn p1(input: &str) -> i32 {
     let mut mem: Vec<i32> = input.split(',').map(|s| s.parse::<i32>().unwrap()).collect();
     let mut max = 0;
-    let mut prog = Program::new(mem, vec![]);
+    let mut prog = Program::new(mem);
 
     for perms in (0..5).permutations() {
         let mut v = 0;
         for a in perms {
-            prog.reset(vec![a, v]);
-            v = prog.run().unwrap();
+            v = prog.run(vec![a, v]).unwrap();
         }
         max = max.max(v);
     }

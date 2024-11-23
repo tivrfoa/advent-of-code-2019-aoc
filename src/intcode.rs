@@ -223,24 +223,21 @@ impl Program {
         None
     }
 
-    pub fn new(mem: Vec<i32>, input: Vec<i32>) -> Self {
+    pub fn new(mem: Vec<i32>) -> Self {
         Self {
             mem,
-            input,
+            input: vec![],
             output: vec![],
             pc: 0,
             in_idx: 0,
         }
     }
 
-    pub fn reset(&mut self, input: Vec<i32>) {
+    pub fn run(&mut self, input: Vec<i32>) -> Option<i32> {
         self.input = input;
         self.output = vec![];
         self.in_idx = 0;
         self.pc = 0;
-    }
-
-    pub fn run(&mut self) -> Option<i32> {
         loop {
             let opcode = Opcode::parse(self.mem[self.pc]);
             if opcode == Opcode::Halt { break; }
