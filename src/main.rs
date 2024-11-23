@@ -1,12 +1,12 @@
 #![feature(step_trait)]
 
 mod intcode;
-mod p7;
+mod p8;
 mod util;
 
-use p7 as Main;
+use p8 as Main;
 
 fn main() {
     Main::p1(Main::IN);
-    Main::p2(Main::IN);
+    // Main::p2(Main::IN);
 }
