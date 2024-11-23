@@ -38,6 +38,40 @@ pub fn left_pad<T: ToString>(data: T, len: usize, c: char) -> String {
     ret
 }
 
+use std::ops::Range;
+
+pub trait PermutationsExt<I> {
+    fn permutations(self) -> Vec<Vec<I>> where I: Clone + Copy + Ord;
+}
+
+impl<I> PermutationsExt<I> for Range<I>
+where
+    I: Clone + Copy + Ord + std::iter::Step,
+{
+    fn permutations(self) -> Vec<Vec<I>> {
+        let mut numbers: Vec<I> = self.collect();
+        let mut permutations = Vec::new();
+        generate_permutations(&mut numbers, 0, &mut permutations);
+        permutations
+    }
+}
+
+fn generate_permutations<I>(arr: &mut [I], start: usize, permutations: &mut Vec<Vec<I>>)
+where
+    I: Clone + Copy + Ord,
+{
+    if start == arr.len() - 1 {
+        permutations.push(arr.to_vec());
+        return;
+    }
+
+    for i in start..arr.len() {
+        arr.swap(start, i);
+        generate_permutations(arr, start + 1, permutations);
+        arr.swap(start, i); // Backtrack
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -1,5 +1,7 @@
 use crate::util;
 
+static mut RESULT: i32 = 0;
+
 #[derive(Debug, PartialEq)]
 enum ParameterMode {
     PositionMode,
@@ -47,6 +49,9 @@ enum Opcode {
         dest: ParameterMode,
     },
     Halt,
+    Input {
+        mode: ParameterMode,
+    },
     Output {
         mode: ParameterMode,
     },
@@ -73,7 +78,7 @@ enum Opcode {
 impl Opcode {
     fn parse(n: i32) -> Self {
         let opcode_str = util::left_pad(n, 5, '0');
-        println!("{}", opcode_str);
+        println!("opcode: {}", opcode_str);
         let c_mode = (&opcode_str[0..1]).parse::<u8>().unwrap();
         let b_mode = (&opcode_str[1..2]).parse::<u8>().unwrap();
         let a_mode = (&opcode_str[2..3]).parse::<u8>().unwrap();
@@ -89,6 +94,9 @@ impl Opcode {
                 a: a_mode.into(),
                 b: b_mode.into(),
                 dest: c_mode.into(),
+            },
+            3 => Opcode::Input {
+                mode: a_mode.into(),
             },
             4 => Opcode::Output {
                 mode: a_mode.into(),
@@ -120,6 +128,7 @@ impl Opcode {
         match self {
             Opcode::Add { .. } => 4,
             Opcode::Multiply { .. } => 4,
+            Opcode::Input { .. } => 2,
             Opcode::Output { .. } => 2,
             Opcode::JumpIfTrue { .. } => 3,
             Opcode::JumpIfFalse { .. } => 3,
@@ -130,7 +139,8 @@ impl Opcode {
     }
 
     /// Process operation and advance program counter
-    fn compute(&self, pc: &mut usize, mem: &mut Vec<i32>) {
+    fn compute(&self, pc: &mut usize, mem: &mut Vec<i32>, input: &[i32],
+            in_idx: &mut usize) -> Option<i32> {
         match self {
             Opcode::Add { a, b, dest } => {
                 let x = a.get_value(*pc + 1, mem);
@@ -146,13 +156,20 @@ impl Opcode {
                 mem[dest] = x * y;
                 *pc += self.advance();
             },
+            Opcode::Input { mode } => {
+                let dest = mode.get_destination(*pc + 1, mem);
+                mem[dest] = input[*in_idx];
+                *pc += self.advance();
+                *in_idx += 1;
+            },
             Opcode::Output { mode } => {
                 let v = mode.get_value(*pc + 1, mem);
-                unsafe {
-                    P1_RESULT = v;
-                }
-                println!("{}", v);
                 *pc += self.advance();
+                return Some(v);
+                // unsafe {
+                //     RESULT = v;
+                // }
+                // println!("{}", v);
             },
             Opcode::JumpIfTrue { a, b } => {
                 let x = a.get_value(*pc + 1, mem);
@@ -196,22 +213,23 @@ impl Opcode {
             },
             _ => panic!("Invalid opcode to compute {:?}", self),
         }
+
+        None
     }
 }
 
-pub fn solve(system_id: i32) -> i32 {
-    let mut mem: Vec<i32> = IN.split(',').map(|s| s.parse::<i32>().unwrap()).collect();
-    let dest = mem[1] as usize;
-    mem[dest] = system_id;
-    let mut pc = 2;
-
+pub fn run_prog(mem: &mut Vec<i32>, input: Vec<i32>) -> Vec<i32> {
+    let mut output = vec![];
+    let mut in_idx = 0;
+    let mut pc = 0;
     loop {
         let opcode = Opcode::parse(mem[pc]);
         if opcode == Opcode::Halt { break; }
-        opcode.compute(&mut pc, &mut mem);
+        if let Some(ret) = opcode.compute(&mut pc, mem, &input, &mut in_idx) {
+            output.push(ret);
+        }
     }
 
-    unsafe {
-        P1_RESULT
-    }
+    output
 }
+
