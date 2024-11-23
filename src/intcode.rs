@@ -4,22 +4,25 @@ use crate::util;
 enum ParameterMode {
     PositionMode,
     ImmediateMode,
+    RelativeMode,
 }
 
 impl ParameterMode {
-    fn get_value(&self, idx: usize, mem: &[i32]) -> i32 {
+    fn get_value(&self, idx: usize, mem: &[i64], relative_base: i64) -> i64 {
         match self {
             ParameterMode::PositionMode => mem[mem[idx] as usize],
             ParameterMode::ImmediateMode => mem[idx],
+            ParameterMode::RelativeMode => mem[(mem[idx] + relative_base) as usize],
         }
     }
 
-    fn get_destination(&self, idx: usize, mem: &[i32]) -> usize {
+    fn get_destination(&self, idx: usize, mem: &[i64], relative_base: i64) -> usize {
         match self {
             ParameterMode::PositionMode => mem[idx] as usize,
             ParameterMode::ImmediateMode => {
                 panic!("How to handle this? is this valid?!");
             }
+            _ => todo!()
         }
     }
 }
@@ -29,6 +32,7 @@ impl From<u8> for ParameterMode {
         match value {
             0 => ParameterMode::PositionMode,
             1 => ParameterMode::ImmediateMode,
+            2 => ParameterMode::RelativeMode,
             _ => panic!("Invalid parameter mode: {}", value),
         }
     }
@@ -70,6 +74,9 @@ enum Opcode {
         a: ParameterMode,
         b: ParameterMode,
         dest: ParameterMode,
+    },
+    RelativeBaseOffset {
+        a: ParameterMode,
     },
 }
 
@@ -117,6 +124,9 @@ impl Opcode {
                 b: b_mode.into(),
                 dest: c_mode.into(),
             },
+            9 => Opcode::RelativeBaseOffset {
+                a: a_mode.into(),
+            },
             99 => Opcode::Halt,
             _ => panic!("Invalid opcode: {}", oc),
         }
@@ -132,6 +142,7 @@ impl Opcode {
             Opcode::JumpIfFalse { .. } => 3,
             Opcode::LessThan { .. } => 4,
             Opcode::Equals { .. } => 4,
+            Opcode::RelativeBaseOffset { .. } => 2,
             _ => panic!("Invalid opcode to advance {:?}", self),
         }
     }
@@ -139,11 +150,13 @@ impl Opcode {
 
 #[derive(Clone)]
 pub struct Program {
-    pub mem: Vec<i32>,
-    input: Vec<i32>,
-    pub output: Vec<i32>,
+    pub mem: Vec<i64>,
+    input: Vec<i64>,
+    pub output: Vec<i64>,
     in_idx: usize,
     pc: usize,
+    // TODO when is this value updated?
+    relative_base: i64,
 }
 
 impl Program {
@@ -152,16 +165,16 @@ impl Program {
     fn process_opcode(&mut self, opcode: Opcode) -> RunStatus {
         match opcode {
             Opcode::Add { a, b, dest } => {
-                let x = a.get_value(self.pc + 1, &self.mem);
-                let y = b.get_value(self.pc + 2, &self.mem);
-                let dest = dest.get_destination(self.pc + 3, &self.mem);
+                let x = a.get_value(self.pc + 1, &self.mem, self.relative_base);
+                let y = b.get_value(self.pc + 2, &self.mem, self.relative_base);
+                let dest = dest.get_destination(self.pc + 3, &self.mem, self.relative_base);
                 self.mem[dest] = x + y;
                 self.pc += opcode.advance();
             }
             Opcode::Multiply { a, b, dest } => {
-                let x = a.get_value(self.pc + 1, &self.mem);
-                let y = b.get_value(self.pc + 2, &self.mem);
-                let dest = dest.get_destination(self.pc + 3, &self.mem);
+                let x = a.get_value(self.pc + 1, &self.mem, self.relative_base);
+                let y = b.get_value(self.pc + 2, &self.mem, self.relative_base);
+                let dest = dest.get_destination(self.pc + 3, &self.mem, self.relative_base);
                 self.mem[dest] = x * y;
                 self.pc += opcode.advance();
             }
@@ -171,20 +184,20 @@ impl Program {
                     // eprintln!("Need input");
                     return RunStatus::NeedInput;
                 }
-                let dest = mode.get_destination(self.pc + 1, &self.mem);
+                let dest = mode.get_destination(self.pc + 1, &self.mem, self.relative_base);
                 self.mem[dest] = self.input[self.in_idx];
                 self.pc += opcode.advance();
                 self.in_idx += 1;
             }
             Opcode::Output { mode } => {
-                let v = mode.get_value(self.pc + 1, &self.mem);
+                let v = mode.get_value(self.pc + 1, &self.mem, self.relative_base);
                 self.pc += opcode.advance();
                 self.output.push(v);
                 return RunStatus::Output(v);
             }
             Opcode::JumpIfTrue { a, b } => {
-                let x = a.get_value(self.pc + 1, &self.mem);
-                let y = b.get_value(self.pc + 2, &self.mem);
+                let x = a.get_value(self.pc + 1, &self.mem, self.relative_base);
+                let y = b.get_value(self.pc + 2, &self.mem, self.relative_base);
                 if x != 0 {
                     self.pc = y as usize;
                 } else {
@@ -192,8 +205,8 @@ impl Program {
                 }
             }
             Opcode::JumpIfFalse { a, b } => {
-                let x = a.get_value(self.pc + 1, &self.mem);
-                let y = b.get_value(self.pc + 2, &self.mem);
+                let x = a.get_value(self.pc + 1, &self.mem, self.relative_base);
+                let y = b.get_value(self.pc + 2, &self.mem, self.relative_base);
                 if x == 0 {
                     self.pc = y as usize;
                 } else {
@@ -201,9 +214,9 @@ impl Program {
                 }
             }
             Opcode::LessThan { a, b, dest } => {
-                let x = a.get_value(self.pc + 1, &self.mem);
-                let y = b.get_value(self.pc + 2, &self.mem);
-                let dest = dest.get_destination(self.pc + 3, &self.mem);
+                let x = a.get_value(self.pc + 1, &self.mem, self.relative_base);
+                let y = b.get_value(self.pc + 2, &self.mem, self.relative_base);
+                let dest = dest.get_destination(self.pc + 3, &self.mem, self.relative_base);
                 if x < y {
                     self.mem[dest] = 1;
                 } else {
@@ -212,9 +225,9 @@ impl Program {
                 self.pc += opcode.advance();
             }
             Opcode::Equals { a, b, dest } => {
-                let x = a.get_value(self.pc + 1, &self.mem);
-                let y = b.get_value(self.pc + 2, &self.mem);
-                let dest = dest.get_destination(self.pc + 3, &self.mem);
+                let x = a.get_value(self.pc + 1, &self.mem, self.relative_base);
+                let y = b.get_value(self.pc + 2, &self.mem, self.relative_base);
+                let dest = dest.get_destination(self.pc + 3, &self.mem, self.relative_base);
                 if x == y {
                     self.mem[dest] = 1;
                 } else {
@@ -222,29 +235,35 @@ impl Program {
                 }
                 self.pc += opcode.advance();
             }
+            Opcode::RelativeBaseOffset { a } => {
+                let v = a.get_value(self.pc + 1, &self.mem, self.relative_base);
+                self.pc += opcode.advance();
+                self.relative_base += v;
+            }
             _ => panic!("Invalid opcode to compute {:?}", opcode),
         }
 
         RunStatus::NoOutput
     }
 
-    pub fn new(mem: Vec<i32>) -> Self {
+    pub fn new(mem: Vec<i64>) -> Self {
         Self {
             mem,
             input: vec![],
             output: vec![],
             pc: 0,
             in_idx: 0,
+            relative_base: 0,
         }
     }
 
-    pub fn run(&mut self, mut input: Vec<i32>) -> RunStatus {
+    pub fn run(&mut self, mut input: Vec<i64>) -> RunStatus {
         use RunStatus::*;
 
         self.input.append(&mut input);
         let prev_out_len = self.output.len();
         loop {
-            let opcode = Opcode::parse(self.mem[self.pc]);
+            let opcode = Opcode::parse(self.mem[self.pc] as i32);
             if opcode == Opcode::Halt {
                 break;
             }
@@ -261,9 +280,21 @@ impl Program {
     }
 }
 
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum RunStatus {
     NeedInput,
-    Output(i32),
+    Output(i64),
     NoOutput,
 }
+
+impl RunStatus {
+    pub fn unwrap(&self) -> i64 {
+        if let RunStatus::Output(v) = self {
+            *v
+        } else {
+            dbg!(self);
+            panic!("Not Output ...");
+        }
+    }
+}
+
