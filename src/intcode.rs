@@ -138,6 +138,7 @@ impl Opcode {
 
 }
 
+#[derive(Clone)]
 pub struct Program {
     pub mem: Vec<i32>,
     input: Vec<i32>,
