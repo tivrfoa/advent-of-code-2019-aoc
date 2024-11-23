@@ -1,6 +1,6 @@
 use crate::util;
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 enum ParameterMode {
     PositionMode,
     ImmediateMode,
@@ -76,7 +76,7 @@ enum Opcode {
 impl Opcode {
     fn parse(n: i32) -> Self {
         let opcode_str = util::left_pad(n, 5, '0');
-        println!("opcode: {}", opcode_str);
+        // println!("opcode: {}", opcode_str);
         let c_mode = (&opcode_str[0..1]).parse::<u8>().unwrap();
         let b_mode = (&opcode_str[1..2]).parse::<u8>().unwrap();
         let a_mode = (&opcode_str[2..3]).parse::<u8>().unwrap();
@@ -136,95 +136,122 @@ impl Opcode {
         }
     }
 
+}
+
+pub struct Program {
+    mem: Vec<i32>,
+    input: Vec<i32>,
+    output: Vec<i32>,
+    in_idx: usize,
+    pc: usize,
+}
+
+impl Program {
     /// Process operation and advance program counter
     /// @return optional output
-    fn compute(&self, pc: &mut usize, mem: &mut Vec<i32>, input: &[i32],
-            in_idx: &mut usize) -> Option<i32> {
-        match self {
+    fn process_opcode(&mut self, opcode: Opcode) -> Option<i32> {
+        match opcode {
             Opcode::Add { a, b, dest } => {
-                let x = a.get_value(*pc + 1, mem);
-                let y = b.get_value(*pc + 2, mem);
-                let dest = dest.get_destination(*pc + 3, mem);
-                mem[dest] = x + y;
-                *pc += self.advance();
+                let x = a.get_value(self.pc + 1, &self.mem);
+                let y = b.get_value(self.pc + 2, &self.mem);
+                let dest = dest.get_destination(self.pc + 3, &self.mem);
+                self.mem[dest] = x + y;
+                self.pc += opcode.advance();
             },
             Opcode::Multiply { a, b, dest } => {
-                let x = a.get_value(*pc + 1, mem);
-                let y = b.get_value(*pc + 2, mem);
-                let dest = dest.get_destination(*pc + 3, mem);
-                mem[dest] = x * y;
-                *pc += self.advance();
+                let x = a.get_value(self.pc + 1, &self.mem);
+                let y = b.get_value(self.pc + 2, &self.mem);
+                let dest = dest.get_destination(self.pc + 3, &self.mem);
+                self.mem[dest] = x * y;
+                self.pc += opcode.advance();
             },
             Opcode::Input { mode } => {
-                let dest = mode.get_destination(*pc + 1, mem);
-                mem[dest] = input[*in_idx];
-                *pc += self.advance();
-                *in_idx += 1;
+                let dest = mode.get_destination(self.pc + 1, &self.mem);
+                self.mem[dest] = self.input[self.in_idx];
+                self.pc += opcode.advance();
+                self.in_idx += 1;
             },
             Opcode::Output { mode } => {
-                let v = mode.get_value(*pc + 1, mem);
-                *pc += self.advance();
+                let v = mode.get_value(self.pc + 1, &self.mem);
+                self.pc += opcode.advance();
+                self.output.push(v);
                 return Some(v);
             },
             Opcode::JumpIfTrue { a, b } => {
-                let x = a.get_value(*pc + 1, mem);
-                let y = b.get_value(*pc + 2, mem);
+                let x = a.get_value(self.pc + 1, &self.mem);
+                let y = b.get_value(self.pc + 2, &self.mem);
                 if x != 0 {
-                    *pc = y as usize;
+                    self.pc = y as usize;
                 } else {
-                    *pc += self.advance();
+                    self.pc += opcode.advance();
                 }
             },
             Opcode::JumpIfFalse { a, b } => {
-                let x = a.get_value(*pc + 1, mem);
-                let y = b.get_value(*pc + 2, mem);
+                let x = a.get_value(self.pc + 1, &self.mem);
+                let y = b.get_value(self.pc + 2, &self.mem);
                 if x == 0 {
-                    *pc = y as usize;
+                    self.pc = y as usize;
                 } else {
-                    *pc += self.advance();
+                    self.pc += opcode.advance();
                 }
             },
             Opcode::LessThan { a, b, dest } => {
-                let x = a.get_value(*pc + 1, mem);
-                let y = b.get_value(*pc + 2, mem);
-                let dest = dest.get_destination(*pc + 3, mem);
+                let x = a.get_value(self.pc + 1, &self.mem);
+                let y = b.get_value(self.pc + 2, &self.mem);
+                let dest = dest.get_destination(self.pc + 3, &self.mem);
                 if x < y {
-                    mem[dest] = 1;
+                    self.mem[dest] = 1;
                 } else {
-                    mem[dest] = 0;
+                    self.mem[dest] = 0;
                 }
-                *pc += self.advance();
+                self.pc += opcode.advance();
             },
             Opcode::Equals { a, b, dest } => {
-                let x = a.get_value(*pc + 1, mem);
-                let y = b.get_value(*pc + 2, mem);
-                let dest = dest.get_destination(*pc + 3, mem);
+                let x = a.get_value(self.pc + 1, &self.mem);
+                let y = b.get_value(self.pc + 2, &self.mem);
+                let dest = dest.get_destination(self.pc + 3, &self.mem);
                 if x == y {
-                    mem[dest] = 1;
+                    self.mem[dest] = 1;
                 } else {
-                    mem[dest] = 0;
+                    self.mem[dest] = 0;
                 }
-                *pc += self.advance();
+                self.pc += opcode.advance();
             },
-            _ => panic!("Invalid opcode to compute {:?}", self),
+            _ => panic!("Invalid opcode to compute {:?}", opcode),
         }
 
         None
     }
-}
 
-pub fn run_prog(mem: &mut Vec<i32>, input: Vec<i32>) -> Vec<i32> {
-    let mut output = vec![];
-    let mut in_idx = 0;
-    let mut pc = 0;
-    loop {
-        let opcode = Opcode::parse(mem[pc]);
-        if opcode == Opcode::Halt { break; }
-        if let Some(ret) = opcode.compute(&mut pc, mem, &input, &mut in_idx) {
-            output.push(ret);
+    pub fn new(mem: Vec<i32>, input: Vec<i32>) -> Self {
+        Self {
+            mem,
+            input,
+            output: vec![],
+            pc: 0,
+            in_idx: 0,
         }
     }
 
-    output
+    pub fn reset(&mut self, input: Vec<i32>) {
+        self.input = input;
+        self.output = vec![];
+        self.in_idx = 0;
+        self.pc = 0;
+    }
+
+    pub fn run(&mut self) -> Option<i32> {
+        loop {
+            let opcode = Opcode::parse(self.mem[self.pc]);
+            if opcode == Opcode::Halt { break; }
+            self.process_opcode(opcode);
+        }
+
+        if let Some(v) = self.output.last() {
+            Some(*v)
+        } else {
+            None
+        }
+    }
 }
 
