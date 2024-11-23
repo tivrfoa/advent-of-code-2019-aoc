@@ -167,7 +167,7 @@ impl Program {
                 self.pc += opcode.advance();
             },
             Opcode::Input { mode } => {
-                println!("   reading input");
+                // println!("   reading input");
                 if self.in_idx == self.input.len() {
                     return RunStatus::NeedInput;
                 }
@@ -241,7 +241,6 @@ impl Program {
     pub fn run(&mut self, mut input: Vec<i32>) -> RunStatus {
         use RunStatus::*;
 
-        // self.pc = 0; // TODO why?
         self.input.append(&mut input);
         let prev_out_len = self.output.len();
         loop {
@@ -252,16 +251,11 @@ impl Program {
             }
         }
 
-        if let Some(v) = self.output.last() {
-            Output(*v)
-        } else {
+        if prev_out_len == self.output.len() {
             NoOutput
+        } else {
+            Output(*self.output.last().unwrap())
         }
-        //if prev_out_len == self.output.len() {
-        //    NoOutput
-        //} else {
-        //    Output(*self.output.last().unwrap())
-        //}
     }
 }
 

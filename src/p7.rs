@@ -28,37 +28,36 @@ pub fn p1(input: &str) -> i32 {
 }
 
 pub fn p2(input: &str) -> i32 {
-    // let mut mem: Vec<i32> = input.split(',').map(|s| s.parse::<i32>().unwrap()).collect();
-    // let mut max = 0;
-    // let mut amplifiers = vec![];
+    let mut mem: Vec<i32> = input.split(',').map(|s| s.parse::<i32>().unwrap()).collect();
+    let mut max = 0;
 
-    // for perms in (5..10).permutations() {
-    //     for i in 0..5 {
-    //         let mut prog = Program::new(mem.clone());
-    //         prog.run(vec![perms[i]]);
-    //         amplifiers.push(prog);
-    //     }
+    for perms in (5..10).permutations() {
+        let mut amplifiers = vec![Program::new(mem.clone()); 5];
+        for i in 0..5 {
+            amplifiers[i].run(vec![perms[i]]);
+        }
 
-    //     let mut v = 0;
-    //     'l: loop {
-    //         for i in 0..5 {
-    //             let loc = amplifiers[i].output.len();
-    //             let resp = amplifiers[i].run(vec![v]);
-    //             if loc == amplifiers[i].output.len() {
-    //                 assert!(resp.is_none());
-    //                 assert_eq!(0, i);
-    //                 break 'l;
-    //             }
-    //             assert_eq!(loc + 1, amplifiers[i].output.len());
-    //             v = amplifiers[i].output[loc];
-    //         }
-    //     }
-    //     max = max.max(v);
-    // }
+        let mut v = 0;
 
-    // println!("{}", max);
-    // max
-    0
+        'l: loop {
+            for i in 0..5 {
+                let loc = amplifiers[i].output.len();
+                let resp = amplifiers[i].run(vec![v]);
+                if loc == amplifiers[i].output.len() {
+                    assert!(resp == RunStatus::NoOutput);
+                    assert_eq!(0, i);
+                    break 'l;
+                }
+                assert_eq!(loc + 1, amplifiers[i].output.len());
+                v = amplifiers[i].output[loc];
+            }
+        }
+        max = max.max(v);
+    }
+
+    println!("{}", max);
+
+    max
 }
 
 
@@ -71,6 +70,11 @@ mod tests {
     #[test]
     fn test_p1() {
         assert_eq!(359142, p1(IN));
+    }
+
+    #[test]
+    fn test_p2() {
+        assert_eq!(4374895, p2(IN));
     }
 }
 
