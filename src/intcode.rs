@@ -77,10 +77,10 @@ impl Opcode {
     fn parse(n: i32) -> Self {
         let opcode_str = util::left_pad(n, 5, '0');
         // println!("opcode: {}", opcode_str);
-        let c_mode = (&opcode_str[0..1]).parse::<u8>().unwrap();
-        let b_mode = (&opcode_str[1..2]).parse::<u8>().unwrap();
-        let a_mode = (&opcode_str[2..3]).parse::<u8>().unwrap();
-        let oc = (&opcode_str[3..5]).parse::<u8>().unwrap();
+        let c_mode = opcode_str[0..1].parse::<u8>().unwrap();
+        let b_mode = opcode_str[1..2].parse::<u8>().unwrap();
+        let a_mode = opcode_str[2..3].parse::<u8>().unwrap();
+        let oc = opcode_str[3..5].parse::<u8>().unwrap();
 
         match oc {
             1 => Opcode::Add {

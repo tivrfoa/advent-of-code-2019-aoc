@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::collections::HashSet;
 
+#[allow(dead_code)]
 pub fn set(s: &str) -> HashSet<char> {
     let mut set = HashSet::new();
     s.chars().for_each(|c| {
@@ -9,12 +10,14 @@ pub fn set(s: &str) -> HashSet<char> {
     set
 }
 
+#[allow(dead_code)]
 pub fn sorted(s: &str) -> String {
     let mut chars: Vec<char> = s.chars().collect();
     chars.sort();
     chars.into_iter().collect()
 }
 
+#[allow(dead_code)]
 pub fn freq(s: &str) -> HashMap<char, usize> {
     let mut map = HashMap::new();
     s.chars().for_each(|c| {
@@ -23,6 +26,7 @@ pub fn freq(s: &str) -> HashMap<char, usize> {
     map
 }
 
+#[allow(dead_code)]
 pub fn left_pad<T: ToString>(data: T, len: usize, c: char) -> String {
     let mut ret = String::with_capacity(len);
     let s = data.to_string();
@@ -90,5 +94,12 @@ mod tests {
 
         // data length bigger than desired length
         assert_eq!("21111".to_string(), left_pad(21111, 4, '0'));
+    }
+
+    #[test]
+    fn test_permutations() {
+        let perms: Vec<Vec<i32>> = (0..5).permutations();
+        assert_eq!(120, perms.len());
+        assert_eq!(vec![0,1,2,3,4], perms[0]);
     }
 }
