@@ -12,7 +12,6 @@ pub fn p1(input: &str) -> i32 {
         let mut amplifiers = vec![Program::new(mem.clone()); 5];
         let mut v = 0;
         for (i, a) in perms.into_iter().enumerate() {
-            println!("----- perm {a}");
             v = match amplifiers[i].run(vec![a, v]) {
                 RunStatus::Output(v) => v,
                 RunStatus::NoOutput => {

@@ -168,6 +168,7 @@ impl Program {
             Opcode::Input { mode } => {
                 // println!("   reading input");
                 if self.in_idx == self.input.len() {
+                    // eprintln!("Need input");
                     return RunStatus::NeedInput;
                 }
                 let dest = mode.get_destination(self.pc + 1, &self.mem);
