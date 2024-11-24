@@ -8,48 +8,6 @@ enum ParameterMode {
     RelativeMode,
 }
 
-impl ParameterMode {
-    fn get_value(&self, idx: usize, mem: &HashMap<usize, i64>, relative_base: i64) -> i64 {
-        match self {
-            ParameterMode::PositionMode => {
-                match mem.get(&idx) {
-                    None => todo!(),
-                    Some(v) => match mem.get(&(*v as usize)) {
-                        None => mem[&0],
-                        Some(v) => *v,
-                    }
-                }
-            }
-            ParameterMode::ImmediateMode => match mem.get(&idx) {
-                    None => 0,
-                    Some(v) => *v,
-                },
-            ParameterMode::RelativeMode => {
-                match mem.get(&idx) {
-                    None => todo!(),
-                    Some(v) => mem[&((*v + relative_base) as usize)],
-                }
-            }
-        }
-    }
-
-    fn get_destination(&self, idx: usize, mem: &HashMap<usize, i64>, relative_base: i64) -> usize {
-        match self {
-            ParameterMode::PositionMode => match mem.get(&idx) {
-                Some(v) => *v as usize,
-                None => 0,
-            },
-            ParameterMode::ImmediateMode => {
-                panic!("How to handle this? is this valid?!");
-            }
-            ParameterMode::RelativeMode => match mem.get(&idx) {
-                Some(v) => (*v + relative_base) as usize,
-                None => todo!(),
-            },
-        }
-    }
-}
-
 impl From<u8> for ParameterMode {
     fn from(value: u8) -> Self {
         match value {
@@ -182,21 +140,61 @@ pub struct Program {
 }
 
 impl Program {
+    fn get_value(&self, idx: usize, parameter_mode: ParameterMode) -> i64 {
+        match parameter_mode {
+            ParameterMode::PositionMode => {
+                match self.mem.get(&idx) {
+                    None => todo!(),
+                    Some(v) => match self.mem.get(&(*v as usize)) {
+                        None => self.mem[&0],
+                        Some(v) => *v,
+                    }
+                }
+            }
+            ParameterMode::ImmediateMode => match self.mem.get(&idx) {
+                    None => 0,
+                    Some(v) => *v,
+                },
+            ParameterMode::RelativeMode => {
+                match self.mem.get(&idx) {
+                    None => todo!(),
+                    Some(v) => self.mem[&((*v + self.relative_base) as usize)],
+                }
+            }
+        }
+    }
+
+    fn get_destination(&self, idx: usize, parameter_mode: ParameterMode) -> usize {
+        match parameter_mode {
+            ParameterMode::PositionMode => match self.mem.get(&idx) {
+                Some(v) => *v as usize,
+                None => 0,
+            },
+            ParameterMode::ImmediateMode => {
+                panic!("How to handle this? is this valid?!");
+            }
+            ParameterMode::RelativeMode => match self.mem.get(&idx) {
+                Some(v) => (*v + self.relative_base) as usize,
+                None => todo!(),
+            },
+        }
+    }
+
     /// Process operation and advance program counter
     /// @return optional output
     fn process_opcode(&mut self, opcode: Opcode) -> RunStatus {
         match opcode {
             Opcode::Add { a, b, dest } => {
-                let x = a.get_value(self.pc + 1, &self.mem, self.relative_base);
-                let y = b.get_value(self.pc + 2, &self.mem, self.relative_base);
-                let dest = dest.get_destination(self.pc + 3, &self.mem, self.relative_base);
+                let x = self.get_value(self.pc + 1, a);
+                let y = self.get_value(self.pc + 2, b);
+                let dest = self.get_destination(self.pc + 3, dest);
                 self.mem.insert(dest, x + y);
                 self.pc += opcode.advance();
             }
             Opcode::Multiply { a, b, dest } => {
-                let x = a.get_value(self.pc + 1, &self.mem, self.relative_base);
-                let y = b.get_value(self.pc + 2, &self.mem, self.relative_base);
-                let dest = dest.get_destination(self.pc + 3, &self.mem, self.relative_base);
+                let x = self.get_value(self.pc + 1, a);
+                let y = self.get_value(self.pc + 2, b);
+                let dest = self.get_destination(self.pc + 3, dest);
                 self.mem.insert(dest, x * y);
                 self.pc += opcode.advance();
             }
@@ -206,21 +204,21 @@ impl Program {
                     // eprintln!("Need input");
                     return RunStatus::NeedInput;
                 }
-                let dest = mode.get_destination(self.pc + 1, &self.mem, self.relative_base);
+                let dest = self.get_destination(self.pc + 1, mode);
                 self.mem.insert(dest, self.input[self.in_idx]);
                 self.pc += opcode.advance();
                 self.in_idx += 1;
             }
             Opcode::Output { mode } => {
-                let v = mode.get_value(self.pc + 1, &self.mem, self.relative_base);
+                let v = self.get_value(self.pc + 1, mode);
                 self.pc += opcode.advance();
                 println!("{v}");
                 self.output.push(v);
                 return RunStatus::Output(v);
             }
             Opcode::JumpIfTrue { a, b } => {
-                let x = a.get_value(self.pc + 1, &self.mem, self.relative_base);
-                let y = b.get_value(self.pc + 2, &self.mem, self.relative_base);
+                let x = self.get_value(self.pc + 1, a);
+                let y = self.get_value(self.pc + 2, b);
                 if x != 0 {
                     self.pc = y as usize;
                 } else {
@@ -228,8 +226,8 @@ impl Program {
                 }
             }
             Opcode::JumpIfFalse { a, b } => {
-                let x = a.get_value(self.pc + 1, &self.mem, self.relative_base);
-                let y = b.get_value(self.pc + 2, &self.mem, self.relative_base);
+                let x = self.get_value(self.pc + 1, a);
+                let y = self.get_value(self.pc + 2, b);
                 if x == 0 {
                     self.pc = y as usize;
                 } else {
@@ -237,9 +235,9 @@ impl Program {
                 }
             }
             Opcode::LessThan { a, b, dest } => {
-                let x = a.get_value(self.pc + 1, &self.mem, self.relative_base);
-                let y = b.get_value(self.pc + 2, &self.mem, self.relative_base);
-                let dest = dest.get_destination(self.pc + 3, &self.mem, self.relative_base);
+                let x = self.get_value(self.pc + 1, a);
+                let y = self.get_value(self.pc + 2, b);
+                let dest = self.get_destination(self.pc + 3, dest);
                 if x < y {
                     self.mem.insert(dest, 1);
                 } else {
@@ -248,9 +246,9 @@ impl Program {
                 self.pc += opcode.advance();
             }
             Opcode::Equals { a, b, dest } => {
-                let x = a.get_value(self.pc + 1, &self.mem, self.relative_base);
-                let y = b.get_value(self.pc + 2, &self.mem, self.relative_base);
-                let dest = dest.get_destination(self.pc + 3, &self.mem, self.relative_base);
+                let x = self.get_value(self.pc + 1, a);
+                let y = self.get_value(self.pc + 2, b);
+                let dest = self.get_destination(self.pc + 3, dest);
                 if x == y {
                     self.mem.insert(dest, 1);
                 } else {
@@ -259,7 +257,7 @@ impl Program {
                 self.pc += opcode.advance();
             }
             Opcode::RelativeBaseOffset { a } => {
-                let v = a.get_value(self.pc + 1, &self.mem, self.relative_base);
+                let v = self.get_value(self.pc + 1, a);
                 self.pc += opcode.advance();
                 self.relative_base += v;
             }
