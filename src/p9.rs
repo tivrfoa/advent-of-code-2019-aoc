@@ -12,10 +12,7 @@ pub fn p1(input: &str) -> i64 {
         mem.insert(i, v);
     }
 
-    let mut prog = Program::new(mem);
-    let ret = prog.run(vec![1]).unwrap();
-
-    ret
+    Program::new(mem).run(vec![1]).unwrap()
 }
 
 pub fn p2(input: &str) -> i64 {
@@ -29,10 +26,7 @@ pub fn p2(input: &str) -> i64 {
         mem.insert(i, v);
     }
 
-    let mut prog = Program::new(mem);
-    let ret = prog.run(vec![2]).unwrap();
-
-    ret
+    Program::new(mem).run(vec![2]).unwrap()
 }
 
 #[cfg(test)]
