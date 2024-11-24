@@ -19,6 +19,8 @@ impl From<u8> for ParameterMode {
     }
 }
 
+use ParameterMode::*;
+
 #[derive(Debug, PartialEq)]
 enum Opcode {
     Add {
@@ -142,38 +144,34 @@ pub struct Program {
 impl Program {
     fn get_value(&self, idx: usize, parameter_mode: ParameterMode) -> i64 {
         match parameter_mode {
-            ParameterMode::PositionMode => {
-                match self.mem.get(&idx) {
-                    None => todo!(),
-                    Some(v) => match self.mem.get(&(*v as usize)) {
-                        None => self.mem[&0],
-                        Some(v) => *v,
-                    }
-                }
-            }
-            ParameterMode::ImmediateMode => match self.mem.get(&idx) {
-                    None => 0,
+            PositionMode => match self.mem.get(&idx) {
+                Some(v) => match self.mem.get(&(*v as usize)) {
                     Some(v) => *v,
-                },
-            ParameterMode::RelativeMode => {
-                match self.mem.get(&idx) {
-                    None => todo!(),
-                    Some(v) => self.mem[&((*v + self.relative_base) as usize)],
+                    None => self.mem[&0],
                 }
+                None => todo!(),
+            }
+            ImmediateMode => match self.mem.get(&idx) {
+                Some(v) => *v,
+                None => 0,
+            },
+            RelativeMode => match self.mem.get(&idx) {
+                Some(v) => self.mem[&((*v + self.relative_base) as usize)],
+                None => todo!(),
             }
         }
     }
 
     fn get_destination(&self, idx: usize, parameter_mode: ParameterMode) -> usize {
         match parameter_mode {
-            ParameterMode::PositionMode => match self.mem.get(&idx) {
+            PositionMode => match self.mem.get(&idx) {
                 Some(v) => *v as usize,
                 None => 0,
             },
-            ParameterMode::ImmediateMode => {
+            ImmediateMode => {
                 panic!("How to handle this? is this valid?!");
             }
-            ParameterMode::RelativeMode => match self.mem.get(&idx) {
+            RelativeMode => match self.mem.get(&idx) {
                 Some(v) => (*v + self.relative_base) as usize,
                 None => todo!(),
             },
