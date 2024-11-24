@@ -4,9 +4,9 @@ pub fn p1(input: &str) -> usize {
     let map = process_input(input);
     let asteroids = find_asteroids(&map);
     let center = find_best_monitoring_station(&asteroids);
-    println!("Best station: {:?}", center.1);
+    println!("Best station: {:?}", center.0);
 
-    center.0
+    center.1
 }
 
 // Convert input string to 2D vector of characters
@@ -49,7 +49,7 @@ fn red(x: isize, y: isize) -> (isize, isize) {
 }
 
 // Find the asteroid with the most visible asteroids
-fn find_best_monitoring_station(asteroids: &HashSet<(usize, usize)>) -> (usize, (usize, usize)) {
+fn find_best_monitoring_station0(asteroids: &HashSet<(usize, usize)>) -> (usize, (usize, usize)) {
     let mut max = 0;
     let best_location = asteroids
         .iter()
@@ -71,7 +71,25 @@ fn find_best_monitoring_station(asteroids: &HashSet<(usize, usize)>) -> (usize, 
     (max, best_location.cloned().unwrap())
 }
 
-
+// Find the asteroid with the most visible asteroids, return both the asteroid and count
+fn find_best_monitoring_station(asteroids: &HashSet<(usize, usize)>) -> ((usize, usize), usize) {
+    asteroids
+        .iter()
+        .map(|&a| {
+            let visible = asteroids
+                .iter()
+                .filter(|&&b| b != a)
+                .map(|&b| {
+                    let (dx, dy) = (b.0 as isize - a.0 as isize, b.1 as isize - a.1 as isize);
+                    red(dx, dy)
+                })
+                .collect::<HashSet<_>>()
+                .len();
+            (a, visible)
+        })
+        .max_by_key(|&(_, count)| count)
+        .unwrap()
+}
 
 
 #[cfg(test)]
