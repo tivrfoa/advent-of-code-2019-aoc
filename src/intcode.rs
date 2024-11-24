@@ -9,7 +9,7 @@ enum ParameterMode {
 }
 
 impl ParameterMode {
-    fn get_value(&self, idx: usize, mem: &HashMap<usize, i128>, relative_base: i128) -> i128 {
+    fn get_value(&self, idx: usize, mem: &HashMap<usize, i64>, relative_base: i64) -> i64 {
         match self {
             ParameterMode::PositionMode => {
                 match mem.get(&idx) {
@@ -33,7 +33,7 @@ impl ParameterMode {
         }
     }
 
-    fn get_destination(&self, idx: usize, mem: &HashMap<usize, i128>, relative_base: i128) -> usize {
+    fn get_destination(&self, idx: usize, mem: &HashMap<usize, i64>, relative_base: i64) -> usize {
         match self {
             ParameterMode::PositionMode => match mem.get(&idx) {
                 Some(v) => *v as usize,
@@ -173,12 +173,12 @@ impl Opcode {
 
 #[derive(Clone)]
 pub struct Program {
-    pub mem: HashMap<usize, i128>,
-    input: Vec<i128>,
-    pub output: Vec<i128>,
+    pub mem: HashMap<usize, i64>,
+    input: Vec<i64>,
+    pub output: Vec<i64>,
     in_idx: usize,
     pc: usize,
-    relative_base: i128,
+    relative_base: i64,
 }
 
 impl Program {
@@ -269,7 +269,7 @@ impl Program {
         RunStatus::NoOutput
     }
 
-    pub fn new(mem: HashMap<usize, i128>) -> Self {
+    pub fn new(mem: HashMap<usize, i64>) -> Self {
         Self {
             mem,
             input: vec![],
@@ -280,7 +280,7 @@ impl Program {
         }
     }
 
-    pub fn run(&mut self, mut input: Vec<i128>) -> RunStatus {
+    pub fn run(&mut self, mut input: Vec<i64>) -> RunStatus {
         use RunStatus::*;
 
         self.input.append(&mut input);
@@ -306,12 +306,12 @@ impl Program {
 #[derive(Debug, PartialEq)]
 pub enum RunStatus {
     NeedInput,
-    Output(i128),
+    Output(i64),
     NoOutput,
 }
 
 impl RunStatus {
-    pub fn unwrap(&self) -> i128 {
+    pub fn unwrap(&self) -> i64 {
         if let RunStatus::Output(v) = self {
             *v
         } else {
