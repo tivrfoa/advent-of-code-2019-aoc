@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::{cmp::Ordering, collections::{HashMap, HashSet}, f64::consts::PI};
 
 pub fn p1(input: &str) -> usize {
     let map = process_input(input);
@@ -7,6 +7,17 @@ pub fn p1(input: &str) -> usize {
     println!("Best station: {:?}", center.0);
 
     center.1
+}
+
+pub fn p2(input: &str) -> usize {
+    let map = process_input(input);
+    let asteroids = find_asteroids(&map);
+    let (center, _) = find_best_monitoring_station(&asteroids);
+    let ret = vaporize_asteroids(&asteroids, center);
+    dbg!(ret);
+
+    let ans = ret.0 * 100 + ret.1;
+    ans
 }
 
 // Convert input string to 2D vector of characters
@@ -89,6 +100,56 @@ fn find_best_monitoring_station(asteroids: &HashSet<(usize, usize)>) -> ((usize,
         })
         .max_by_key(|&(_, count)| count)
         .unwrap()
+}
+
+fn vaporize_asteroids(station: (usize, usize), asteroids: &HashSet<(usize, usize)>) -> Vec<(usize, usize)> {
+    let mut asteroid_map: HashMap<(f64, f64), (usize, usize)> = HashMap::new();
+    let mut angles: Vec<f64> = Vec::new();
+
+    for &asteroid in asteroids {
+        if asteroid == station {
+            continue; // Skip the station itself
+        }
+        let (dx, dy) = (asteroid.0 as f64 - station.0 as f64, asteroid.1 as f64 - station.1 as f64);
+        let angle = (dx.atan2(dy) + 2.0 * PI) % (2.0 * PI); // Angle in radians, adjusted for clockwise rotation
+        let distance = (dx * dx + dy * dy).sqrt(); // Distance for sorting
+
+        if !asteroid_map.contains_key(&(angle, 0.0)) {
+            angles.push(angle);
+        }
+        asteroid_map.entry((angle, distance)).or_insert(asteroid);
+    }
+
+    angles.sort_by(|a, b| {
+        if (a - b).abs() > PI {
+            b.partial_cmp(a).unwrap_or(Ordering::Equal)
+        } else {
+            a.partial_cmp(b).unwrap_or(Ordering::Equal)
+        }
+    });
+
+    let mut vaporization_order = Vec::new();
+    let mut rotation_count = 0;
+    let mut distance_map: HashMap<f64, Vec<((f64, f64), (usize, usize))>> = HashMap::new();
+
+    for (&angle, &asteroid) in &asteroid_map {
+        distance_map.entry(angle).or_default().push(((angle, (asteroid.0 as f64 - station.0 as f64).hypot(asteroid.1 as f64 - station.1 as f64)), asteroid));
+    }
+
+    while !asteroid_map.is_empty() {
+        for &angle in &angles {
+            if let Some(asteroid) = distance_map.get_mut(&angle).and_then(|v| v.pop().map(|(_, a)| a)) {
+                vaporization_order.push(asteroid);
+                rotation_count += 1;
+                if rotation_count == 200 {
+                    return vaporization_order;
+                }
+                asteroid_map.remove(&(angle, 0.0)); // Remove this asteroid from the map after vaporization
+            }
+        }
+    }
+
+    vaporization_order
 }
 
 
