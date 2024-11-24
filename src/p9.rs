@@ -19,6 +19,23 @@ pub fn p1(input: &str) -> i128 {
     ret
 }
 
+pub fn p2(input: &str) -> i128 {
+    let mem_vec: Vec<i128> = input
+        .split(',')
+        .map(|s| s.parse::<i128>().unwrap())
+        .collect();
+
+    let mut mem: HashMap<usize, i128> = HashMap::with_capacity(mem_vec.len() * 2);
+    for (i, v) in mem_vec.into_iter().enumerate() {
+        mem.insert(i, v);
+    }
+
+    let mut prog = Program::new(mem);
+    let ret = prog.run(vec![2]).unwrap();
+
+    ret
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -26,6 +43,11 @@ mod tests {
     #[test]
     fn test_p1() {
         assert_eq!(4288078517, p1(IN));
+    }
+
+    #[test]
+    fn test_p2() {
+        assert_eq!(69256, p2(IN));
     }
 }
 
