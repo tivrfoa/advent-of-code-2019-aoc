@@ -1,11 +1,17 @@
 use crate::intcode::*;
 use crate::util::*;
+use std::collections::HashMap;
 
 pub fn p1(input: &str) -> i64 {
-    let mem: Vec<i64> = input
+    let mem_vec: Vec<i64> = input
         .split(',')
         .map(|s| s.parse::<i64>().unwrap())
         .collect();
+
+    let mut mem: HashMap<usize, i64> = HashMap::with_capacity(mem_vec.len() * 2);
+    for (i, v) in mem_vec.into_iter().enumerate() {
+        mem.insert(i, v);
+    }
 
     let mut prog = Program::new(mem.clone());
     let ret = prog.run(vec![1]).unwrap();

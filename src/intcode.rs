@@ -1,4 +1,5 @@
 use crate::util;
+use std::collections::HashMap;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum ParameterMode {
@@ -8,17 +9,42 @@ enum ParameterMode {
 }
 
 impl ParameterMode {
-    fn get_value(&self, idx: usize, mem: &[i64], relative_base: i64) -> i64 {
+    fn get_value(&self, idx: usize, mem: &HashMap<usize, i64>, relative_base: i64) -> i64 {
         match self {
-            ParameterMode::PositionMode => mem[mem[idx] as usize],
-            ParameterMode::ImmediateMode => mem[idx],
-            ParameterMode::RelativeMode => mem[(mem[idx] + relative_base) as usize],
+            ParameterMode::PositionMode => {
+                match mem.get(&idx) {
+                    None => mem[&0],
+                    Some(v) => match mem.get(&(*v as usize)) {
+                        None => mem[&0],
+                        Some(v) => *v,
+                    }
+                }
+            }
+            ParameterMode::ImmediateMode => match mem.get(&idx) {
+                    None => 0,
+                    Some(v) => *v,
+                },
+            ParameterMode::RelativeMode => {
+                match mem.get(&idx) {
+                    None => match mem.get(&(relative_base as usize)) {
+                        Some(v) => *v,
+                        None => 0,
+                    }
+                    Some(v) => match mem.get(&((v + relative_base) as usize)) {
+                        None => mem[&0],
+                        Some(v) => *v,
+                    }
+                }
+            }
         }
     }
 
-    fn get_destination(&self, idx: usize, mem: &[i64], relative_base: i64) -> usize {
+    fn get_destination(&self, idx: usize, mem: &HashMap<usize, i64>, relative_base: i64) -> usize {
         match self {
-            ParameterMode::PositionMode => mem[idx] as usize,
+            ParameterMode::PositionMode => match mem.get(&idx) {
+                Some(v) => *v as usize,
+                None => 0,
+            },
             ParameterMode::ImmediateMode => {
                 panic!("How to handle this? is this valid?!");
             }
@@ -150,12 +176,11 @@ impl Opcode {
 
 #[derive(Clone)]
 pub struct Program {
-    pub mem: Vec<i64>,
+    pub mem: HashMap<usize, i64>,
     input: Vec<i64>,
     pub output: Vec<i64>,
     in_idx: usize,
     pc: usize,
-    // TODO when is this value updated?
     relative_base: i64,
 }
 
@@ -168,14 +193,14 @@ impl Program {
                 let x = a.get_value(self.pc + 1, &self.mem, self.relative_base);
                 let y = b.get_value(self.pc + 2, &self.mem, self.relative_base);
                 let dest = dest.get_destination(self.pc + 3, &self.mem, self.relative_base);
-                self.mem[dest] = x + y;
+                self.mem.insert(dest, x + y);
                 self.pc += opcode.advance();
             }
             Opcode::Multiply { a, b, dest } => {
                 let x = a.get_value(self.pc + 1, &self.mem, self.relative_base);
                 let y = b.get_value(self.pc + 2, &self.mem, self.relative_base);
                 let dest = dest.get_destination(self.pc + 3, &self.mem, self.relative_base);
-                self.mem[dest] = x * y;
+                self.mem.insert(dest, x * y);
                 self.pc += opcode.advance();
             }
             Opcode::Input { mode } => {
@@ -185,7 +210,7 @@ impl Program {
                     return RunStatus::NeedInput;
                 }
                 let dest = mode.get_destination(self.pc + 1, &self.mem, self.relative_base);
-                self.mem[dest] = self.input[self.in_idx];
+                self.mem.insert(dest, self.input[self.in_idx]);
                 self.pc += opcode.advance();
                 self.in_idx += 1;
             }
@@ -218,9 +243,9 @@ impl Program {
                 let y = b.get_value(self.pc + 2, &self.mem, self.relative_base);
                 let dest = dest.get_destination(self.pc + 3, &self.mem, self.relative_base);
                 if x < y {
-                    self.mem[dest] = 1;
+                    self.mem.insert(dest, 1);
                 } else {
-                    self.mem[dest] = 0;
+                    self.mem.insert(dest, 0);
                 }
                 self.pc += opcode.advance();
             }
@@ -229,9 +254,9 @@ impl Program {
                 let y = b.get_value(self.pc + 2, &self.mem, self.relative_base);
                 let dest = dest.get_destination(self.pc + 3, &self.mem, self.relative_base);
                 if x == y {
-                    self.mem[dest] = 1;
+                    self.mem.insert(dest, 1);
                 } else {
-                    self.mem[dest] = 0;
+                    self.mem.insert(dest, 0);
                 }
                 self.pc += opcode.advance();
             }
@@ -246,7 +271,7 @@ impl Program {
         RunStatus::NoOutput
     }
 
-    pub fn new(mem: Vec<i64>) -> Self {
+    pub fn new(mem: HashMap<usize, i64>) -> Self {
         Self {
             mem,
             input: vec![],
@@ -263,7 +288,7 @@ impl Program {
         self.input.append(&mut input);
         let prev_out_len = self.output.len();
         loop {
-            let opcode = Opcode::parse(self.mem[self.pc] as i32);
+            let opcode = Opcode::parse(self.mem[&self.pc] as i32);
             if opcode == Opcode::Halt {
                 break;
             }
