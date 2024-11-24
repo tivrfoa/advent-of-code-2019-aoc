@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, collections::{HashMap, HashSet}, f64::consts::PI};
+use std::{cmp::Ordering, collections::{HashMap, HashSet, VecDeque}, f64::consts::PI};
 
 pub fn p1(input: &str) -> usize {
     let map = process_input(input);
@@ -111,7 +111,7 @@ fn vaporize_asteroids(station: (usize, usize), asteroids: &HashSet<(usize, usize
         .filter(|&&asteroid| asteroid != station)
         .map(|&asteroid| {
             let (dx, dy) = (asteroid.0 as f64 - station.0 as f64, asteroid.1 as f64 - station.1 as f64);
-            let angle = (dx.atan2(dy) + 2.0 * PI) % (2.0 * PI); // Angle in radians, adjusted for clockwise rotation
+            let angle = (dy.atan2(-dx) + 2.0 * PI) % (2.0 * PI); // Angle in radians, corrected for clockwise rotation
             let distance = dx.hypot(dy);
             ((angle, distance), asteroid)
         })
@@ -119,36 +119,30 @@ fn vaporize_asteroids(station: (usize, usize), asteroids: &HashSet<(usize, usize
 
     // Sort by angle first, then by distance
     asteroid_angles.sort_by(|a, b| {
-        let angle_cmp = if (a.0.0 - b.0.0).abs() > PI {
-            b.0.0.partial_cmp(&a.0.0).unwrap_or(Ordering::Equal)
+        let angle_diff = (a.0.0 - b.0.0 + 2.0 * PI) % (2.0 * PI);
+        if angle_diff < PI {
+            angle_diff.partial_cmp(&0.0).unwrap_or(Ordering::Equal)
         } else {
-            a.0.0.partial_cmp(&b.0.0).unwrap_or(Ordering::Equal)
-        };
-        if angle_cmp == Ordering::Equal {
-            a.0.1.partial_cmp(&b.0.1).unwrap_or(Ordering::Equal) // If angles are close enough, sort by distance
-        } else {
-            angle_cmp
+            (2.0 * PI - angle_diff).partial_cmp(&0.0).unwrap_or(Ordering::Equal)
         }
+        .then(a.0.1.partial_cmp(&b.0.1).unwrap_or(Ordering::Equal))
     });
 
     let mut vaporization_order = Vec::new();
     let mut rotation_count = 0;
-    let mut current_index = 0;
+    let mut asteroid_queue = VecDeque::from(asteroid_angles);
 
-    while !asteroid_angles.is_empty() {
-        if let Some((_, asteroid)) = asteroid_angles.get(current_index) {
-            vaporization_order.push(*asteroid);
+    while !asteroid_queue.is_empty() {
+        if let Some((_, asteroid)) = asteroid_queue.pop_front() {
+            vaporization_order.push(asteroid);
             rotation_count += 1;
+            
             if rotation_count == 200 {
                 return vaporization_order;
             }
-            asteroid_angles.remove(current_index);
-            current_index %= asteroid_angles.len(); // Cycle back to the start if we've gone through all angles
-        } else {
-            current_index += 1;
         }
     }
-    
+
     vaporization_order
 }
 
