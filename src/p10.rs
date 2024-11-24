@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, collections::{HashMap, HashSet, VecDeque}, f64::consts::PI};
+use std::{cmp::Ordering, collections::{BTreeSet, HashMap, HashSet, VecDeque}, f64::consts::PI};
 
 pub fn p1(input: &str) -> usize {
     let map = process_input(input);
@@ -13,14 +13,9 @@ pub fn p2(input: &str) -> usize {
     let map = process_input(input);
     let asteroids = find_asteroids(&map);
     let (center, _) = find_best_monitoring_station(&asteroids);
-    let vaporization_order = vaporize_asteroids(center, &asteroids);
-    
-    // For part two, find the 200th asteroid vaporized
-    let two_hundredth = vaporization_order.get(199).unwrap_or(&(0, 0));
-    let result = two_hundredth.0 * 100 + two_hundredth.1;
-    println!("The 200th asteroid vaporized is at {:?}, result: {}", two_hundredth, result);
-
-    result
+    let ret = vaporize_asteroids(center, &asteroids);
+    dbg!(ret);
+    ret
 }
 
 // Convert input string to 2D vector of characters
@@ -105,45 +100,48 @@ fn find_best_monitoring_station(asteroids: &HashSet<(usize, usize)>) -> ((usize,
         .unwrap()
 }
 
-fn vaporize_asteroids(station: (usize, usize), asteroids: &HashSet<(usize, usize)>) -> Vec<(usize, usize)> {
-    let mut asteroid_angles: Vec<((f64, f64), (usize, usize))> = asteroids
-        .iter()
-        .filter(|&&asteroid| asteroid != station)
-        .map(|&asteroid| {
-            let (dx, dy) = (asteroid.0 as f64 - station.0 as f64, asteroid.1 as f64 - station.1 as f64);
-            let angle = (dy.atan2(-dx) + 2.0 * PI) % (2.0 * PI); // Angle in radians, corrected for clockwise rotation
-            let distance = dx.hypot(dy);
-            ((angle, distance), asteroid)
-        })
-        .collect();
+fn vaporize_asteroids(station: (usize, usize), asteroids: &HashSet<(usize, usize)>) -> usize {
+    let mut dirs: HashMap<(isize, isize), Vec<(isize, (usize, usize))>> = HashMap::new();
+    let mut dirs_sorted: HashMap<(isize, isize), VecDeque<(isize, (usize, usize))>> = HashMap::new();
 
-    // Sort by angle first, then by distance
-    asteroid_angles.sort_by(|a, b| {
-        let angle_diff = (a.0.0 - b.0.0 + 2.0 * PI) % (2.0 * PI);
-        if angle_diff < PI {
-            angle_diff.partial_cmp(&0.0).unwrap_or(Ordering::Equal)
-        } else {
-            (2.0 * PI - angle_diff).partial_cmp(&0.0).unwrap_or(Ordering::Equal)
+    for &b in asteroids {
+        if b == station {
+            continue;
         }
-        .then(a.0.1.partial_cmp(&b.0.1).unwrap_or(Ordering::Equal))
+        let (dx, dy) = (b.0 as isize - station.0 as isize, b.1 as isize - station.1 as isize);
+        let norm = dx.pow(2) + dy.pow(2);
+        dirs.entry(red(dx, dy)).or_default().push((norm, b));
+    }
+
+    // Sort asteroids by distance for each direction
+    for (k, asteroids) in dirs.iter_mut() {
+        asteroids.sort();
+        dirs_sorted.insert(*k, asteroids.clone().into_iter().collect());
+    }
+
+    // Sort directions by clockwise angle from up
+    let mut s_dirs: Vec<(isize,isize)> = dirs.keys().cloned().collect();
+    s_dirs.sort_by(|a,b| {
+        let t = -(a.1 as f32).atan2(a.0 as f32);
+        let u = -(b.1 as f32).atan2(b.0 as f32);
+        t.total_cmp(&u)
     });
 
-    let mut vaporization_order = Vec::new();
-    let mut rotation_count = 0;
-    let mut asteroid_queue = VecDeque::from(asteroid_angles);
-
-    while !asteroid_queue.is_empty() {
-        if let Some((_, asteroid)) = asteroid_queue.pop_front() {
-            vaporization_order.push(asteroid);
-            rotation_count += 1;
-            
-            if rotation_count == 200 {
-                return vaporization_order;
+    let mut res = Vec::new();
+    while res.len() < 200 {
+        for &i in &s_dirs {
+            // if let Some(asteroid) = dirs.get_mut(&i).and_then(|v| v.pop()) {
+            if let Some(asteroid) = dirs_sorted.get_mut(&i).and_then(|v| v.pop_front()) {
+                res.push(asteroid);
+                if res.len() == 200 {
+                    break;
+                }
             }
         }
     }
 
-    vaporization_order
+    let (_, (x, y)) = res[199];
+    100 * y + x
 }
 
 
@@ -154,6 +152,11 @@ mod tests {
     #[test]
     fn test_p1() {
         assert_eq!(340, p1(IN));
+    }
+
+    #[test]
+    fn test_p2() {
+        assert_eq!(2628, p2(IN));
     }
 }
 
