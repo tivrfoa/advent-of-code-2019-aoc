@@ -122,9 +122,7 @@ fn vaporize_asteroids(station: (usize, usize), asteroids: &HashSet<(usize, usize
     // Sort directions by clockwise angle from up
     let mut s_dirs: Vec<(isize,isize)> = dirs.keys().cloned().collect();
     s_dirs.sort_by(|a,b| {
-        let t = -(a.1 as f32).atan2(a.0 as f32);
-        let u = -(b.1 as f32).atan2(b.0 as f32);
-        t.total_cmp(&u)
+        (-(a.1 as f32).atan2(a.0 as f32)).total_cmp(&-(b.1 as f32).atan2(b.0 as f32))
     });
 
     let mut res = Vec::new();
