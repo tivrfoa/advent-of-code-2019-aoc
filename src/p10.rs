@@ -102,7 +102,6 @@ fn find_best_monitoring_station(asteroids: &HashSet<(usize, usize)>) -> ((usize,
 
 fn vaporize_asteroids(station: (usize, usize), asteroids: &HashSet<(usize, usize)>) -> usize {
     let mut dirs: HashMap<(isize, isize), Vec<(isize, (usize, usize))>> = HashMap::new();
-    let mut dirs_sorted: HashMap<(isize, isize), VecDeque<(isize, (usize, usize))>> = HashMap::new();
 
     for &b in asteroids {
         if b == station {
@@ -115,8 +114,7 @@ fn vaporize_asteroids(station: (usize, usize), asteroids: &HashSet<(usize, usize
 
     // Sort asteroids by distance for each direction
     for (k, asteroids) in dirs.iter_mut() {
-        asteroids.sort();
-        dirs_sorted.insert(*k, asteroids.clone().into_iter().collect());
+        asteroids.sort_by(|a, b| b.cmp(&a));
     }
 
     // Sort directions by clockwise angle from up
@@ -129,7 +127,7 @@ fn vaporize_asteroids(station: (usize, usize), asteroids: &HashSet<(usize, usize
     while res.len() < 200 {
         for &i in &s_dirs {
             // if let Some(asteroid) = dirs.get_mut(&i).and_then(|v| v.pop()) {
-            if let Some(asteroid) = dirs_sorted.get_mut(&i).and_then(|v| v.pop_front()) {
+            if let Some(asteroid) = dirs.get_mut(&i).and_then(|v| v.pop()) {
                 res.push(asteroid);
                 if res.len() == 200 {
                     break;
