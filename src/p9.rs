@@ -2,22 +2,19 @@ use crate::intcode::*;
 use crate::util::*;
 use std::collections::HashMap;
 
-pub fn p1(input: &str) -> i64 {
-    let mem_vec: Vec<i64> = input
+pub fn p1(input: &str) -> i128 {
+    let mem_vec: Vec<i128> = input
         .split(',')
-        .map(|s| s.parse::<i64>().unwrap())
+        .map(|s| s.parse::<i128>().unwrap())
         .collect();
 
-    let mut mem: HashMap<usize, i64> = HashMap::with_capacity(mem_vec.len() * 2);
+    let mut mem: HashMap<usize, i128> = HashMap::with_capacity(mem_vec.len() * 2);
     for (i, v) in mem_vec.into_iter().enumerate() {
         mem.insert(i, v);
     }
 
-    dbg!(mem[&0], mem[&1]);
-
-    let mut prog = Program::new(mem.clone());
+    let mut prog = Program::new(mem);
     let ret = prog.run(vec![1]).unwrap();
-    println!("{}", ret);
 
     ret
 }
@@ -28,7 +25,7 @@ mod tests {
 
     #[test]
     fn test_p1() {
-        assert_eq!(359142, p1(IN));
+        assert_eq!(4288078517, p1(IN));
     }
 }
 

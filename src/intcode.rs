@@ -9,11 +9,11 @@ enum ParameterMode {
 }
 
 impl ParameterMode {
-    fn get_value(&self, idx: usize, mem: &HashMap<usize, i64>, relative_base: i64) -> i64 {
+    fn get_value(&self, idx: usize, mem: &HashMap<usize, i128>, relative_base: i128) -> i128 {
         match self {
             ParameterMode::PositionMode => {
                 match mem.get(&idx) {
-                    None => mem[&0],
+                    None => todo!(),
                     Some(v) => match mem.get(&(*v as usize)) {
                         None => mem[&0],
                         Some(v) => *v,
@@ -26,20 +26,14 @@ impl ParameterMode {
                 },
             ParameterMode::RelativeMode => {
                 match mem.get(&idx) {
-                    None => match mem.get(&(relative_base as usize)) {
-                        Some(v) => *v,
-                        None => 0,
-                    }
-                    Some(v) => match mem.get(&((v + relative_base) as usize)) {
-                        None => mem[&0],
-                        Some(v) => *v,
-                    }
+                    None => todo!(),
+                    Some(v) => mem[&((*v + relative_base) as usize)],
                 }
             }
         }
     }
 
-    fn get_destination(&self, idx: usize, mem: &HashMap<usize, i64>, relative_base: i64) -> usize {
+    fn get_destination(&self, idx: usize, mem: &HashMap<usize, i128>, relative_base: i128) -> usize {
         match self {
             ParameterMode::PositionMode => match mem.get(&idx) {
                 Some(v) => *v as usize,
@@ -49,11 +43,8 @@ impl ParameterMode {
                 panic!("How to handle this? is this valid?!");
             }
             ParameterMode::RelativeMode => match mem.get(&idx) {
-                Some(v) => match mem.get(&((*v + relative_base) as usize)) {
-                    Some(v) => *v as usize,
-                    None => 0,
-                },
-                None => 0,
+                Some(v) => (*v + relative_base) as usize,
+                None => todo!(),
             },
         }
     }
@@ -182,12 +173,12 @@ impl Opcode {
 
 #[derive(Clone)]
 pub struct Program {
-    pub mem: HashMap<usize, i64>,
-    input: Vec<i64>,
-    pub output: Vec<i64>,
+    pub mem: HashMap<usize, i128>,
+    input: Vec<i128>,
+    pub output: Vec<i128>,
     in_idx: usize,
     pc: usize,
-    relative_base: i64,
+    relative_base: i128,
 }
 
 impl Program {
@@ -278,7 +269,7 @@ impl Program {
         RunStatus::NoOutput
     }
 
-    pub fn new(mem: HashMap<usize, i64>) -> Self {
+    pub fn new(mem: HashMap<usize, i128>) -> Self {
         Self {
             mem,
             input: vec![],
@@ -289,7 +280,7 @@ impl Program {
         }
     }
 
-    pub fn run(&mut self, mut input: Vec<i64>) -> RunStatus {
+    pub fn run(&mut self, mut input: Vec<i128>) -> RunStatus {
         use RunStatus::*;
 
         self.input.append(&mut input);
@@ -315,12 +306,12 @@ impl Program {
 #[derive(Debug, PartialEq)]
 pub enum RunStatus {
     NeedInput,
-    Output(i64),
+    Output(i128),
     NoOutput,
 }
 
 impl RunStatus {
-    pub fn unwrap(&self) -> i64 {
+    pub fn unwrap(&self) -> i128 {
         if let RunStatus::Output(v) = self {
             *v
         } else {
