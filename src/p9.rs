@@ -13,6 +13,8 @@ pub fn p1(input: &str) -> i64 {
         mem.insert(i, v);
     }
 
+    dbg!(mem[&0], mem[&1]);
+
     let mut prog = Program::new(mem.clone());
     let ret = prog.run(vec![1]).unwrap();
     println!("{}", ret);

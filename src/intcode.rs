@@ -48,7 +48,13 @@ impl ParameterMode {
             ParameterMode::ImmediateMode => {
                 panic!("How to handle this? is this valid?!");
             }
-            _ => todo!()
+            ParameterMode::RelativeMode => match mem.get(&idx) {
+                Some(v) => match mem.get(&((*v + relative_base) as usize)) {
+                    Some(v) => *v as usize,
+                    None => 0,
+                },
+                None => 0,
+            },
         }
     }
 }
@@ -217,6 +223,7 @@ impl Program {
             Opcode::Output { mode } => {
                 let v = mode.get_value(self.pc + 1, &self.mem, self.relative_base);
                 self.pc += opcode.advance();
+                println!("{v}");
                 self.output.push(v);
                 return RunStatus::Output(v);
             }
