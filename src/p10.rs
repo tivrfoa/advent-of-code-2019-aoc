@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, collections::{BTreeSet, HashMap, HashSet, VecDeque}, f64::consts::PI};
+use std::collections::{HashMap, HashSet};
 
 pub fn p1(input: &str) -> usize {
     let map = process_input(input);
@@ -57,29 +57,6 @@ fn red(x: isize, y: isize) -> (isize, isize) {
     (x / g, y / g)
 }
 
-// Find the asteroid with the most visible asteroids
-fn find_best_monitoring_station0(asteroids: &HashSet<(usize, usize)>) -> (usize, (usize, usize)) {
-    let mut max = 0;
-    let best_location = asteroids
-        .iter()
-        .max_by_key(|&&a| {
-            let visible_asteroids = asteroids
-                .iter()
-                .filter(|&&b| b != a)
-                .map(|&b| {
-                    let (dx, dy) = (b.0 as isize - a.0 as isize, b.1 as isize - a.1 as isize);
-                    red(dx, dy)
-                })
-                .collect::<HashSet<_>>();
-
-            max = max.max(visible_asteroids.len());
-            visible_asteroids.len()
-        });
-
-    dbg!(max);
-    (max, best_location.cloned().unwrap())
-}
-
 // Find the asteroid with the most visible asteroids, return both the asteroid and count
 fn find_best_monitoring_station(asteroids: &HashSet<(usize, usize)>) -> ((usize, usize), usize) {
     asteroids
@@ -113,7 +90,7 @@ fn vaporize_asteroids(station: (usize, usize), asteroids: &HashSet<(usize, usize
     }
 
     // Sort asteroids by distance for each direction
-    for (k, asteroids) in dirs.iter_mut() {
+    for (_, asteroids) in dirs.iter_mut() {
         asteroids.sort_by(|a, b| b.cmp(&a));
     }
 
@@ -126,7 +103,6 @@ fn vaporize_asteroids(station: (usize, usize), asteroids: &HashSet<(usize, usize
     let mut res = Vec::new();
     while res.len() < 200 {
         for &i in &s_dirs {
-            // if let Some(asteroid) = dirs.get_mut(&i).and_then(|v| v.pop()) {
             if let Some(asteroid) = dirs.get_mut(&i).and_then(|v| v.pop()) {
                 res.push(asteroid);
                 if res.len() == 200 {
