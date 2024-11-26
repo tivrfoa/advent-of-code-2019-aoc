@@ -276,10 +276,19 @@ impl Program {
         }
     }
 
-    pub fn run(&mut self, mut input: Vec<i64>) -> RunStatus {
+    pub fn run_input(&mut self, input: i64) -> RunStatus {
+        self.input.push(input);
+        self.run()
+    }
+
+    pub fn run_inputs(&mut self, mut input: Vec<i64>) -> RunStatus {
+        self.input.append(&mut input);
+        self.run()
+    }
+
+    pub fn run(&mut self) -> RunStatus {
         use RunStatus::*;
 
-        self.input.append(&mut input);
         let prev_out_len = self.output.len();
         loop {
             let opcode = Opcode::parse(self.mem[&self.pc] as i32);
