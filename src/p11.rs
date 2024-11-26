@@ -81,7 +81,7 @@ pub fn p1(input: &str) -> i64 {
     panels_painted_at_least_once
 }
 
-pub fn p2(input: &str) -> i64 {
+pub fn p2(input: &str) -> usize {
     let mem_vec: Vec<i64> = input
         .split(',')
         .map(|s| s.parse::<i64>().unwrap())
@@ -156,32 +156,7 @@ pub fn p2(input: &str) -> i64 {
 
     draw_grid(&panels);
 
-    // let min_x = panels.keys().cloned().map(|k| k.0).min().unwrap();
-    // let min_y = panels.keys().cloned().map(|k| k.1).min().unwrap();
-    // dbg!(min_x, min_y);
-    // let mut v: Vec<(i64, i64)> = panels
-    //     .into_iter()
-    //     .filter(|(_, v)| *v == 1)
-    //     .map(|(k, _)| (k.1 + min_y, k.0 + min_x))
-    //     .collect();
-    // v.sort();
-
-    // let (mut row, mut col) = (0, 0);
-    // for (r, c) in v.into_iter().rev() {
-    //     // println!("{r} {c}");
-    //     if row != r {
-    //         row = r;
-    //         col = 0;
-    //         println!();
-    //     }
-    //     for _ in col..c {
-    //         print!(" ");
-    //     }
-    //     print!("#");
-    //     col = c;
-    // }
-
-    3
+    prog.output.len()
 }
 
 fn draw_grid(panels: &HashMap<(i64, i64), i64>) {
@@ -226,48 +201,6 @@ fn draw_grid(panels: &HashMap<(i64, i64), i64>) {
     }
 }
 
-fn draw_grid_upside_down(panels: &HashMap<(i64, i64), i64>) {
-    // Find the bounds
-    let mut min_x = i64::MAX;
-    let mut max_x = i64::MIN;
-    let mut min_y = i64::MAX;
-    let mut max_y = i64::MIN;
-
-    for (coord, _) in panels.iter() {
-        if coord.0 < min_x { min_x = coord.0; }
-        if coord.0 > max_x { max_x = coord.0; }
-        if coord.1 < min_y { min_y = coord.1; }
-        if coord.1 > max_y { max_y = coord.1; }
-    }
-
-    // Ensure at least a 1x1 grid
-    if min_x > max_x || min_y > max_y {
-        println!("No panels to draw.");
-        return;
-    }
-
-    // Create the grid with dimensions (max_x - min_x + 1) x (max_y - min_y + 1)
-    let width = (max_x - min_x + 1) as usize;
-    let height = (max_y - min_y + 1) as usize;
-    let mut grid = vec![vec![' '; width]; height];
-
-    // Populate the grid
-    for (&(x, y), &value) in panels.iter() {
-        let grid_x = (x - min_x) as usize;
-        let grid_y = (y - min_y) as usize;
-        
-        // If the value is non-zero, we mark it as white ('█')
-        if value != 0 {
-            grid[grid_y][grid_x] = '█';
-        }
-    }
-
-    // Print the grid
-    for row in grid {
-        println!("{}", row.iter().collect::<String>());
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -279,7 +212,9 @@ mod tests {
 
     #[test]
     fn test_p2() {
-        assert_eq!(2418, p2(IN));
+        // Not testable.
+        // Should print GREJALPR
+        assert_eq!(498, p2(IN));
     }
 }
 
