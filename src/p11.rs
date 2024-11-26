@@ -18,7 +18,6 @@ pub fn p1(input: &str) -> i64 {
     let mut prog = Program::new(mem);
 
     let mut panels_painted_at_least_once = 0;
-    let mut instruction = 0;
     let mut qt_output = 0;
     loop {
         if let Some(color) = panels.get(&pos) {
@@ -94,11 +93,11 @@ pub fn p2(input: &str) -> i64 {
     }
 
     let mut panels: HashMap<(i64, i64), i64> = HashMap::with_capacity(mem.len() * 2);
+    panels.insert((0, 0), 1);
     let mut pos = (0, 0);
     let mut dir = 0; // 0 up, 1 down, 2 left, 3 right
     let mut prog = Program::new(mem);
 
-    let mut instruction = 1;
     let mut qt_output = 0;
     loop {
         if let Some(color) = panels.get(&pos) {
@@ -155,30 +154,76 @@ pub fn p2(input: &str) -> i64 {
         }
     }
 
-    let min_x = panels.keys().cloned().map(|k| k.0).min().unwrap();
-    let min_y = panels.keys().cloned().map(|k| k.1).min().unwrap();
-    dbg!(min_x, min_y);
-    let mut v: Vec<(i64, i64)> = panels
-        .into_iter()
-        .filter(|(_, v)| *v == 1)
-        .map(|(k, _)| (k.1 + min_y, k.0 + min_x))
-        .collect();
-    v.sort();
+    draw_grid(&panels);
 
-    let (mut row, mut col) = (0, 0);
-    for (r, c) in v {
-        if row != r {
-            row = r;
-            println!();
-        }
-        for _ in col..c {
-            print!(" ");
-        }
-        print!("#");
-        col = c;
-    }
+    // let min_x = panels.keys().cloned().map(|k| k.0).min().unwrap();
+    // let min_y = panels.keys().cloned().map(|k| k.1).min().unwrap();
+    // dbg!(min_x, min_y);
+    // let mut v: Vec<(i64, i64)> = panels
+    //     .into_iter()
+    //     .filter(|(_, v)| *v == 1)
+    //     .map(|(k, _)| (k.1 + min_y, k.0 + min_x))
+    //     .collect();
+    // v.sort();
+
+    // let (mut row, mut col) = (0, 0);
+    // for (r, c) in v.into_iter().rev() {
+    //     // println!("{r} {c}");
+    //     if row != r {
+    //         row = r;
+    //         col = 0;
+    //         println!();
+    //     }
+    //     for _ in col..c {
+    //         print!(" ");
+    //     }
+    //     print!("#");
+    //     col = c;
+    // }
 
     3
+}
+
+fn draw_grid(panels: &HashMap<(i64, i64), i64>) {
+    // Find the bounds
+    let mut min_x = i64::MAX;
+    let mut max_x = i64::MIN;
+    let mut min_y = i64::MAX;
+    let mut max_y = i64::MIN;
+
+    for (coord, _) in panels.iter() {
+        if coord.0 < min_x { min_x = coord.0; }
+        if coord.0 > max_x { max_x = coord.0; }
+        if coord.1 < min_y { min_y = coord.1; }
+        if coord.1 > max_y { max_y = coord.1; }
+    }
+
+    // Ensure at least a 1x1 grid
+    if min_x > max_x || min_y > max_y {
+        println!("No panels to draw.");
+        return;
+    }
+
+    // Create the grid with dimensions (max_x - min_x + 1) x (max_y - min_y + 1)
+    let width = (max_x - min_x + 1) as usize;
+    let height = (max_y - min_y + 1) as usize;
+    let mut grid = vec![vec![' '; width]; height];
+
+    // Populate the grid
+    for (&(x, y), &value) in panels.iter() {
+        let grid_x = (x - min_x) as usize;
+        let grid_y = (y - min_y) as usize;
+        
+        // If the value is non-zero, we mark it as white ('█')
+        if value != 0 {
+            grid[grid_y][grid_x] = '█';
+        }
+    }
+
+    // Print the grid
+    for row in grid {
+        println!("{}", row.iter().collect::<String>());
+    }
 }
 
 #[cfg(test)]
