@@ -220,6 +220,48 @@ fn draw_grid(panels: &HashMap<(i64, i64), i64>) {
         }
     }
 
+    // Print the grid (flipped vertically)
+    for row in grid.iter().rev() { // reverse the iterator
+        println!("{}", row.iter().collect::<String>());
+    }
+}
+
+fn draw_grid_upside_down(panels: &HashMap<(i64, i64), i64>) {
+    // Find the bounds
+    let mut min_x = i64::MAX;
+    let mut max_x = i64::MIN;
+    let mut min_y = i64::MAX;
+    let mut max_y = i64::MIN;
+
+    for (coord, _) in panels.iter() {
+        if coord.0 < min_x { min_x = coord.0; }
+        if coord.0 > max_x { max_x = coord.0; }
+        if coord.1 < min_y { min_y = coord.1; }
+        if coord.1 > max_y { max_y = coord.1; }
+    }
+
+    // Ensure at least a 1x1 grid
+    if min_x > max_x || min_y > max_y {
+        println!("No panels to draw.");
+        return;
+    }
+
+    // Create the grid with dimensions (max_x - min_x + 1) x (max_y - min_y + 1)
+    let width = (max_x - min_x + 1) as usize;
+    let height = (max_y - min_y + 1) as usize;
+    let mut grid = vec![vec![' '; width]; height];
+
+    // Populate the grid
+    for (&(x, y), &value) in panels.iter() {
+        let grid_x = (x - min_x) as usize;
+        let grid_y = (y - min_y) as usize;
+        
+        // If the value is non-zero, we mark it as white ('█')
+        if value != 0 {
+            grid[grid_y][grid_x] = '█';
+        }
+    }
+
     // Print the grid
     for row in grid {
         println!("{}", row.iter().collect::<String>());
