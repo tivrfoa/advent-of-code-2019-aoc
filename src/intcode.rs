@@ -210,7 +210,7 @@ impl Program {
             Opcode::Output { mode } => {
                 let v = self.get_value(self.pc + 1, mode);
                 self.pc += opcode.advance();
-                println!("{v}");
+                // println!("{v}");
                 self.output.push(v);
                 return RunStatus::Output(v);
             }

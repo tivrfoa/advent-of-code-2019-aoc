@@ -9,9 +9,9 @@ mod util;
 use p11 as Main;
 
 fn main() {
-    // Main::p1(Main::IN);
+    Main::p1(Main::IN);
 
-    run_previous();
+    // run_previous();
 }
 
 fn run_previous() {

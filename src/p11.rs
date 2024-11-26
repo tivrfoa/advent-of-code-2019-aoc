@@ -12,14 +12,74 @@ pub fn p1(input: &str) -> i64 {
         mem.insert(i, v);
     }
 
+    let mut panels: HashMap<(i64, i64), i64> = HashMap::with_capacity(mem.len() * 2);
+    let mut pos = (0, 0);
+    let mut dir = 0; // 0 up, 1 down, 2 left, 3 right
     let mut prog = Program::new(mem);
 
+    let mut panels_painted_at_least_once = 0;
     let mut instruction = 0;
+    let mut qt_output = 0;
     loop {
-        prog.run_input(instruction);
-        break;
+        if let Some(color) = panels.get(&pos) {
+            prog.run_input(*color);
+        } else {
+            prog.run_input(0);
+        }
+
+        let olen = prog.output.len();
+        if qt_output == olen {
+            break;
+        }
+        qt_output += 2;
+
+        let color_to_paint = prog.output[olen - 2];
+        let dir_to_turn = prog.output[olen - 1];
+
+        if !panels.contains_key(&pos) {
+            panels_painted_at_least_once += 1;
+        }
+
+        panels.insert(pos, color_to_paint);
+
+        match (dir, dir_to_turn) {
+            (0, 0) => {
+                dir = 2;
+                pos = (pos.0 - 1, pos.1);
+            }
+            (0, 1) => {
+                dir = 3;
+                pos = (pos.0 + 1, pos.1);
+            }
+            (1, 0) => {
+                dir = 3;
+                pos = (pos.0 + 1, pos.1);
+            }
+            (1, 1) => {
+                dir = 2;
+                pos = (pos.0 - 1, pos.1);
+            }
+            (2, 0) => {
+                dir = 1;
+                pos = (pos.0, pos.1 - 1);
+            }
+            (2, 1) => {
+                dir = 0;
+                pos = (pos.0, pos.1 + 1);
+            }
+            (3, 0) => {
+                dir = 0;
+                pos = (pos.0, pos.1 + 1);
+            }
+            (3, 1) => {
+                dir = 1;
+                pos = (pos.0, pos.1 - 1);
+            }
+            _ => panic!("{dir} - {dir_to_turn}"),
+        }
     }
-    171
+
+    panels_painted_at_least_once
 }
 
 #[cfg(test)]
@@ -28,7 +88,7 @@ mod tests {
 
     #[test]
     fn test_p1() {
-        assert_eq!(4288078517, p1(IN));
+        assert_eq!(2418, p1(IN));
     }
 }
 
