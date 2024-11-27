@@ -88,6 +88,25 @@ pub fn draw_grid(panels: &HashMap<(i64, i64), i64>) {
     }
 }
 
+
+// Greatest Common Divisor function (Euclidean algorithm)
+#[allow(dead_code)]
+pub fn gcd(a: isize, b: isize) -> isize {
+    if b == 0 {
+        a.abs()
+    } else {
+        gcd(b, a % b)
+    }
+}
+
+// Reduce function to simplify vector directions
+#[allow(dead_code)]
+pub fn red(x: isize, y: isize) -> (isize, isize) {
+    assert!(x != 0 || y != 0);
+    let g = gcd(x, y);
+    (x / g, y / g)
+}
+
 use std::ops::Range;
 
 pub trait PermutationsExt<I> {
