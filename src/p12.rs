@@ -94,12 +94,12 @@ mod tests {
 
     #[test]
     fn p1_sample10() {
-        assert_eq!(340, p1(SAMPLE1, 10));
+        assert_eq!(179, p1(SAMPLE1, 10));
     }
 
     #[test]
     fn test_p1() {
-        assert_eq!(340, p1(IN, 1000));
+        assert_eq!(8310, p1(IN, 1000));
     }
 }
 
