@@ -96,6 +96,7 @@ pub fn p2(input: &str) -> usize {
     let mut panels: HashMap<(i64, i64), i64> = HashMap::with_capacity(mem.len() * 2);
     panels.insert((0, 0), 1);
     let mut pos = (0, 0);
+    let (mut dx, mut dy) = (0, 1);
     let mut dir = 0; // 0 up, 1 down, 2 left, 3 right
     let mut prog = Program::new(mem);
 
@@ -118,41 +119,12 @@ pub fn p2(input: &str) -> usize {
 
         panels.insert(pos, color_to_paint);
 
-        match (dir, dir_to_turn) {
-            (0, 0) => {
-                dir = 2;
-                pos = (pos.0 - 1, pos.1);
-            }
-            (0, 1) => {
-                dir = 3;
-                pos = (pos.0 + 1, pos.1);
-            }
-            (1, 0) => {
-                dir = 3;
-                pos = (pos.0 + 1, pos.1);
-            }
-            (1, 1) => {
-                dir = 2;
-                pos = (pos.0 - 1, pos.1);
-            }
-            (2, 0) => {
-                dir = 1;
-                pos = (pos.0, pos.1 - 1);
-            }
-            (2, 1) => {
-                dir = 0;
-                pos = (pos.0, pos.1 + 1);
-            }
-            (3, 0) => {
-                dir = 0;
-                pos = (pos.0, pos.1 + 1);
-            }
-            (3, 1) => {
-                dir = 1;
-                pos = (pos.0, pos.1 - 1);
-            }
-            _ => panic!("{dir} - {dir_to_turn}"),
+        if dir_to_turn == 0 {
+            (dx, dy) = (-dy, dx);
+        } else {
+            (dx, dy) = (dy, -dx);
         }
+        pos = (pos.0 + dx, pos.1 + dy);
     }
 
     draw_grid(&panels);
