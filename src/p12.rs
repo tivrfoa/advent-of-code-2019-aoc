@@ -2,16 +2,16 @@ use std::collections::{HashMap, HashSet};
 
 #[derive(Debug)]
 struct Moon {
-    x: i32,
-    y: i32,
-    z: i32,
-    vx: i32,
-    vy: i32,
-    vz: i32,
+    x: i64,
+    y: i64,
+    z: i64,
+    vx: i64,
+    vy: i64,
+    vz: i64,
 }
 
 impl Moon {
-    fn new(t: (i32, i32, i32)) -> Self {
+    fn new(t: (i64, i64, i64)) -> Self {
         Self {
             x: t.0,
             y: t.1,
@@ -22,15 +22,15 @@ impl Moon {
         }
     }
     
-    fn potential_energy(&self) -> i32 {
+    fn potential_energy(&self) -> i64 {
         self.x.abs() + self.y.abs() + self.z.abs()
     }
     
-    fn kinetic_energy(&self) -> i32 {
+    fn kinetic_energy(&self) -> i64 {
         self.vx.abs() + self.vy.abs() + self.vz.abs()
     }
 
-    fn total_energy(&self) -> i32 {
+    fn total_energy(&self) -> i64 {
         self.potential_energy() * self.kinetic_energy()
     }
 }
@@ -40,21 +40,21 @@ fn get_moons(input: &str) -> Vec<Moon> {
         .lines()
         .map(|line| {
             let t1: Vec<&str> = line[1..line.len() - 1].split(", ").collect();
-            let a: i32 = t1[0].split_once('=').unwrap().1.parse().unwrap();
-            let b: i32 = t1[1].split_once('=').unwrap().1.parse().unwrap();
-            let c: i32 = t1[2].split_once('=').unwrap().1.parse().unwrap();
+            let a: i64 = t1[0].split_once('=').unwrap().1.parse().unwrap();
+            let b: i64 = t1[1].split_once('=').unwrap().1.parse().unwrap();
+            let c: i64 = t1[2].split_once('=').unwrap().1.parse().unwrap();
             Moon::new((a, b, c))
         })
     .collect()
 }
 
-pub fn p1(input: &str) -> i32 {
-    let mut total = 0;
+pub fn p1(input: &str, num_steps: usize) -> i64 {
     let mut moons = get_moons(input);
     let len = moons.len();
-    // dbg!(moons);
+    dbg!(&moons);
 
-    for step in 0..1000 {
+    for step in 0..num_steps {
+        // println!("{step}");
 
         // calc gravity
         for i in 0..len {
@@ -78,11 +78,13 @@ pub fn p1(input: &str) -> i32 {
     moons.into_iter().map(|m| m.total_energy()).sum()
 }
 
-fn apply_gravity(a: i32, b: i32) -> i32 {
+fn apply_gravity(a: i64, b: i64) -> i64 {
     if a < b {
         1
-    } else {
+    } else if a > b {
         -1
+    } else {
+        0
     }
 }
 
@@ -91,8 +93,13 @@ mod tests {
     use super::*;
 
     #[test]
+    fn p1_sample10() {
+        assert_eq!(340, p1(SAMPLE1, 10));
+    }
+
+    #[test]
     fn test_p1() {
-        assert_eq!(340, p1(IN));
+        assert_eq!(340, p1(IN, 1000));
     }
 }
 
@@ -101,6 +108,14 @@ mod tests {
 
 
 // -------------------------- INPUT
+
+
+
+pub static SAMPLE1: &str = "<x=-1, y=0, z=2>
+<x=2, y=-10, z=-7>
+<x=4, y=-8, z=8>
+<x=3, y=5, z=-1>";
+
 
 
 

@@ -10,7 +10,7 @@ mod util;
 use p12 as Main;
 
 fn main() {
-    Main::p1(Main::IN);
+    Main::p1(Main::IN, 1000);
 
     // run_previous();
 }
