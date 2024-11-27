@@ -8,9 +8,6 @@ struct Moon {
     vx: i32,
     vy: i32,
     vz: i32,
-    force_x: i32,
-    force_y: i32,
-    force_z: i32,
 }
 
 impl Moon {
@@ -22,10 +19,19 @@ impl Moon {
             vx: 0,
             vy: 0,
             vz: 0,
-            force_x: 0,
-            force_y: 0,
-            force_z: 0,
         }
+    }
+    
+    fn potential_energy(&self) -> i32 {
+        self.x.abs() + self.y.abs() + self.z.abs()
+    }
+    
+    fn kinetic_energy(&self) -> i32 {
+        self.vx.abs() + self.vy.abs() + self.vz.abs()
+    }
+
+    fn total_energy(&self) -> i32 {
+        self.potential_energy() * self.kinetic_energy()
     }
 }
 
@@ -55,32 +61,28 @@ pub fn p1(input: &str) -> i32 {
             for j in 0..len {
                 if i == j { continue; }
 
-                moons[i].force_x += apply_gravity(moons[i].x, moons[j].x);
-                moons[i].force_y += apply_gravity(moons[i].y, moons[j].y);
-                moons[i].force_z += apply_gravity(moons[i].z, moons[j].z);
+                moons[i].vx += apply_gravity(moons[i].x, moons[j].x);
+                moons[i].vy += apply_gravity(moons[i].y, moons[j].y);
+                moons[i].vz += apply_gravity(moons[i].z, moons[j].z);
             }
         }
 
-        // apply forces
+        // apply velocity
         for i in 0..len {
-            moons[i].x += moons[i].force_x;
-            moons[i].force_x = 0;
-            moons[i].y += moons[i].force_y;
-            moons[i].force_y = 0;
-            moons[i].z += moons[i].force_z;
-            moons[i].force_z = 0;
+            moons[i].x += moons[i].vx;
+            moons[i].y += moons[i].vy;
+            moons[i].z += moons[i].vz;
         }
-
     }
 
-    total
+    moons.into_iter().map(|m| m.total_energy()).sum()
 }
 
 fn apply_gravity(a: i32, b: i32) -> i32 {
     if a < b {
-        b - a
+        1
     } else {
-        a - b
+        -1
     }
 }
 
