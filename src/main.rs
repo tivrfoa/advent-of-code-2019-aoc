@@ -11,6 +11,7 @@ use p12 as Main;
 
 fn main() {
     Main::p1(Main::IN, 1000);
+    // Main::p2(Main::IN);
 
     // run_previous();
 }
