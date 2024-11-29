@@ -17,14 +17,7 @@ pub fn p1(input: &str) -> usize {
     let mut prog = Program::new(mem);
     prog.run();
 
-    for i in (0..prog.output.len()).step_by(3) {
-        let x = prog.output[i];
-        let y = prog.output[i + 1];
-        let v = prog.output[i + 2];
-        grid.insert((x, y), v);
-    }
-
-    grid.iter().filter(|(_, v)| **v == 2).count()
+    prog.output.iter().skip(2).step_by(3).filter(|v| **v == 2).count()
 }
 
 // pub fn p2(input: &str) -> usize {
