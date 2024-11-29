@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::collections::HashSet;
+use std::ops::{Div, Mul, Rem};
 
 #[allow(dead_code)]
 pub fn set(s: &str) -> HashSet<char> {
@@ -88,15 +89,35 @@ pub fn draw_grid(panels: &HashMap<(i64, i64), i64>) {
     }
 }
 
-
-// Greatest Common Divisor function (Euclidean algorithm)
+// Function to calculate GCD using Euclidean algorithm
 #[allow(dead_code)]
-pub fn gcd(a: isize, b: isize) -> isize {
-    if b == 0 {
-        a.abs()
+pub fn gcd<T>(a: T, b: T) -> T
+where
+    T: Copy + Rem<Output = T> + PartialOrd + Div<Output = T> + From<u8>,
+{
+    if b == T::from(0) {
+        a
     } else {
         gcd(b, a % b)
     }
+}
+
+// Function to calculate LCM of two numbers
+#[allow(dead_code)]
+pub fn lcm<T>(a: T, b: T) -> T
+where
+    T: Copy + Mul<Output = T> + Rem<Output = T> + PartialOrd + Div<Output = T> + From<u8>,
+{
+    (a * b) / gcd(a, b)
+}
+
+// Function to calculate LCM of an array
+#[allow(dead_code)]
+pub fn lcm_of_array<T>(arr: &[T]) -> T
+where
+    T: Copy + Mul<Output = T> + Rem<Output = T> + PartialOrd + From<u8> + Div<Output = T>,
+{
+    arr.iter().fold(T::from(1), |acc, &x| lcm(acc, x))
 }
 
 // Reduce function to simplify vector directions
