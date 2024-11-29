@@ -45,8 +45,8 @@ pub fn p1(input: &str, num_steps: usize) -> i64 {
     let len = moons.len();
     dbg!(&moons);
 
-    for step in 0..num_steps {
-        // println!("{step}");
+    for _step in 0..num_steps {
+        // println!("{_step}");
 
         // calc gravity
         for i in 0..len {

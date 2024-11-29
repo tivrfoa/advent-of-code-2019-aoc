@@ -97,7 +97,6 @@ pub fn p2(input: &str) -> usize {
     panels.insert((0, 0), 1);
     let mut pos = (0, 0);
     let (mut dx, mut dy) = (0, 1);
-    let mut dir = 0; // 0 up, 1 down, 2 left, 3 right
     let mut prog = Program::new(mem);
 
     let mut qt_output = 0;
