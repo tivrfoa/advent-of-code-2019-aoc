@@ -1,6 +1,6 @@
 https://adventofcode.com/2019
 
-1st goal is try to solve the problems on my own, then check ecnerwala solution
+1st goal is to try to solve the problems on my own, then check ecnerwala solution
 if I get stuck.
 
 I also intend to convert ecnerwala Python solutions to Mojo later.
