@@ -5,10 +5,11 @@ mod intcode;
 // mod p10;
 // mod p11;
 // mod p12; // slow
-mod p13;
+// mod p13;
+mod p14;
 mod util;
 
-use p13 as Main;
+use p14 as Main;
 
 fn main() {
     Main::p1(Main::IN);
