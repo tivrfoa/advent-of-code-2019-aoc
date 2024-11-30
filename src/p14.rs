@@ -8,7 +8,7 @@ struct Reaction<'a> {
     qt: usize,
 }
 
-pub fn p1(input: &str) -> usize {
+pub fn parse_input(input: &str) -> (HashMap<&str, Reaction>, HashMap<&str, (usize, usize)>) {
     let mut map_reactions: HashMap<&str, Reaction> = HashMap::new();
     // material -> (available, used)
     let mut qt_mat: HashMap<&str, (usize, usize)> = HashMap::new();
@@ -30,14 +30,18 @@ pub fn p1(input: &str) -> usize {
         }
         qt_mat.insert(out_name, (0, 0));
     }
+
+    (map_reactions, qt_mat)
+}
+
+pub fn p1(input: &str) -> usize {
+    let (map_reactions, mut qt_mat) = parse_input(input);
     qt_mat.insert("ORE", (0, 0));
-
-    solve("FUEL", 1, &map_reactions, &mut qt_mat);
-
+    solve1("FUEL", 1, &map_reactions, &mut qt_mat);
     qt_mat["ORE"].1
 }
 
-fn solve(goal: &str, goal_qt: usize, map_reactions: &HashMap<&str, Reaction>,
+fn solve1(goal: &str, goal_qt: usize, map_reactions: &HashMap<&str, Reaction>,
         qt_mat: &mut HashMap<&str, (usize, usize)>) {
     if goal == "ORE" {
         if let Some(v) = qt_mat.get_mut("ORE") {
@@ -62,7 +66,7 @@ fn solve(goal: &str, goal_qt: usize, map_reactions: &HashMap<&str, Reaction>,
                 }
             }
             let diff = need - have;
-            solve(ing.0, diff, map_reactions, qt_mat);
+            solve1(ing.0, diff, map_reactions, qt_mat);
             if let Some(v) = qt_mat.get_mut(ing.0) {
                 *v = (v.0 - diff, v.1 + diff);
             }
@@ -78,6 +82,70 @@ fn solve(goal: &str, goal_qt: usize, map_reactions: &HashMap<&str, Reaction>,
     }
 }
 
+pub fn p2(input: &str) -> usize {
+    let (map_reactions, mut qt_mat) = parse_input(input);
+    let num_ore: usize = 1_000_000_000000;
+    qt_mat.insert("ORE", (num_ore, 0));
+    let mut lo = num_ore / 365768;
+    let mut hi = num_ore;
+    let mut max = 0;
+
+    while lo <= hi {
+        let md = lo + (hi - lo) / 2;
+        if solve2("FUEL", md, &map_reactions, &mut qt_mat.clone()) {
+            max = md;
+            lo = md + 1;
+        } else {
+            hi = md - 1;
+        }
+    }
+
+    max
+}
+
+fn solve2(goal: &str, goal_qt: usize, map_reactions: &HashMap<&str, Reaction>,
+        qt_mat: &mut HashMap<&str, (usize, usize)>) -> bool {
+    if goal == "ORE" {
+        return false;
+    }
+    let reaction = &map_reactions[goal];
+    let t = if reaction.qt >= goal_qt {
+        1
+    } else {
+        goal_qt / reaction.qt + if goal_qt % reaction.qt > 0 { 1 } else { 0 }
+    };
+    for ing in reaction.ing.iter() {
+        let need = t * ing.1;
+        let have = qt_mat[ing.0].0;
+        
+        if need > have {
+            if have > 0 {
+                if let Some(v) = qt_mat.get_mut(ing.0) {
+                    *v = (v.0 - have, v.1 + have);
+                }
+            }
+            let diff = need - have;
+            if !solve2(ing.0, diff, map_reactions, qt_mat) {
+                return false;
+            }
+            if let Some(v) = qt_mat.get_mut(ing.0) {
+                dbg!(goal, ing, &v, diff);
+                *v = (v.0 - diff, v.1 + diff);
+            }
+        } else {
+            if let Some(v) = qt_mat.get_mut(ing.0) {
+                *v = (v.0 - need, v.1 + need);
+            }
+        }
+    }
+
+    if let Some(v) = qt_mat.get_mut(goal) {
+        *v = (v.0 + t * reaction.qt, v.1);
+    }
+
+    true
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -90,6 +158,16 @@ mod tests {
     #[test]
     fn test_p1() {
        assert_eq!(365768, p1(IN));
+    }
+
+    #[test]
+    fn p2_sample() {
+        assert_eq!(82892753, p2(SAMPLE_13312));
+    }
+
+    #[test]
+    fn test_p2() {
+       assert_eq!(3756877, p2(IN));
     }
 }
 
@@ -110,6 +188,15 @@ pub static SAMPLE1: &str = "9 ORE => 2 A
 2 AB, 3 BC, 4 CA => 1 FUEL";
 
 
+pub static SAMPLE_13312: &str = "157 ORE => 5 NZVS
+165 ORE => 6 DCFZ
+44 XJWVT, 5 KHKGT, 1 QDVJ, 29 NZVS, 9 GPVTF, 48 HKGWZ => 1 FUEL
+12 HKGWZ, 1 GPVTF, 8 PSHF => 9 QDVJ
+179 ORE => 7 PSHF
+177 ORE => 5 HKGWZ
+7 DCFZ, 7 PSHF => 2 XJWVT
+165 ORE => 2 GPVTF
+3 DCFZ, 7 NZVS, 5 HKGWZ, 10 PSHF => 8 KHKGT";
 
 
 pub static IN: &str = "1 QDKHC => 9 RFSZD
