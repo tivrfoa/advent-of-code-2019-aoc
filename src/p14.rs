@@ -87,10 +87,10 @@ mod tests {
         assert_eq!(179, p1(SAMPLE1));
     }
 
-    //#[test]
-    //fn test_p1() {
-    //    assert_eq!(8310, p1(IN));
-    //}
+    #[test]
+    fn test_p1() {
+        assert_eq!(8310, p1(IN));
+    }
 }
 
 
