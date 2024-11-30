@@ -24,8 +24,7 @@ struct State {
     qt: usize,
     dir: i64,
     pos: (i64, i64),
-    visited: HashSet<(i64, i64)>,
-    // grid: HashMap<(i64, i64), char>,
+    grid: HashMap<(i64, i64), i64>,
     prog: Program,
 }
 
@@ -33,7 +32,7 @@ impl State {
     fn go_to(&self, np: (i64, i64), dir: i64) -> Self {
         let mut ns = self.clone();
         ns.qt += 1;
-        ns.visited.insert(np);
+        // ns.grid.insert(np, ' ');
         ns.pos = np;
         ns.dir = dir;
         ns.prog = self.prog.clone();
@@ -52,7 +51,7 @@ impl State {
 
         for (d, x, y) in DIRS {
             let np = (self.pos.0 + x, self.pos.1 + y);
-            if !self.visited.contains(&np) {
+            if !self.grid.contains_key(&np) {
                 ret.push(self.go_to(np, d));
             }
         }
@@ -81,7 +80,7 @@ pub fn p1(input: &str) -> usize {
         qt: 0,
         dir: 0,
         pos: (0, 0),
-        visited: HashSet::from([(0, 0)]),
+        grid: HashMap::from([((0, 0), MOV)]),
         prog: prog.clone(),
     };
 
@@ -92,6 +91,7 @@ pub fn p1(input: &str) -> usize {
     while let Some(mut state) = pq.pop() {
         let _resp = state.prog.run_input(state.dir);
         let resp = state.prog.output[state.prog.output.len() - 1];
+        state.grid.insert(state.pos, resp);
         if resp == MOV_OS {
             return state.qt;
         }
