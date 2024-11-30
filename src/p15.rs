@@ -172,6 +172,10 @@ pub fn p2(input: &str) -> usize {
                 }
                 to_visit.push(np);
                 visited.insert(np);
+            } else {
+                // TODO might go forever to empty space??!!
+                to_visit.push(np);
+                visited.insert(np);
             }
         }
     }
