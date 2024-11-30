@@ -47,7 +47,7 @@ pub fn left_pad<T: ToString>(data: T, len: usize, c: char) -> String {
 }
 
 #[allow(dead_code)]
-pub fn draw_grid(panels: &HashMap<(i64, i64), i64>) {
+pub fn get_grid(panels: &HashMap<(i64, i64), i64>, convertion: &HashMap<i64, char>) -> Vec<Vec<char>> {
     // Find the bounds
     let mut min_x = i64::MAX;
     let mut max_x = i64::MIN;
@@ -61,12 +61,6 @@ pub fn draw_grid(panels: &HashMap<(i64, i64), i64>) {
         if coord.1 > max_y { max_y = coord.1; }
     }
 
-    // Ensure at least a 1x1 grid
-    if min_x > max_x || min_y > max_y {
-        println!("No panels to draw.");
-        return;
-    }
-
     // Create the grid with dimensions (max_x - min_x + 1) x (max_y - min_y + 1)
     let width = (max_x - min_x + 1) as usize;
     let height = (max_y - min_y + 1) as usize;
@@ -77,11 +71,25 @@ pub fn draw_grid(panels: &HashMap<(i64, i64), i64>) {
         let grid_x = (x - min_x) as usize;
         let grid_y = (y - min_y) as usize;
         
-        // If the value is non-zero, we mark it as white ('█')
-        if value != 0 {
-            grid[grid_y][grid_x] = '█';
-        }
+        grid[grid_y][grid_x] = convertion[&value];
     }
+
+    grid
+}
+
+#[allow(dead_code)]
+pub fn draw_grid(panels: &HashMap<(i64, i64), i64>, convertion: &HashMap<i64, char>) {
+    let grid = get_grid(panels, convertion);
+
+    // Print the grid (flipped vertically)
+    for row in grid.iter() {
+        println!("{}", row.iter().collect::<String>());
+    }
+}
+
+#[allow(dead_code)]
+pub fn draw_grid_rev(panels: &HashMap<(i64, i64), i64>, convertion: &HashMap<i64, char>) {
+    let grid = get_grid(panels, convertion);
 
     // Print the grid (flipped vertically)
     for row in grid.iter().rev() { // reverse the iterator

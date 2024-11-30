@@ -1,4 +1,5 @@
 use crate::intcode::*;
+use crate::util::*;
 use std::collections::{BinaryHeap, HashMap, HashSet};
 use std::cmp::{Ordering, Reverse};
 
@@ -25,7 +26,6 @@ struct State {
     dir: i64,
     pos: (i64, i64),
     visited: HashSet<(i64, i64)>,
-    // grid: HashMap<(i64, i64), char>,
     prog: Program,
 }
 
@@ -106,6 +106,46 @@ pub fn p1(input: &str) -> usize {
         }
     }
 
+    panic!("MISSION FAILED!");
+}
+
+pub fn p2(input: &str) -> usize {
+    let prog = Program::from_input(input);
+    let mut grid: HashMap<(i64, i64), i64> = HashMap::new();
+    let mut to_visit = vec![];
+
+    let start = State {
+        qt: 0,
+        dir: 0,
+        pos: (0, 0),
+        visited: HashSet::from([(0, 0)]),
+        prog: prog.clone(),
+    };
+
+    for s in start.next() {
+        to_visit.push(s);
+    }
+
+    let mut os = (0, 0);
+
+    while let Some(mut state) = to_visit.pop() {
+        let _resp = state.prog.run_input(state.dir);
+        let resp = state.prog.output[state.prog.output.len() - 1];
+        grid.insert(state.pos, resp);
+        if resp == MOV_OS {
+            os = state.pos;
+        }
+
+        if resp == WALL {
+            continue;
+        }
+
+        for s in state.next() {
+            to_visit.push(s);
+        }
+    }
+
+    draw_grid(&grid, &HashMap::from([(0, '#'), (1, '.'), (2, 'O')]));
     panic!("MISSION FAILED!");
 }
 
