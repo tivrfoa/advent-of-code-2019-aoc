@@ -1,6 +1,10 @@
 bin/
 bintest/
 
+tmp
+tmp1
+tmp2
+tmp3
 
 # Added by cargo
 

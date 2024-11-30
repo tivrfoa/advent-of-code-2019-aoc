@@ -131,7 +131,7 @@ impl Opcode {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Program {
     pub mem: HashMap<usize, i64>,
     input: Vec<i64>,
