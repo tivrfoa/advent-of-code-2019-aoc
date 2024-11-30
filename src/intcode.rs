@@ -269,6 +269,20 @@ impl Program {
         }
     }
 
+    pub fn from_input(input: &str) -> Self {
+        let mem_vec: Vec<i64> = input
+            .split(',')
+            .map(|s| s.parse::<i64>().unwrap())
+            .collect();
+
+        let mut mem: HashMap<usize, i64> = HashMap::with_capacity(mem_vec.len() * 2);
+        for (i, v) in mem_vec.into_iter().enumerate() {
+            mem.insert(i, v);
+        }
+
+        Self::new(mem)
+    }
+
     pub fn run_input(&mut self, input: i64) -> RunStatus {
         self.input.push(input);
         self.run()

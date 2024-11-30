@@ -1,5 +1,4 @@
 use crate::intcode::*;
-use crate::util::draw_grid;
 use std::collections::HashMap;
 
 pub fn p1(input: &str) -> usize {
@@ -13,7 +12,6 @@ pub fn p1(input: &str) -> usize {
         mem.insert(i, v);
     }
 
-    let mut grid: HashMap<(i64, i64), i64> = HashMap::with_capacity(mem.len() * 2);
     let mut prog = Program::new(mem);
     prog.run();
 
@@ -21,27 +19,16 @@ pub fn p1(input: &str) -> usize {
 }
 
 pub fn p2(input: &str) -> i64 {
-    let mem_vec: Vec<i64> = input
-        .split(',')
-        .map(|s| s.parse::<i64>().unwrap())
-        .collect();
-
-    let mut mem: HashMap<usize, i64> = HashMap::with_capacity(mem_vec.len() * 2);
-    for (i, v) in mem_vec.into_iter().enumerate() {
-        mem.insert(i, v);
-    }
-    dbg!(mem[&0]);
-    mem.insert(0, 2);
-    dbg!(mem[&0]);
-
-    let mut grid: HashMap<(i64, i64), i64> = HashMap::with_capacity(mem.len() * 2);
-    let mut prog = Program::new(mem);
+    let mut prog = Program::from_input(input);
+    let mut grid: HashMap<(i64, i64), i64> = HashMap::with_capacity(prog.mem.len() * 2);
     let mut score = 0;
     let mut out_idx = 0;
+    let (mut ball_x, mut paddle_x) = (0, 0);
 
+    prog.mem.insert(0, 2);
     loop {
         let run_status = prog.run();
-        // println!("Output len: {}", prog.output.len());
+
         while out_idx < prog.output.len() {
             let x = prog.output[out_idx];
             let y = prog.output[out_idx + 1];
@@ -50,6 +37,8 @@ pub fn p2(input: &str) -> i64 {
                 score = v;
             } else {
                 grid.insert((x, y), v);
+                if v == 4 { ball_x = x; }
+                else if v == 3 { paddle_x = x; }
             }
             out_idx += 3;
         }
@@ -57,22 +46,15 @@ pub fn p2(input: &str) -> i64 {
         if run_status == RunStatus::Halted {
             return score;
         }
-        // dbg!(score, &grid);
 
-        if let Some(ball) = grid.iter().find(|(_, v)| **v == 4) {
-            let ball_x = ball.0.0;
-            let paddle_x = grid.iter()
-                .find(|(_, v)| **v == 3)
-                .unwrap()
-                .0.0;
-            let diff = ball_x - paddle_x;
-            let a = if diff > 0 { 1 } else { 0 };
-            let b = if diff < 0 { 1 } else { 0 };
-            prog.run_input(a - b);
+        let input = if ball_x < paddle_x {
+            -1
+        } else if ball_x > paddle_x {
+            1
         } else {
-            // prog.run_input(0);
-            todo!()
-        }
+            0
+        };
+        prog.run_input(input);
     }
 }
 
