@@ -180,7 +180,7 @@ impl Program {
 
     /// Process operation and advance program counter
     /// @return optional output
-    fn process_opcode(&mut self, opcode: Opcode) -> RunStatus {
+    fn process_opcode(&mut self, opcode: Opcode) {
         match opcode {
             Opcode::Add { a, b, dest } => {
                 let x = self.get_value(self.pc + 1, a);
@@ -198,10 +198,6 @@ impl Program {
             }
             Opcode::Input { mode } => {
                 // println!("   reading input");
-                if self.in_idx == self.input.len() {
-                    // eprintln!("Need input");
-                    return RunStatus::NeedInput;
-                }
                 let dest = self.get_destination(self.pc + 1, mode);
                 self.mem.insert(dest, self.input[self.in_idx]);
                 self.pc += opcode.advance();
@@ -212,7 +208,6 @@ impl Program {
                 self.pc += opcode.advance();
                 // println!("{v}");
                 self.output.push(v);
-                return RunStatus::Output(v);
             }
             Opcode::JumpIfTrue { a, b } => {
                 let x = self.get_value(self.pc + 1, a);
@@ -261,8 +256,6 @@ impl Program {
             }
             _ => panic!("Invalid opcode to compute {:?}", opcode),
         }
-
-        RunStatus::NoOutput
     }
 
     pub fn new(mem: HashMap<usize, i64>) -> Self {
@@ -287,23 +280,15 @@ impl Program {
     }
 
     pub fn run(&mut self) -> RunStatus {
-        use RunStatus::*;
-
-        let prev_out_len = self.output.len();
         loop {
             let opcode = Opcode::parse(self.mem[&self.pc] as i32);
-            if opcode == Opcode::Halt {
-                break;
-            }
-            if self.process_opcode(opcode) == NeedInput {
-                return NeedInput;
-            }
-        }
 
-        if prev_out_len == self.output.len() {
-            NoOutput
-        } else {
-            Output(*self.output.last().unwrap())
+            match opcode {
+                Opcode::Halt => return RunStatus::Halted,
+                Opcode::Input { mode: _ } if self.in_idx == self.input.len() =>
+                        return RunStatus::NeedInput,
+                _ => self.process_opcode(opcode),
+            }
         }
     }
 }
@@ -311,18 +296,6 @@ impl Program {
 #[derive(Debug, PartialEq)]
 pub enum RunStatus {
     NeedInput,
-    Output(i64),
-    NoOutput,
-}
-
-impl RunStatus {
-    pub fn unwrap(&self) -> i64 {
-        if let RunStatus::Output(v) = self {
-            *v
-        } else {
-            dbg!(self);
-            panic!("Not Output ...");
-        }
-    }
+    Halted,
 }
 

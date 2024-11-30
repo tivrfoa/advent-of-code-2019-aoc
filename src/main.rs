@@ -1,9 +1,9 @@
 #![feature(step_trait)]
 
 mod intcode;
-mod p9;
-mod p10;
-mod p11;
+// mod p9;
+// mod p10;
+// mod p11;
 // mod p12; // slow
 mod p13;
 mod util;

@@ -40,11 +40,8 @@ pub fn p2(input: &str) -> i64 {
     let mut out_idx = 0;
 
     loop {
-        if prog.run() == RunStatus::NoOutput {
-            return score;
-        }
-
-        println!("Output len: {}", prog.output.len());
+        let run_status = prog.run();
+        // println!("Output len: {}", prog.output.len());
         while out_idx < prog.output.len() {
             let x = prog.output[out_idx];
             let y = prog.output[out_idx + 1];
@@ -56,6 +53,10 @@ pub fn p2(input: &str) -> i64 {
             }
             out_idx += 3;
         }
+
+        if run_status == RunStatus::Halted {
+            return score;
+        }
         // dbg!(score, &grid);
 
         if let Some(ball) = grid.iter().find(|(_, v)| **v == 4) {
@@ -64,16 +65,13 @@ pub fn p2(input: &str) -> i64 {
                 .find(|(_, v)| **v == 3)
                 .unwrap()
                 .0.0;
-            let input = if ball_x < paddle_x {
-                -1
-            } else if ball_x > paddle_x {
-                1
-            } else {
-                0
-            };
-            prog.run_input(input);
+            let diff = ball_x - paddle_x;
+            let a = if diff > 0 { 1 } else { 0 };
+            let b = if diff < 0 { 1 } else { 0 };
+            prog.run_input(a - b);
         } else {
-            prog.run_input(0);
+            // prog.run_input(0);
+            todo!()
         }
     }
 }
@@ -91,7 +89,7 @@ mod tests {
 
     #[test]
     fn test_p2() {
-        assert_eq!(355, p2(IN));
+        assert_eq!(18371, p2(IN));
     }
 }
 
