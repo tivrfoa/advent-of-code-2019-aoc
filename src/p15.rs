@@ -24,7 +24,8 @@ struct State {
     qt: usize,
     dir: i64,
     pos: (i64, i64),
-    grid: HashMap<(i64, i64), i64>,
+    visited: HashSet<(i64, i64)>,
+    // grid: HashMap<(i64, i64), char>,
     prog: Program,
 }
 
@@ -32,7 +33,7 @@ impl State {
     fn go_to(&self, np: (i64, i64), dir: i64) -> Self {
         let mut ns = self.clone();
         ns.qt += 1;
-        // ns.grid.insert(np, ' ');
+        ns.visited.insert(np);
         ns.pos = np;
         ns.dir = dir;
         ns.prog = self.prog.clone();
@@ -51,7 +52,7 @@ impl State {
 
         for (d, x, y) in DIRS {
             let np = (self.pos.0 + x, self.pos.1 + y);
-            if !self.grid.contains_key(&np) {
+            if !self.visited.contains(&np) {
                 ret.push(self.go_to(np, d));
             }
         }
@@ -80,7 +81,7 @@ pub fn p1(input: &str) -> usize {
         qt: 0,
         dir: 0,
         pos: (0, 0),
-        grid: HashMap::from([((0, 0), MOV)]),
+        visited: HashSet::from([(0, 0)]),
         prog: prog.clone(),
     };
 
@@ -91,7 +92,6 @@ pub fn p1(input: &str) -> usize {
     while let Some(mut state) = pq.pop() {
         let _resp = state.prog.run_input(state.dir);
         let resp = state.prog.output[state.prog.output.len() - 1];
-        state.grid.insert(state.pos, resp);
         if resp == MOV_OS {
             return state.qt;
         }
@@ -109,80 +109,6 @@ pub fn p1(input: &str) -> usize {
     panic!("MISSION FAILED!");
 }
 
-pub fn p2(input: &str) -> usize {
-    let prog = Program::from_input(input);
-    let mut pq = BinaryHeap::new();
-
-    let start = State {
-        qt: 0,
-        dir: 0,
-        pos: (0, 0),
-        grid: HashMap::from([((0, 0), MOV)]),
-        prog: prog.clone(),
-    };
-
-    for s in start.next() {
-        pq.push(s);
-    }
-
-    let mut final_state = None;
-
-    while let Some(mut state) = pq.pop() {
-        let _resp = state.prog.run_input(state.dir);
-        let resp = state.prog.output[state.prog.output.len() - 1];
-        state.grid.insert(state.pos, resp);
-        if resp == MOV_OS {
-            final_state = Some(state);
-            break;
-        }
-
-        if resp == WALL {
-            // invalid move
-            continue;
-        }
-
-        for s in state.next() {
-            pq.push(s);
-        }
-    }
-
-    let fs = final_state.unwrap();
-    // dbg!(&fs);
-    let os = fs.pos;
-    let grid = fs.grid;
-    dbg!(&grid);
-    let mut to_visit = vec![os];
-    let mut visited = HashSet::from([os]);
-    let mut time = 0;
-
-    const DIRS: [(i64, i64, i64); 4] = [
-        (N, 0, -1),
-        (S, 0, 1),
-        (W, -1, 0),
-        (E, 1, 0),
-    ];
-    while let Some(p) = to_visit.pop() {
-        time += 1;
-
-        for (_, dx, dy) in DIRS {
-            let np = (p.0 + dx, p.1 + dy);
-            if let Some(v) = grid.get(&np) {
-                if visited.contains(&np) || *v == WALL {
-                    continue;
-                }
-                to_visit.push(np);
-                visited.insert(np);
-            } else {
-                // TODO might go forever to empty space??!!
-                to_visit.push(np);
-                visited.insert(np);
-            }
-        }
-    }
-
-    time
-}
-
 
 
 
@@ -193,11 +119,6 @@ mod tests {
     #[test]
     fn test_p1() {
         assert_eq!(252, p1(IN));
-    }
-
-    #[test]
-    fn test_p2() {
-        assert_eq!(252, p2(IN));
     }
 }
 
