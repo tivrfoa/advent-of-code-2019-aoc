@@ -43,28 +43,18 @@ impl State {
     fn next(&self) -> Vec<Self> {
         let mut ret = vec![];
 
-        // n
-        let np = (self.pos.0, self.pos.1 - 1);
-        if !self.visited.contains(&np) {
-            ret.push(self.go_to(np, N));
-        }
+        const DIRS: [(i64, i64, i64); 4] = [
+            (N, 0, -1),
+            (S, 0, 1),
+            (W, -1, 0),
+            (E, 1, 0),
+        ];
 
-        // s
-        let np = (self.pos.0, self.pos.1 + 1);
-        if !self.visited.contains(&np) {
-            ret.push(self.go_to(np, S));
-        }
-
-        // w
-        let np = (self.pos.0 - 1, self.pos.1);
-        if !self.visited.contains(&np) {
-            ret.push(self.go_to(np, W));
-        }
-
-        // e
-        let np = (self.pos.0 + 1, self.pos.1);
-        if !self.visited.contains(&np) {
-            ret.push(self.go_to(np, E));
+        for (d, x, y) in DIRS {
+            let np = (self.pos.0 + x, self.pos.1 + y);
+            if !self.visited.contains(&np) {
+                ret.push(self.go_to(np, d));
+            }
         }
 
         ret
