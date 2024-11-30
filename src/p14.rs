@@ -31,7 +31,6 @@ pub fn p1(input: &str) -> usize {
         qt_mat.insert(out_name, (0, 0));
     }
     qt_mat.insert("ORE", (0, 0));
-    // dbg!(&map_reactions);
 
     solve("FUEL", 1, &map_reactions, &mut qt_mat);
 
@@ -47,19 +46,20 @@ fn solve(goal: &str, goal_qt: usize, map_reactions: &HashMap<&str, Reaction>,
         return;
     }
     let reaction = &map_reactions[goal];
-    let t = if reaction.qt > goal_qt {
+    let t = if reaction.qt >= goal_qt {
         1
     } else {
-        goal_qt / reaction.qt + goal_qt % reaction.qt
+        goal_qt / reaction.qt + if goal_qt % reaction.qt > 0 { 1 } else { 0 }
     };
     for ing in reaction.ing.iter() {
         let need = t * ing.1;
         let have = qt_mat[ing.0].0;
-        dbg!(ing, need, have);
         
         if need > have {
-            if let Some(v) = qt_mat.get_mut(ing.0) {
-                *v = (v.0 - have, v.1 + have);
+            if have > 0 {
+                if let Some(v) = qt_mat.get_mut(ing.0) {
+                    *v = (v.0 - have, v.1 + have);
+                }
             }
             let diff = need - have;
             solve(ing.0, diff, map_reactions, qt_mat);
@@ -84,12 +84,12 @@ mod tests {
 
     #[test]
     fn p1_sample10() {
-        assert_eq!(179, p1(SAMPLE1));
+        assert_eq!(165, p1(SAMPLE1));
     }
 
     #[test]
     fn test_p1() {
-        assert_eq!(8310, p1(IN));
+       assert_eq!(365768, p1(IN));
     }
 }
 
