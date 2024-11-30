@@ -129,7 +129,6 @@ fn solve2(goal: &str, goal_qt: usize, map_reactions: &HashMap<&str, Reaction>,
                 return false;
             }
             if let Some(v) = qt_mat.get_mut(ing.0) {
-                dbg!(goal, ing, &v, diff);
                 *v = (v.0 - diff, v.1 + diff);
             }
         } else {
