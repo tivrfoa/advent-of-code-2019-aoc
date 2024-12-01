@@ -160,11 +160,11 @@ pub fn p2(input: &str) -> usize {
     }
     let mut visited = HashSet::new();
 
-    const DIRS: [(dyn Fn(usize, usize, usize) -> bool, i64, i64); 4] = [
-        (|r: usize, rows: usize, cols: usize| r > 0, -1, 0),
-        (|r: usize, rows: usize, cols: usize| r + 1 < rows, 1, 0),
-        (|c: usize, rows: usize, cols: usize| c > 0, 0, -1),
-        (|c: usize, rows: usize, cols: usize| c + 1 < cols, 0, 1),
+    let DIRS: [(i64, i64); 4] = [
+        (-1, 0),
+        (1, 0),
+        (0, -1),
+        (0, 1),
     ];
 
     // x, y, timer
@@ -175,16 +175,21 @@ pub fn p2(input: &str) -> usize {
     while let Some((r, c, t)) = q.pop_front() {
         time = t;
 
-        for (f, dr, dc) in DIRS {
-            let nr = r + dr;
-            let nc = c + dc;
-            if f(r, c, rows, cols) && grid[nr][nc] != '#' && !visited.contains(&(nr, nc)) {
+        for (dr, dc) in DIRS {
+            if (dr == -1 && r == 0) ||
+                   (dr == 1 && r + 1 == rows) ||
+                   (dc == -1 && c == 0) ||
+                   (dc == 1 && c + 1 == cols) { continue; }
+            let nr = (r as i64 + dr) as usize;
+            let nc = (c as i64 + dc) as usize;
+            if grid[nr][nc] != '#' && !visited.contains(&(nr, nc)) {
                 visited.insert((nr, nc));
                 q.push_back((nr, nc, t + 1));
             }
         }
     }
 
+    dbg!(time);
     time
 }
 
@@ -198,6 +203,11 @@ mod tests {
     #[test]
     fn test_p1() {
         assert_eq!(252, p1(IN));
+    }
+
+    #[test]
+    fn test_p2() {
+        assert_eq!(350, p2(IN));
     }
 }
 
