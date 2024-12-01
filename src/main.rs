@@ -7,13 +7,13 @@ mod intcode;
 // mod p12; // slow
 // mod p13;
 // mod p14;
-mod p15;
+// mod p15;
+mod y2024;
 mod util;
 
-use p15 as Main;
+use y2024::p1 as Main;
 
 fn main() {
     Main::p1(Main::IN);
-    Main::p2(Main::IN);
 }
 
