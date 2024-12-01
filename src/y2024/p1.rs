@@ -29,12 +29,7 @@ pub fn p2(input: &str) -> i32 {
         r.entry(b).and_modify(|v| *v += 1).or_insert(1);
     }
 
-    l.into_iter()
-        .map(|a| {
-            let m = *r.get(&a).unwrap_or(&0);
-            a * m
-        })
-        .sum()
+    l.into_iter().map(|a| a * *r.get(&a).unwrap_or(&0)).sum()
 }
 
 #[cfg(test)]
