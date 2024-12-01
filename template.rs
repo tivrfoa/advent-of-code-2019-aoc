@@ -1,13 +1,12 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::*;
 
 pub fn p1(input: &str) -> usize {
-    let map = process_input(input);
 
 
     0
 }
 
-fn process_input(input: &str) -> Vec<Vec<char>> {
+fn input_to_char_grid(input: &str) -> Vec<Vec<char>> {
     input
         .trim()
         .lines()
@@ -22,7 +21,13 @@ mod tests {
 
     #[test]
     fn test_p1() {
-        assert_eq!(340, p1(IN));
+        assert_eq!(171, p1(IN));
+    }
+
+    #[test]
+    #[ignore]
+    fn test_p2() {
+        assert_eq!(171, p2(IN));
     }
 }
 
@@ -33,5 +38,7 @@ mod tests {
 // -------------------------- INPUT
 
 
+
+pub static SAMPLE: &str = "";
 
 pub static IN: &str = "";
