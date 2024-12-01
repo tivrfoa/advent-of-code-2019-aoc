@@ -1,6 +1,6 @@
 use crate::intcode::*;
 use crate::util::*;
-use std::collections::{BinaryHeap, HashMap, HashSet};
+use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
 use std::cmp::{Ordering, Reverse};
 
 /*
@@ -146,7 +146,46 @@ pub fn p2(input: &str) -> usize {
     }
 
     draw_grid(&grid, &HashMap::from([(0, '#'), (1, '.'), (2, 'O')]));
-    panic!("MISSION FAILED!");
+    let grid = get_grid(&grid, &HashMap::from([(0, '#'), (1, '.'), (2, 'O')]));
+    let rows = grid.len();
+    let cols = grid[0].len();
+    // find O
+    let mut os = (0, 0);
+    for (i, r) in grid.iter().enumerate() {
+        for (j, c) in r.iter().enumerate() {
+            if *c == 'O' {
+                os = (i, j);
+            }
+        }
+    }
+    let mut visited = HashSet::new();
+
+    const DIRS: [(dyn Fn(usize, usize, usize) -> bool, i64, i64); 4] = [
+        (|r: usize, rows: usize, cols: usize| r > 0, -1, 0),
+        (|r: usize, rows: usize, cols: usize| r + 1 < rows, 1, 0),
+        (|c: usize, rows: usize, cols: usize| c > 0, 0, -1),
+        (|c: usize, rows: usize, cols: usize| c + 1 < cols, 0, 1),
+    ];
+
+    // x, y, timer
+    let mut q: VecDeque<(usize, usize, usize)> = VecDeque::new();
+    q.push_back((os.0, os.1, 0));
+    let mut time = 0;
+
+    while let Some((r, c, t)) = q.pop_front() {
+        time = t;
+
+        for (f, dr, dc) in DIRS {
+            let nr = r + dr;
+            let nc = c + dc;
+            if f(r, c, rows, cols) && grid[nr][nc] != '#' && !visited.contains(&(nr, nc)) {
+                visited.insert((nr, nc));
+                q.push_back((nr, nc, t + 1));
+            }
+        }
+    }
+
+    time
 }
 
 
