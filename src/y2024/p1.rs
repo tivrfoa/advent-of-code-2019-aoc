@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::*;
 
 pub fn p1(input: &str) -> i32 {
     let mut l = vec![];
@@ -18,13 +18,37 @@ pub fn p1(input: &str) -> i32 {
         .sum()
 }
 
+pub fn p2(input: &str) -> i32 {
+    let mut l = vec![];
+    let mut r = HashMap::new();
+
+    for line in input.lines() {
+        let (a, b) = line.split_once("   ").unwrap();
+        l.push(a.parse::<i32>().unwrap());
+        let b = b.parse::<i32>().unwrap();
+        r.entry(b).and_modify(|v| *v += 1).or_insert(1);
+    }
+
+    l.into_iter()
+        .map(|a| {
+            let m = *r.get(&a).unwrap_or(&0);
+            a * m
+        })
+        .sum()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
    #[test]
     fn test_p1() {
-        assert_eq!(340, p1(IN));
+        assert_eq!(1938424, p1(IN));
+    }
+
+   #[test]
+    fn test_p2() {
+        assert_eq!(22014209, p2(IN));
     }
 }
 

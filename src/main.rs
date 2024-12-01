@@ -16,4 +16,4 @@ use y2024::p1 as Main;
 fn main() {
     Main::p1(Main::IN);
 }
-
+ 
