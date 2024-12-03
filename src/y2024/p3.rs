@@ -7,53 +7,47 @@ pub fn p1(input: &str) -> i32 {
         sl.push_str(line);
     }
 
-    let mut v = sl.as_str();
+    let v = sl.as_str();
+    let mut idx = 0;
     let mut sum = 0;
-    'l: loop {
-        // sl.find(pat)
-        match v.split_once("mul(") {
-            None => return sum,
-            Some((_, r)) => {
-                let mut v1 = String::new();
-                let mut v2 = String::new();
-                let mut is_v1 = true;
-                for (i, c) in r.chars().enumerate() {
-                    if c == ',' {
-                        if v1.is_empty() {
-                            v = r;
-                            continue 'l;
-                        }
-                        is_v1 = false;
-                        continue;
+    loop {
+        if let Some(s) = v[idx..].find("mul(") {
+            let mut v1 = String::new();
+            let mut v2 = String::new();
+            let mut is_v1 = true;
+            for c in v[idx+s+4..].chars() {
+                if c == ',' {
+                    if v1.is_empty() {
+                        break;
                     }
-                    if c == ')' {
-                        if is_v1 || v2.is_empty() {
-                            v = r;
-                            continue 'l;
-                        }
-                        sum += v1.parse::<i32>().unwrap() * v2.parse::<i32>().unwrap();
-                        v = &r[i + 1..];
-                        continue 'l;
+                    is_v1 = false;
+                    continue;
+                }
+                if c == ')' {
+                    if is_v1 || v2.is_empty() {
+                        break;
                     }
-                    if c < '0' || c > '9' {
-                        v = &r[i + 1..];
-                        continue 'l;
+                    sum += v1.parse::<i32>().unwrap() * v2.parse::<i32>().unwrap();
+                    break;
+                }
+                if c < '0' || c > '9' {
+                    break;
+                }
+                if is_v1 {
+                    if v1.len() == 3 {
+                        break;
                     }
-                    if is_v1 {
-                        if v1.len() == 3 {
-                            v = &r[i + 1..];
-                            continue 'l;
-                        }
-                        v1.push(c);
-                    } else {
-                        if v2.len() == 3 {
-                            v = &r[i + 1..];
-                            continue 'l;
-                        }
-                        v2.push(c);
+                    v1.push(c);
+                } else {
+                    if v2.len() == 3 {
+                        break;
                     }
+                    v2.push(c);
                 }
             }
+            idx += s + 4;
+        } else {
+            return sum;
         }
     }
 }
@@ -65,10 +59,26 @@ pub fn p2(input: &str) -> i32 {
     }
 
     let mut v = sl.as_str();
+    let len = v.len();
+    let mut prev_do = len;
+    let mut prev_dont = len;
     let mut e = true;
     let mut sum = 0;
     'l: loop {
-        // sl.find(pat)
+        let mut e_idx = len;
+        let do_idx = sl.find("do()").unwrap_or(v.len());
+        let dont_idx = sl.find("don't()").unwrap_or(v.len());
+        let mul_idx = sl.find("mul(").unwrap_or(v.len());
+
+        if mul_idx > prev_do && mul_idx > prev_dont {
+            if prev_do > prev_dont {
+                prev_dont = len;
+                e = true;
+            }
+        }
+        if mul_idx > prev_do || mul_idx > prev_dont {
+            
+        }
         match v.split_once("mul(") {
             None => return sum,
             Some((_, r)) => {
