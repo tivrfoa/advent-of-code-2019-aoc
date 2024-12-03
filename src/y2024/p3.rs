@@ -138,17 +138,22 @@ fn find_all(sl: &str, arg: &str) -> Vec<usize> {
 
 pub fn p2_regex(input: &str) -> i32 {
     // join lines
-    let mut sl = String::new();
-    for line in input.lines() {
-        sl.push_str(line);
-    }
+    let sl: String = input.lines().collect();
     let re = Regex::new(r"mul\(([0-9]{1,3}),([0-9]{1,3})\)|do\(\)|don't\(\)").unwrap();
-
-    for (_, [t, a, b]) in re.captures_iter(&sl).map(|c| c.extract()) {
-        dbg!(t, a, b);
-    }
-
-    171
+    let mut on = true;
+    re.captures_iter(&sl).map(|c| {
+        dbg!(&c);
+        let mut val = 0;
+        match c.get(0).map(|t| t.as_str()) {
+            Some("do()") => on = true,
+            Some("don't()") => on = false,
+            _ if on => if let (Some(a), Some(b)) = (c.get(1), c.get(2)) {
+                val = a.as_str().parse::<i32>().unwrap() * b.as_str().parse::<i32>().unwrap();
+            },
+            _ => assert_eq!(false, on),
+        }
+        val
+    }).sum()
 }
 
 
