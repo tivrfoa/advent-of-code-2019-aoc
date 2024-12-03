@@ -137,12 +137,10 @@ fn find_all(sl: &str, arg: &str) -> Vec<usize> {
 }
 
 pub fn p2_regex(input: &str) -> i32 {
-    // join lines
     let sl: String = input.lines().collect();
     let re = Regex::new(r"mul\(([0-9]{1,3}),([0-9]{1,3})\)|do\(\)|don't\(\)").unwrap();
     let mut on = true;
     re.captures_iter(&sl).map(|c| {
-        dbg!(&c);
         let mut val = 0;
         match c.get(0).map(|t| t.as_str()) {
             Some("do()") => on = true,
@@ -178,8 +176,13 @@ mod tests {
     }
 
     #[test]
+    fn test_p2_regex() {
+        assert_eq!(82045421, p2_regex(IN));
+    }
+
+    #[test]
     fn test_p2() {
-        assert_eq!(82045421, p2(IN));
+        assert_eq!(82045421, p2_regex(IN));
     }
 }
 
