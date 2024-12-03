@@ -5,7 +5,7 @@ fn is_safe(nn: &[i32]) -> bool {
     if nn[0] == nn[1] { return false; }
     let is_inc = nn[0] < nn[1];
 
-    for i in (0..nn.len() - 1).step_by(2) {
+    for i in 0..nn.len() - 1 {
         let d = if is_inc {
             nn[i + 1] - nn[i]
         } else {
