@@ -144,7 +144,9 @@ pub fn p2_regex(input: &str) -> i32 {
     }
     let re = Regex::new(r"mul\(([0-9]{1,3}),([0-9]{1,3})\)|do\(\)|don't\(\)").unwrap();
 
-    dbg!(re.captures(&sl));
+    for (_, [t, a, b]) in re.captures_iter(&sl).map(|c| c.extract()) {
+        dbg!(t, a, b);
+    }
 
     171
 }
