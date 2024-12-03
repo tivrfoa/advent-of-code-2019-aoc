@@ -8,10 +8,12 @@ mod intcode;
 // mod p13;
 // mod p14;
 // mod p15;
+mod p16;
 mod y2024;
 mod util;
 
-use y2024::p1 as Main;
+use y2024::p2 as Main;
+// use p16 as Main;
 
 fn main() {
     Main::p1(Main::IN);
