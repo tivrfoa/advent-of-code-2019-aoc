@@ -60,7 +60,6 @@ pub fn p2(input: &str) -> i32 {
 
     let dos: Vec<usize> = find_all(&sl, "do()");
     let donts: Vec<usize> = find_all(&sl, "don't()");
-    dbg!(&dos, &donts);
     let v = sl.as_str();
     let mut idx = 0;
     let mut sum = 0;
@@ -128,7 +127,7 @@ fn find_all(sl: &str, arg: &str) -> Vec<usize> {
     let mut idx = 0;
 
     while let Some(i) = sl[idx..].find(arg) {
-        ret.push(i);
+        ret.push(idx + i);
         idx += i + 1;
     }
 
@@ -153,7 +152,7 @@ mod tests {
 
     #[test]
     fn test_p2() {
-        assert_eq!(171, p2(IN));
+        assert_eq!(82045421, p2(IN));
     }
 }
 
