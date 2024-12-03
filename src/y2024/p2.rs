@@ -32,8 +32,46 @@ pub fn p1(input: &str) -> usize {
     total_safe
 }
 
-pub fn p2(input: &str) -> i32 {
-    0
+fn is_safe2(nn: &[i32]) -> bool {
+    if nn.len() <= 1 { return true; }
+    if nn[0] == nn[1] {
+        let mut nnl: Vec<i32> = nn.to_vec();
+        nnl.remove(0);
+        let mut nnr = nn.to_vec();
+        nnr.remove(1);
+        return is_safe(&nnl) || is_safe(&nnr);
+    }
+    let is_inc = nn[0] < nn[1];
+
+    for i in 0..nn.len() - 1 {
+        let d = if is_inc {
+            nn[i + 1] - nn[i]
+        } else {
+            nn[i] - nn[i + 1]
+        };
+        if d < 1 || d > 3 {
+            let mut nnl: Vec<i32> = nn.to_vec();
+            nnl.remove(i);
+            let mut nnr = nn.to_vec();
+            nnr.remove(i + 1);
+            return is_safe(&nnl) || is_safe(&nnr);
+        }
+    }
+
+    true
+}
+
+pub fn p2(input: &str) -> usize {
+    let mut total_safe = 0;
+    for line in input.lines() {
+        let nn: Vec<i32> = line.split(' ')
+            .map(|n| n.parse::<i32>().unwrap())
+            .collect();
+        
+        total_safe += if is_safe2(&nn) { 1 } else { 0 };
+    }
+
+    total_safe
 }
 
 #[cfg(test)]
@@ -47,7 +85,7 @@ mod tests {
 
    #[test]
     fn test_p2() {
-        assert_eq!(22014209, p2(IN));
+        assert_eq!(171, p2(IN));
     }
 }
 
