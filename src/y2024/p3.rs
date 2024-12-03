@@ -1,4 +1,6 @@
 use std::collections::*;
+use regex::Regex;
+
 use crate::util::*;
 
 pub fn p1(input: &str) -> i32 {
@@ -134,6 +136,19 @@ fn find_all(sl: &str, arg: &str) -> Vec<usize> {
     ret
 }
 
+pub fn p2_regex(input: &str) -> i32 {
+    // join lines
+    let mut sl = String::new();
+    for line in input.lines() {
+        sl.push_str(line);
+    }
+    let re = Regex::new(r"mul\(([0-9]{1,3}),([0-9]{1,3})\)|do\(\)|don't\(\)").unwrap();
+
+    dbg!(re.captures(&sl));
+
+    171
+}
+
 
 
 #[cfg(test)]
@@ -148,6 +163,11 @@ mod tests {
     #[test]
     fn test_p2_sample() {
         assert_eq!(48, p2(SAMPLE));
+    }
+
+    #[test]
+    fn test_p2_regex_sample() {
+        assert_eq!(48, p2_regex(SAMPLE));
     }
 
     #[test]
