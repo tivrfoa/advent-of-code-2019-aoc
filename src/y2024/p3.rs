@@ -60,12 +60,13 @@ pub fn p2(input: &str) -> i32 {
 
     let dos: Vec<usize> = find_all(&sl, "do()");
     let donts: Vec<usize> = find_all(&sl, "don't()");
+    dbg!(&dos, &donts);
     let v = sl.as_str();
     let mut idx = 0;
     let mut sum = 0;
     loop {
         if let Some(s) = v[idx..].find("mul(") {
-            if !is_enabled(&dos, &donts, idx) {
+            if !is_enabled(&dos, &donts, idx + s) {
                 idx += s + 4;
                 continue;
             }
@@ -111,8 +112,8 @@ pub fn p2(input: &str) -> i32 {
 }
 
 fn is_enabled(dos: &[usize], donts: &[usize], idx: usize) -> bool {
-    let odo = dos.iter().filter(|&&i| i < idx).map(|i| *i).max();
-    let odont = dos.iter().filter(|&&i| i < idx).map(|i| *i).max();
+    let odo = dos.iter().filter(|&&i| i < idx).map(|i| *i).last();
+    let odont = donts.iter().filter(|&&i| i < idx).map(|i| *i).last();
 
     match (odo, odont) {
         (None, None) => true,
@@ -146,6 +147,11 @@ mod tests {
     }
 
     #[test]
+    fn test_p2_sample() {
+        assert_eq!(48, p2(SAMPLE));
+    }
+
+    #[test]
     fn test_p2() {
         assert_eq!(171, p2(IN));
     }
@@ -159,7 +165,7 @@ mod tests {
 
 
 
-pub static SAMPLE: &str = "";
+pub static SAMPLE: &str = "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))";
 
 pub static IN: &str = "select(){,(where()+-mul(514,727);:]]what():^*from(764,547) mul(550,305)$^^%>select(587,376)mul(94,564)select()when(633,175)<where()mul(260,379)mul(790,810)&!$%mul(557,683) why(){/mul(220,10)!+{+mul(654,746){who()what() !%mul(89,191)who()select()*#&>[[mul(302,490)$-}&**+mul(335,535)@select()>select()mul(241,166)when(800,629)mul(758,530)',^ &!~%/#mul(938,70)?&!from();mul(412,287)}/mul(230,620)(~select()what()select()'@mul(410,577)$mul(720,516)-mul(373,78)when()!^:@{)mul(793,973)who()when()mul(85,246)>what()}[#[@!^/mul(396,22)@when()-;:':>}mul(515,670)<[mul(38,415)?~<?mul(200,147):mul(328,235)*<what() (] ::what()mul(571,33)mul(679,122)>select()why()^when()*#+($do()']select()>:^/when()^mul(440,923)<what():mul(971,274)(mul(833,181))don't()why();{#mul(468,401)$+?mul(446,956)where()mul(391,995)who(813,746),^who()%how()^when()mul(284,629);[why()mul(922,806)%}mul(183,352)where() [{,why(475,275)mul(547,62)$mul(753,602)*!%where()-mul(956,732)$;what()<;'{:*mul(481,556)from()*{select():what()'#mul(905,420)what()mul(327,771), who()}mul(45,757)mul(366,653)where(459,755))don't();when()mul(807,855)where()$)>@mul(48,816)mul(370,665)@*>who()^,when()mul(155,426) mul(132,914)^%select()&when()/from()(+}mul(296,176)mul(361,479)%{;!,'who()where():mul(506,495)#who()&%< ^mul(481,87))&!;mul(541,563)%don't(){}'-),from()$mul(495,427)^when()mul(640,499)select()}:] )%+()mul(967,918)?when()select()<{/who()what()mul(505,225)(mul(90,482)>!from()when()#do()mul(620,841):who()!mul(719,850)where()-)mul(931,185)?;select()]@,why()%]mul(39,103)mul(687,103)$%];how(337,314)[}$-when()mul(282,494):;!where(188,779);who()mul(342,554)<^who()(why()where()who(345,491)%mul(407,74)why()&}'%'mul(324,781)mul(90,925):from()mul(828,16)mul(438,549){what()>$why()*what(35,607)mulwho()mul(91,548)>,what()select()]&how()@mul(384,93!select(),where()$mul(835,662)@{don't():#<^/-+mul(489,462)>>where(){why()where()---when()mul(53,461)/~?mul(273,777)mul(119,879)+@'when()-mul(585,949)?['when()from(946,632)mul(22,105)>-:how())from();mul(439,876)?mulwho()@who()when()<@{-mul(111,687)$&mul(432,628)%*,{when()mul(287,508)'-select()}don't()/#~-@from()[:#mul(111,655)%: &;mul(518,391)don't()<from()%-~-!@mul(301,138)(,how()mul(654,521)!*when()--({who()how()don't() ~where()!~mul(910,877)?+select()+-[#&do()*< +-what()&how()%$mul(123,641)*?&mul(488,741)<}@@&?what()how()what())mul(301,649);why()%mul(259,148)$~')&[{mul(83,94)~select()~^when()mul(232,572)mul(889,281)why()%*#$}<[mul(256,607)}({mul(382,953)what()how()why() who()from()!?%mul(433,147)+>&mul(197,749)@who()*mul(935,21)+> who()why()mul(299,881)who()]@+%/from()[?do();{+[why()$select()#mul(264,731)]'select()what();+who()mul(713,161)where(931,649))mul(360,529)}where()!;]how()<mul;$-:]]how()#where()select()when()mul(971,836)when():[how(){mul(567,429)!}{{',mul(522,696),why(){mul(833;#-&#,select()~mul(80,121)+*,#how()select()${>how()mul(619,728)how()<%}+}mul(420,324);{!from();mul;)>mul(144,181)who()}?~where():who()${ mul(261,691),why() /+mul(189,450)
 +when()%^]]/when()~@mul(533,22)mul(231,586)mul(107,724)!@mul(504who()@}when(291,528)mul(691,859)/}#mul(726,544)from()[>>what()^<mul(316,707)@&why(),what()mul(798,459) why()~)]mul(612,148)[??when()]*~mul(634,978)mul(477,947)<?(&!;what(724,289)@~^do()who()mul(828,259)mul(595,267)who(671,135)}why()&how()mul(351,552)when()how()^>?^from(762,977)mul(67,280)(who()^mul(586,844)}how()<from()mul(521,525)'select()mul(379,96), mul(478,481)where(465,218)mul-&*: ~mul(123,281)when()mul(249,626) <}mul(190,620)mul(21,142):from(278,629)}how(997,873)when()'from()#mul(117,186)^:]when(128,617)mul(940,708);mul(960,867);[,~when()when() mul(135,71)where(972,23)mul(79,533)how()* )%<&do()@>how()+where(),mul(886,320)#from(691,802)mul(376,296)'why()[@}how()#why(530,714)?>mul(791,363)?what()$${@why()>+mul(133,626))why()&}what(){%(mul(474,459)what()where()(^mul(311,372)mul(243,118)where()@mul(302,760):{who()-'{+mul(145,293)}why();how());$]mul(652,761%? ;]:@mul(259,51)@<mul(369,322 +#!mul(99,991):from()/}mul(137,230)why()}^%^{}select()where()mul(226,287)mul(590,394)[>>'mul(474,995){don't():}*mul(309,511)?select();(mul(553,164)]how(){when()mul(556,560/~when(464,361),^<#[/&do()when()&who()<mul(618,347)]/what()&mul(210,454)@,'^/%who()mul(297,766)who()&:{mul(961,326))&:#')what(663,984)mul(340,326)mul(329,543)%^#/{!mul(28,451)}@@mul(428,233)^%<-how()mul(710,863)[mul(944,973)[where()~[]where()'%~why()don't()!,@#%mul(582,87)$[[@ mul(569,58),]mul(746,840)[(mul(74,146)'where()(#+;mul(517,818)mul?*[->*mul(22,727)from()):who()when()}mul(367,34/when()where()mul(226,816)mul(421,33'(,(#, <who())what()mul(247,12)+when(199,246)who()what(912,935)~?select()how()&how()mul(620,264))how(726,381)/!mul(586,607)#when()[mul(684,722)&%-from()mul(11,63)&where()<select()^)<%select(127,191)mul(662,331)}% mul(631,2)~]mul(987,288)mul(261,47)]{when()>?who()do()%;+-<what()#*+mul@]@?[^mul(650,139)<who()[#don't())}-from()?:who()[mul(561,710){~+how()don't()mul(788,270)mul(151,849)+{;%[#~mul(531,530)how()>:-mul(99,868)#{[why()who(504,690)?mul(119,337)+,mul(250,122))%#%mul(708,536)>select();from()mul(480,332)}&what(423,278)mul(891,459)}mul(852,128)mul(418,844)~select()[{when()(mul(69,312);!)where(419,852)<:*@-don't()what()!$-;{mul(91,636)-when()select()~from()(&mul(894,19)how()]@,[do()#,what()'@mul(116,57)why()from(),@-?mul(651,74)]what(704,54)how()<$mul(169,494) )from()$~-mul(44,491)$mul(29,368)'why()+-+mul(961,385)>who()select(137,499)mul(586,30)$%when(765,538)?why()(mul(378,568)}select()[:[%?$from()don't();mul(375,803)#']/@/^}*where(184,703)mul(21,508)>;+,mul(921,355)};mul(594,553@<?when()what()%%when()*don't()-<,from(342,971))mul(983,69!!!mul(980,691)why()mul(200,735)select(435,520){?mul(489,554?~!mul(212,991)/#<$!<*mul(751,323)mul(102,317)when()},^;why()mul(51,80)}+what()$~[mul(454,897)'/);(>%])mul(793,439)]from(599,582)mul(982,538)}//^;how()~)'from()don't()~&who()<+#+mul(386,116)>/~who()mul(373,106)+#!do()(&-select(),+~;~mul(59,223)mul(233,653)mul(547,404)?where()~%don't()}}select() from()@] from()mul(150,196) ]}(>mul(514,824)where()+mul(332,418)
