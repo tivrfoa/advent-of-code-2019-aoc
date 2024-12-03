@@ -34,31 +34,18 @@ pub fn p1(input: &str) -> usize {
 
 fn is_safe2(nn: &[i32]) -> bool {
     if nn.len() <= 1 { return true; }
-    if nn[0] == nn[1] {
-        let mut nnl: Vec<i32> = nn.to_vec();
-        nnl.remove(0);
-        let mut nnr = nn.to_vec();
-        nnr.remove(1);
-        return is_safe(&nnl) || is_safe(&nnr);
-    }
-    let is_inc = nn[0] < nn[1];
 
     for i in 0..nn.len() - 1 {
-        let d = if is_inc {
-            nn[i + 1] - nn[i]
-        } else {
-            nn[i] - nn[i + 1]
-        };
-        if d < 1 || d > 3 {
-            let mut nnl: Vec<i32> = nn.to_vec();
-            nnl.remove(i);
-            let mut nnr = nn.to_vec();
-            nnr.remove(i + 1);
-            return is_safe(&nnl) || is_safe(&nnr);
+        let mut nnl: Vec<i32> = nn.to_vec();
+        nnl.remove(i);
+        let mut nnr = nn.to_vec();
+        nnr.remove(i + 1);
+        if is_safe(&nnl) || is_safe(&nnr) {
+            return true;
         }
     }
 
-    true
+    false
 }
 
 pub fn p2(input: &str) -> usize {
