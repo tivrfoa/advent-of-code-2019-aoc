@@ -7,9 +7,11 @@ pub fn p1(input: &str) -> i32 {
         sl.push_str(line);
     }
 
+    let mut v = sl.as_str();
     let mut sum = 0;
     'l: loop {
-        match sl.split_once("mul(") {
+        // sl.find(pat)
+        match v.split_once("mul(") {
             None => return sum,
             Some((_, r)) => {
                 let mut v1 = String::new();
@@ -18,7 +20,7 @@ pub fn p1(input: &str) -> i32 {
                 for (i, c) in r.chars().enumerate() {
                     if c == ',' {
                         if v1.is_empty() {
-                            sl = r.to_string();
+                            v = r;
                             continue 'l;
                         }
                         is_v1 = false;
@@ -26,26 +28,84 @@ pub fn p1(input: &str) -> i32 {
                     }
                     if c == ')' {
                         if is_v1 || v2.is_empty() {
-                            sl = r.to_string();
+                            v = r;
                             continue 'l;
                         }
                         sum += v1.parse::<i32>().unwrap() * v2.parse::<i32>().unwrap();
-                        sl = r[i + 1..].into();
+                        v = &r[i + 1..];
                         continue 'l;
                     }
                     if c < '0' || c > '9' {
-                        sl = r[i + 1..].into();
+                        v = &r[i + 1..];
                         continue 'l;
                     }
                     if is_v1 {
                         if v1.len() == 3 {
-                            sl = r[i + 1..].into();
+                            v = &r[i + 1..];
                             continue 'l;
                         }
                         v1.push(c);
                     } else {
                         if v2.len() == 3 {
-                            sl = r[i + 1..].into();
+                            v = &r[i + 1..];
+                            continue 'l;
+                        }
+                        v2.push(c);
+                    }
+                }
+            }
+        }
+    }
+}
+
+pub fn p2(input: &str) -> i32 {
+    let mut sl = String::new();
+    for line in input.lines() {
+        sl.push_str(line);
+    }
+
+    let mut v = sl.as_str();
+    let mut e = true;
+    let mut sum = 0;
+    'l: loop {
+        // sl.find(pat)
+        match v.split_once("mul(") {
+            None => return sum,
+            Some((_, r)) => {
+                let mut v1 = String::new();
+                let mut v2 = String::new();
+                let mut is_v1 = true;
+                for (i, c) in r.chars().enumerate() {
+                    if c == ',' {
+                        if v1.is_empty() {
+                            v = r;
+                            continue 'l;
+                        }
+                        is_v1 = false;
+                        continue;
+                    }
+                    if c == ')' {
+                        if is_v1 || v2.is_empty() {
+                            v = r;
+                            continue 'l;
+                        }
+                        sum += v1.parse::<i32>().unwrap() * v2.parse::<i32>().unwrap();
+                        v = &r[i + 1..];
+                        continue 'l;
+                    }
+                    if c < '0' || c > '9' {
+                        v = &r[i + 1..];
+                        continue 'l;
+                    }
+                    if is_v1 {
+                        if v1.len() == 3 {
+                            v = &r[i + 1..];
+                            continue 'l;
+                        }
+                        v1.push(c);
+                    } else {
+                        if v2.len() == 3 {
+                            v = &r[i + 1..];
                             continue 'l;
                         }
                         v2.push(c);
@@ -55,12 +115,6 @@ pub fn p1(input: &str) -> i32 {
         }
     }
         
-
-    0
-}
-
-pub fn p2(input: &str) -> usize {
-
 
     0
 }
