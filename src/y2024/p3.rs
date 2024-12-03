@@ -1,7 +1,25 @@
-use std::collections::*;
 use regex::Regex;
 
-use crate::util::*;
+
+pub fn p2_regex(input: &str) -> i32 {
+    let sl: String = input.lines().collect();
+    let re = Regex::new(r"mul\(([0-9]{1,3}),([0-9]{1,3})\)|do\(\)|don't\(\)").unwrap();
+    let mut on = true;
+    re.captures_iter(&sl).map(|c| {
+        let mut val = 0;
+        match c.get(0).map(|t| t.as_str()) {
+            Some("do()") => on = true,
+            Some("don't()") => on = false,
+            _ if on => if let (Some(a), Some(b)) = (c.get(1), c.get(2)) {
+                val = a.as_str().to_i() * b.as_str().to_i();
+            },
+            _ => assert_eq!(false, on),
+        }
+        val
+    }).sum()
+}
+
+// Old approach without Regex
 
 pub fn p1(input: &str) -> i32 {
     let mut sl = String::new();
@@ -136,24 +154,15 @@ fn find_all(sl: &str, arg: &str) -> Vec<usize> {
     ret
 }
 
-pub fn p2_regex(input: &str) -> i32 {
-    let sl: String = input.lines().collect();
-    let re = Regex::new(r"mul\(([0-9]{1,3}),([0-9]{1,3})\)|do\(\)|don't\(\)").unwrap();
-    let mut on = true;
-    re.captures_iter(&sl).map(|c| {
-        let mut val = 0;
-        match c.get(0).map(|t| t.as_str()) {
-            Some("do()") => on = true,
-            Some("don't()") => on = false,
-            _ if on => if let (Some(a), Some(b)) = (c.get(1), c.get(2)) {
-                val = a.as_str().parse::<i32>().unwrap() * b.as_str().parse::<i32>().unwrap();
-            },
-            _ => assert_eq!(false, on),
-        }
-        val
-    }).sum()
+trait ParseToInt {
+    fn to_i(&self) -> i32;
 }
 
+impl ParseToInt for str {
+    fn to_i(&self) -> i32 {
+        self.parse::<i32>().unwrap()
+    }
+}
 
 
 #[cfg(test)]
