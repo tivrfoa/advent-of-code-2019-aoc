@@ -58,75 +58,80 @@ pub fn p2(input: &str) -> i32 {
         sl.push_str(line);
     }
 
-    let mut v = sl.as_str();
-    let len = v.len();
-    let mut prev_do = len;
-    let mut prev_dont = len;
-    let mut e = true;
+    let dos: Vec<usize> = find_all(&sl, "do()");
+    let donts: Vec<usize> = find_all(&sl, "don't()");
+    let v = sl.as_str();
+    let mut idx = 0;
     let mut sum = 0;
-    'l: loop {
-        let mut e_idx = len;
-        let do_idx = sl.find("do()").unwrap_or(v.len());
-        let dont_idx = sl.find("don't()").unwrap_or(v.len());
-        let mul_idx = sl.find("mul(").unwrap_or(v.len());
-
-        if mul_idx > prev_do && mul_idx > prev_dont {
-            if prev_do > prev_dont {
-                prev_dont = len;
-                e = true;
+    loop {
+        if let Some(s) = v[idx..].find("mul(") {
+            if !is_enabled(&dos, &donts, idx) {
+                idx += s + 4;
+                continue;
             }
-        }
-        if mul_idx > prev_do || mul_idx > prev_dont {
-            
-        }
-        match v.split_once("mul(") {
-            None => return sum,
-            Some((_, r)) => {
-                let mut v1 = String::new();
-                let mut v2 = String::new();
-                let mut is_v1 = true;
-                for (i, c) in r.chars().enumerate() {
-                    if c == ',' {
-                        if v1.is_empty() {
-                            v = r;
-                            continue 'l;
-                        }
-                        is_v1 = false;
-                        continue;
+
+            let mut v1 = String::new();
+            let mut v2 = String::new();
+            let mut is_v1 = true;
+            for c in v[idx+s+4..].chars() {
+                if c == ',' {
+                    if v1.is_empty() {
+                        break;
                     }
-                    if c == ')' {
-                        if is_v1 || v2.is_empty() {
-                            v = r;
-                            continue 'l;
-                        }
-                        sum += v1.parse::<i32>().unwrap() * v2.parse::<i32>().unwrap();
-                        v = &r[i + 1..];
-                        continue 'l;
+                    is_v1 = false;
+                    continue;
+                }
+                if c == ')' {
+                    if is_v1 || v2.is_empty() {
+                        break;
                     }
-                    if c < '0' || c > '9' {
-                        v = &r[i + 1..];
-                        continue 'l;
+                    sum += v1.parse::<i32>().unwrap() * v2.parse::<i32>().unwrap();
+                    break;
+                }
+                if c < '0' || c > '9' {
+                    break;
+                }
+                if is_v1 {
+                    if v1.len() == 3 {
+                        break;
                     }
-                    if is_v1 {
-                        if v1.len() == 3 {
-                            v = &r[i + 1..];
-                            continue 'l;
-                        }
-                        v1.push(c);
-                    } else {
-                        if v2.len() == 3 {
-                            v = &r[i + 1..];
-                            continue 'l;
-                        }
-                        v2.push(c);
+                    v1.push(c);
+                } else {
+                    if v2.len() == 3 {
+                        break;
                     }
+                    v2.push(c);
                 }
             }
+            idx += s + 4;
+        } else {
+            return sum;
         }
     }
-        
+}
 
-    0
+fn is_enabled(dos: &[usize], donts: &[usize], idx: usize) -> bool {
+    let odo = dos.iter().filter(|&&i| i < idx).map(|i| *i).max();
+    let odont = dos.iter().filter(|&&i| i < idx).map(|i| *i).max();
+
+    match (odo, odont) {
+        (None, None) => true,
+        (None, Some(_)) => false,
+        (Some(_), None) => true,
+        (Some(d), Some(dn)) => d > dn,
+    }
+}
+
+fn find_all(sl: &str, arg: &str) -> Vec<usize> {
+    let mut ret = vec![];
+    let mut idx = 0;
+
+    while let Some(i) = sl[idx..].find(arg) {
+        ret.push(i);
+        idx += i + 1;
+    }
+
+    ret
 }
 
 
