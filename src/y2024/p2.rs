@@ -67,12 +67,12 @@ mod tests {
 
    #[test]
     fn test_p1() {
-        assert_eq!(1938424, p1(IN));
+        assert_eq!(421, p1(IN));
     }
 
    #[test]
     fn test_p2() {
-        assert_eq!(171, p2(IN));
+        assert_eq!(476, p2(IN));
     }
 }
 
