@@ -44,10 +44,35 @@ pub fn p1(input: &str) -> i32 {
         .sum()
 }
 
-pub fn p2(input: &str) -> usize {
+fn fix_order(mut page: Vec<i32>, rules: &HashMap<i32, Vec<i32>>) -> Vec<i32> {
+    let len = page.len();
+    'w: while !is_correct_order(&page, rules) {
+        for i in 0..len {
+            if let Some(r_vec) = rules.get(&page[i]) {
+                for n in r_vec {
+                    // check before
+                    for j in 0..i {
+                        if page[j] == *n {
+                            page.swap(i, j);
+                            continue 'w;
+                        }
+                    }
+                }
+            }
+        }
+    }
 
+    page
+}
 
-    0
+pub fn p2(input: &str) -> i32 {
+    let (rules, pages) = parse(input);
+    // dbg!(&rules, &pages);
+
+    pages.into_iter()
+        .filter(|p| !is_correct_order(p, &rules))
+        .map(|p| { let len = p.len(); fix_order(p, &rules)[len / 2] })
+        .sum()
 }
 
 
@@ -67,9 +92,8 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_p2() {
-        assert_eq!(171, p2(IN));
+        assert_eq!(4828, p2(IN));
     }
 }
 
