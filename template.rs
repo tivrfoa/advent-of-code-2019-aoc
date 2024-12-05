@@ -1,4 +1,12 @@
 use std::collections::*;
+use crate::util::*;
+
+#[allow(dead_code)]
+fn parse(input: &str) -> usize {
+
+
+    0
+}
 
 pub fn p1(input: &str) -> usize {
 
@@ -6,13 +14,12 @@ pub fn p1(input: &str) -> usize {
     0
 }
 
-fn input_to_char_grid(input: &str) -> Vec<Vec<char>> {
-    input
-        .trim()
-        .lines()
-        .map(|line| line.chars().collect())
-        .collect()
+pub fn p2(input: &str) -> usize {
+
+
+    0
 }
+
 
 
 #[cfg(test)]
@@ -30,9 +37,6 @@ mod tests {
         assert_eq!(171, p2(IN));
     }
 }
-
-
-
 
 
 // -------------------------- INPUT

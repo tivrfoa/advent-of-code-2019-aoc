@@ -1,15 +1,15 @@
 use std::collections::*;
 use crate::util::*;
 
-pub fn parse(input: &str) -> (HashMap<i32, i32>, Vec<Vec<i32>>) {
-    let mut rules = HashMap::new();
+pub fn parse(input: &str) -> (HashMap<i32, Vec<i32>>, Vec<Vec<i32>>) {
+    let mut rules: HashMap<i32, Vec<i32>> = HashMap::new();
     let mut pages = vec![];
     let mut lines = input.lines();
 
     while let Some(line) = lines.next() {
         if line.trim().is_empty() { break; }
         let (x, y) = line.split_once('|').unwrap();
-        rules.insert(x.to_i(), y.to_i());
+        rules.entry(x.to_i()).and_modify(|v| v.push(y.to_i())).or_insert(vec![y.to_i()]);
     }
 
     while let Some(line) = lines.next() {
@@ -19,12 +19,14 @@ pub fn parse(input: &str) -> (HashMap<i32, i32>, Vec<Vec<i32>>) {
     (rules, pages)
 }
 
-fn is_correct_order(page: &[i32], rules: &HashMap<i32, i32>) -> bool {
+fn is_correct_order(page: &[i32], rules: &HashMap<i32, Vec<i32>>) -> bool {
     for (i, p) in page.iter().enumerate() {
-        if let Some(n) = rules.get(p) {
-            // check before
-            for j in 0..i {
-                if page[j] == *n { return false; }
+        if let Some(r_vec) = rules.get(p) {
+            for n in r_vec {
+                // check before
+                for j in 0..i {
+                    if page[j] == *n { return false; }
+                }
             }
         }
     }
@@ -55,8 +57,13 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_p1_sample() {
+        assert_eq!(143, p1(SAMPLE));
+    }
+
+    #[test]
     fn test_p1() {
-        assert_eq!(171, p1(IN));
+        assert_eq!(7074, p1(IN));
     }
 
     #[test]
@@ -74,7 +81,34 @@ mod tests {
 
 
 
-pub static SAMPLE: &str = "";
+pub static SAMPLE: &str = "47|53
+97|13
+97|61
+97|47
+75|29
+61|13
+75|53
+29|13
+97|29
+53|29
+61|53
+97|53
+61|29
+47|13
+75|47
+97|75
+47|61
+75|61
+47|29
+75|13
+53|13
+
+75,47,61,53,29
+97,61,53,29,13
+75,29,13
+75,97,47,61,53
+61,13,29
+97,13,75,29,47";
 
 pub static IN: &str = "91|88
 92|39

@@ -2,6 +2,25 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::ops::{Div, Mul, Rem};
 
+pub trait ParseToInt {
+    fn to_i(&self) -> i32;
+}
+
+impl ParseToInt for str {
+    fn to_i(&self) -> i32 {
+        self.parse::<i32>().unwrap()
+    }
+}
+
+#[allow(dead_code)]
+pub fn input_to_char_grid(input: &str) -> Vec<Vec<char>> {
+    input
+        .trim()
+        .lines()
+        .map(|line| line.chars().collect())
+        .collect()
+}
+
 #[allow(dead_code)]
 pub fn set(s: &str) -> HashSet<char> {
     let mut set = HashSet::new();
