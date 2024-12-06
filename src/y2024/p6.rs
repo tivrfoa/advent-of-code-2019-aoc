@@ -22,52 +22,44 @@ pub const W: usize = 3;
 
 const T: [usize; 4] = [E, S, W, N];
 
+fn get_start_pos(grid: &Vec<Vec<char>>) -> (usize, usize) {
+    for (i, row) in grid.it() {
+        for (j, v) in row.it() {
+            if *v == '^' {
+                return (i, j);
+            }
+        }
+    }
+    panic!("didnt find start position");
+}
+
 pub fn p1(input: &str) -> usize {
     let mut visited = HashSet::new();
     let grid = input.lines().map(|l| l.chars().collect::<Vec<char>>()).collect::<Vec<_>>();
     let rows = grid.len() as i32;
     let cols = grid[0].len() as i32;
-    let (mut r, mut c) = (0, 0);
-    'r: for (i, row) in grid.it() {
-        for (j, v) in row.it() {
-            if *v == '^' {
-                (r, c) = (i, j);
-                break 'r;
-            }
-        }
-    }
-
+    let (mut r, mut c) = get_start_pos(&grid);
     let mut dir = N;
 
     loop {
         visited.insert((r, c));
-        let ir = r as i32 + M[dir].0;
-        let ic = c as i32 + M[dir].1;
 
-        if ir < 0 || ir == rows || ic < 0 || ic == cols {
-            break;
-        }
-
-        let mut nr = ir as usize;
-        let mut nc = ic as usize;
-
-        while grid[nr][nc] == '#' {
-            dir = T[dir];
+        loop {
             let ir = r as i32 + M[dir].0;
             let ic = c as i32 + M[dir].1;
-
+    
             if ir < 0 || ir == rows || ic < 0 || ic == cols {
-                break;
+                return visited.len();
             }
 
-            nr = ir as usize;
-            nc = ic as usize;
+            if grid[ir as usize][ic as usize] == '#' {
+                dir = T[dir];
+            } else {
+                (r, c) = (ir as usize, ic as usize);
+                break;
+            }
         }
-
-        (r, c) = (nr, nc);
     }
-
-    visited.len()
 }
 
 pub fn p2(input: &str) -> usize {
