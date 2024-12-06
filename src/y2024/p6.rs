@@ -128,10 +128,10 @@ fn get_path(grid: &Vec<Vec<char>>) -> ((usize, usize), HashSet<(usize, usize)>) 
 pub fn p2(input: &str) -> usize {
     let mut qt = 0;
     let mut grid = input.lines().map(|l| l.chars().collect::<Vec<char>>()).collect::<Vec<_>>();
-    let (start_pos, path) = get_path(&grid);
+    let (start_pos, mut path) = get_path(&grid);
+    path.remove(&start_pos);
 
     for p in path {
-        if p == start_pos { continue; }
         grid[p.0][p.1] = '#';
         if is_loop(start_pos, &grid) { qt += 1; }
         grid[p.0][p.1] = '.';
