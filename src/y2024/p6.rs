@@ -63,16 +63,21 @@ pub fn p1(input: &str) -> usize {
 }
 
 fn is_loop(start_pos: (usize, usize), grid: &Vec<Vec<char>>) -> bool {
-    let mut visited = HashSet::new();
-    let rows = grid.len() as i32;
-    let cols = grid[0].len() as i32;
+    let R = grid.len();
+    let C = grid[0].len();
+    let rows = R as i32;
+    let cols = C as i32;
+    // let mut visited: [bool; R * C * 4] = [false; R * C * 4];
+    let mut visited: Vec<bool> = vec![false; R * C * 4];
     let (mut r, mut c) = start_pos;
     let mut dir = N;
 
     loop {
-        if !visited.insert((r, c, dir)) {
+        let hash = (r * C + c) * 4 + dir;
+        if visited[hash] {
             return true;
         }
+        visited[hash] = true;
 
         loop {
             let ir = r as i32 + M[dir].0;
