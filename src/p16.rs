@@ -30,11 +30,9 @@ pub fn p1(phases: usize, input: &str) -> String {
                 let idx_p = m / p_times;
                 sum += nums[j] * P[idx_p];
             }
-            // dbg!(sum);
             let single_abs_digit = (sum % 10).abs();
             new.push(single_abs_digit);
         }
-        dbg!(&new);
 
         nums = new;
     }
@@ -43,18 +41,46 @@ pub fn p1(phases: usize, input: &str) -> String {
     for i in 0..8 {
         s.push(('0' as u8 + nums[i] as u8) as char);
     }
-    
-    dbg!(&s);
 
     return s;
 }
 
-pub fn p2(input: &str) -> usize {
 
+pub fn p2(phases: usize, input: &str) -> String {
+    let input = input.repeat(10_000);
+    let offset = (&input[..7]).parse::<usize>().unwrap();
+    let mut nums: Vec<i32> = input.chars().map(|c| (c as u8 - b'0') as i32).collect();
+    let len = nums.len();
 
-    0
+    for _ in 0..phases {
+        let mut new = Vec::with_capacity(len);
+
+        for i in 0..len {
+            let p_times = i + 1;
+            let qt = p_times * 4;
+            let mut pi = 0;
+            let mut sum = 0;
+
+            for j in 0..len {
+                pi += 1;
+                let m = pi % qt;
+                let idx_p = m / p_times;
+                sum += nums[j] * P[idx_p];
+            }
+            let single_abs_digit = (sum % 10).abs();
+            new.push(single_abs_digit);
+        }
+
+        nums = new;
+    }
+
+    let mut s = String::new();
+    for i in 0..8 {
+        s.push(('0' as u8 + nums[offset + i] as u8) as char);
+    }
+
+    return s;
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -76,15 +102,14 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_p2_sample() {
-        assert_eq!(171, p2(SAMPLE));
+        assert_eq!("84462026".to_string(), p2(100, "03036732577212944063491565474664"));
     }
 
     #[test]
     #[ignore]
     fn test_p2() {
-        assert_eq!(171, p2(IN));
+        assert_eq!("171".to_string(), p2(100, IN));
     }
 }
 
