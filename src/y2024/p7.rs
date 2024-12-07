@@ -67,6 +67,38 @@ pub fn p2(input: &str) -> i64 {
     qt
 }
 
+pub fn p2_no_string(input: &str) -> i64 {
+    let mut qt = 0;
+
+    for line in input.lines() {
+        let (n, nn) = line.split_once(": ").unwrap();
+        let n = n.to_i64();
+        let nn = nn.split(' ').map(|s| s.to_i64()).collect::<Vec<_>>();
+        let mut cl = vec![1; nn.len()];
+        for (i, v) in nn.it() {
+            while cl[i] <= *v { cl[i] *= 10; }
+        }
+
+        let mut visit = vec![(nn[0], 0)];
+
+        while let Some(v) = visit.pop() {
+            if v.0 > n { continue; }
+            let next_idx = v.1 + 1;
+            if v.0 == n && next_idx == nn.len() {
+                qt += n;
+                break;
+            }
+            if next_idx == nn.len() { continue; }
+
+            visit.push((v.0 + nn[next_idx], next_idx));
+            visit.push((v.0 * nn[next_idx], next_idx));
+            visit.push((v.0 * cl[next_idx] + nn[next_idx], next_idx));
+        }
+    }
+
+    qt
+}
+
 
 #[cfg(test)]
 mod tests {
@@ -88,8 +120,13 @@ mod tests {
     }
 
     #[test]
-    fn test_p2() {
+    fn test_p2_in() {
         assert_eq!(348360680516005, p2(IN));
+    }
+
+    #[test]
+    fn test_p2_no_string() {
+        assert_eq!(348360680516005, p2_no_string(IN));
     }
 }
 
