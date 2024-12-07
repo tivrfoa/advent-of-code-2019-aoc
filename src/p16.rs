@@ -45,7 +45,12 @@ pub fn p1(phases: usize, input: &str) -> String {
     return s;
 }
 
+/*
+Solution from:
+Joel Grus - Advent of Livecoding 2019 - Day 16 - Part 2
+https://www.youtube.com/watch?v=Xmcw8m0rukk
 
+*/
 pub fn p2(phases: usize, input: &str) -> String {
     let input = input.repeat(10_000);
     let offset = (&input[..7]).parse::<usize>().unwrap();
@@ -53,25 +58,11 @@ pub fn p2(phases: usize, input: &str) -> String {
     let len = nums.len();
 
     for _ in 0..phases {
-        let mut new = Vec::with_capacity(len);
-
-        for i in 0..len {
-            let p_times = i + 1;
-            let qt = p_times * 4;
-            let mut pi = 0;
-            let mut sum = 0;
-
-            for j in 0..len {
-                pi += 1;
-                let m = pi % qt;
-                let idx_p = m / p_times;
-                sum += nums[j] * P[idx_p];
-            }
-            let single_abs_digit = (sum % 10).abs();
-            new.push(single_abs_digit);
+        let mut total = 0;
+        for pos in (offset..len).rev() {
+            total += nums[pos];
+            nums[pos] = (total % 10).abs();
         }
-
-        nums = new;
     }
 
     let mut s = String::new();
@@ -107,9 +98,8 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_p2() {
-        assert_eq!("171".to_string(), p2(100, IN));
+        assert_eq!("47664469".to_string(), p2(100, IN));
     }
 }
 
