@@ -62,17 +62,12 @@ pub fn p1(input: &str) -> usize {
     }
 }
 
-// fn is_loop<const N: usize>(start_pos: (usize, usize), grid: &Vec<Vec<char>>) -> bool {
-fn is_loop<const N: usize>(start_pos: (usize, usize), grid: &Vec<Vec<char>>) -> bool {
+fn is_loop<const LEN: usize>(start_pos: (usize, usize), grid: &Vec<Vec<char>>) -> bool {
     let R = grid.len();
     let C = grid[0].len();
     let rows = R as i32;
     let cols = C as i32;
-    // let mut visited_a: [bool; N] = [false; N];
-    // dbg!(N, R, C);
-    // let mut visited: Vec<bool> = vec![false; R * C * 4];
-    let mut visited: Vec<bool> = vec![false; R * C * 4];
-    // assert_eq!(visited_a.len(), visited.len());
+    let mut visited: [bool; LEN] = [false; LEN];
     let (mut r, mut c) = start_pos;
     let mut dir = N;
 
@@ -134,7 +129,7 @@ fn get_path(grid: &Vec<Vec<char>>) -> ((usize, usize), HashSet<(usize, usize)>) 
 ///     - find the p1 path
 ///     - need to check for every poosition in that path (excluding start position)
 ///     - count how many of them become a loop
-pub fn p2<const N: usize>(input: &str) -> usize {
+pub fn p2<const LEN: usize>(input: &str) -> usize {
     let mut qt = 0;
     let mut grid = input.lines().map(|l| l.chars().collect::<Vec<char>>()).collect::<Vec<_>>();
     let (start_pos, mut path) = get_path(&grid);
@@ -142,7 +137,7 @@ pub fn p2<const N: usize>(input: &str) -> usize {
 
     for p in path {
         grid[p.0][p.1] = '#';
-        if is_loop::<N>(start_pos, &grid) { qt += 1; }
+        if is_loop::<LEN>(start_pos, &grid) { qt += 1; }
         grid[p.0][p.1] = '.';
     }
 
