@@ -35,12 +35,37 @@ pub fn p1(input: &str) -> i64 {
     qt
 }
 
-pub fn p2(input: &str) -> usize {
+pub fn p2(input: &str) -> i64 {
+    let mut qt = 0;
 
+    for line in input.lines() {
+        let (n, nn) = line.split_once(": ").unwrap();
+        let n = n.to_i64();
+        let nn = nn.split(' ').map(|s| s.to_i64()).collect::<Vec<_>>();
 
-    0
+        let mut visit = vec![(nn[0], 0)];
+
+        while let Some(v) = visit.pop() {
+            if v.0 > n { continue; }
+            let next_idx = v.1 + 1;
+            if v.0 == n && next_idx == nn.len() {
+                qt += n;
+                break;
+            }
+            if next_idx == nn.len() { continue; }
+
+            visit.push((v.0 + nn[next_idx], next_idx));
+            visit.push((v.0 * nn[next_idx], next_idx));
+
+            // ||
+            let mut ns = v.0.to_string();
+            ns.push_str(&nn[next_idx].to_string());
+            visit.push((ns.parse::<i64>().unwrap(), next_idx));
+        }
+    }
+
+    qt
 }
-
 
 
 #[cfg(test)]
@@ -54,13 +79,17 @@ mod tests {
 
     #[test]
     fn test_p1() {
-        assert_eq!(171, p1(IN));
+        assert_eq!(7885693428401, p1(IN));
     }
 
     #[test]
-    #[ignore]
+    fn test_p2_sample() {
+        assert_eq!(11387, p2(SAMPLE));
+    }
+
+    #[test]
     fn test_p2() {
-        assert_eq!(171, p2(IN));
+        assert_eq!(348360680516005, p2(IN));
     }
 }
 
