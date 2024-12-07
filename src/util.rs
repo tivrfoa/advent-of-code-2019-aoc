@@ -4,11 +4,25 @@ use std::ops::{Div, Mul, Rem};
 
 pub trait ParseToInt {
     fn to_i(&self) -> i32;
+    fn to_i64(&self) -> i64;
 }
 
 impl ParseToInt for str {
     fn to_i(&self) -> i32 {
         self.parse::<i32>().unwrap()
+    }
+    fn to_i64(&self) -> i64 {
+        self.parse::<i64>().unwrap()
+    }
+}
+
+pub trait GridIterator<T> {
+    fn it(&self) -> std::iter::Enumerate<std::slice::Iter<'_, T>>;
+}
+
+impl<T> GridIterator<T> for Vec<T> {
+    fn it(&self) -> std::iter::Enumerate<std::slice::Iter<'_, T>> {
+        self.iter().enumerate()
     }
 }
 

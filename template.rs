@@ -27,6 +27,11 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_p1_sample() {
+        assert_eq!(171, p1(SAMPLE));
+    }
+
+    #[test]
     fn test_p1() {
         assert_eq!(171, p1(IN));
     }
