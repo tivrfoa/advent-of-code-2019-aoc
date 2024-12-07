@@ -1,8 +1,6 @@
 use std::collections::*;
 
 // base pattern: 0, 1, 0, -1
-
-const PHASES: usize = 1;
 const P: [i32; 4] = [0, 1, 0, -1];
 
 // fn get_pattern(pi: usize, p_times: usize) -> usize {
@@ -13,14 +11,12 @@ const P: [i32; 4] = [0, 1, 0, -1];
 //     }
 // }
 
-pub fn p1(input: &str) -> usize {
+pub fn p1(phases: usize, input: &str) -> String {
     let mut nums: Vec<i32> = input.chars().map(|c| (c as u8 - b'0') as i32).collect();
     let len = nums.len();
 
-
-
-    for _ in 0..PHASES {
-        let mut new = vec![];
+    for _ in 0..phases {
+        let mut new = Vec::with_capacity(len);
 
         for i in 0..len {
             let p_times = i + 1;
@@ -31,19 +27,26 @@ pub fn p1(input: &str) -> usize {
             for j in 0..len {
                 pi += 1;
                 let m = pi % qt;
-                // let idx_p = m / p_times + m % p_times;
                 let idx_p = m / p_times;
                 sum += nums[j] * P[idx_p];
             }
-            dbg!(sum);
-            new.push((sum % 10).abs());
+            // dbg!(sum);
+            let single_abs_digit = (sum % 10).abs();
+            new.push(single_abs_digit);
         }
         dbg!(&new);
 
         nums = new;
     }
 
-    0
+    let mut s = String::new();
+    for i in 0..8 {
+        s.push(('0' as u8 + nums[i] as u8) as char);
+    }
+    
+    dbg!(&s);
+
+    return s;
 }
 
 pub fn p2(input: &str) -> usize {
@@ -59,13 +62,17 @@ mod tests {
 
     #[test]
     fn test_p1_sample() {
-        assert_eq!(171, p1(SAMPLE));
+        assert_eq!("01029498".to_string(), p1(4, SAMPLE));
     }
 
     #[test]
-    #[ignore]
+    fn test_p1_sample2() {
+        assert_eq!("24176176".to_string(), p1(100, "80871224585914546619083218645595"));
+    }
+
+    #[test]
     fn test_p1() {
-        assert_eq!(171, p1(IN));
+        assert_eq!("84970726".to_string(), p1(100, IN));
     }
 
     #[test]
