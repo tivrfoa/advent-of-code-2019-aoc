@@ -36,7 +36,7 @@ pub fn p1(input: &str) -> usize {
                 sum += nums[j] * P[idx_p];
             }
             dbg!(sum);
-            new.push(sum);
+            new.push((sum % 10).abs());
         }
         dbg!(&new);
 
