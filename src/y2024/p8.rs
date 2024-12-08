@@ -97,10 +97,139 @@ pub fn p1(input: &str) -> usize {
     uniq.len()
 }
 
+struct Antenna {
+    positions: HashSet<(usize, usize)>,
+    antinodes: HashSet<(usize, usize)>,
+}
+
+impl Antenna {
+    fn new(positions: HashSet<(usize, usize)>) -> Self {
+        Self { positions, antinodes: HashSet::new() }
+    }
+}
+
 pub fn p2(input: &str) -> usize {
+    let grid = input_to_char_grid(input);
+    let rows = grid.len();
+    let cols = grid[0].len();
+    let mut map: HashMap<char, Antenna> = HashMap::new();
+    
+    for (r, row) in grid.it() {
+        for (c, l) in row.it() {
+            let l = *l;
+            if l == '.' { continue; }
 
+            let antenna = map.entry(l).or_insert(Antenna::new(HashSet::from([(r, c)])));
 
-    0
+            // check right
+            for j in c + 1..cols {
+                if l != grid[r][j] { continue; }
+                antenna.positions.insert((r, j));
+
+                let distance = j - c;
+
+                // left antinode
+                let mut cd = distance;
+                while c >= cd {
+                    antenna.antinodes.insert((r, c - cd));
+                    cd += distance;
+                }
+
+                // right antinode
+                let mut cd = distance;
+                while j + cd < cols {
+                    antenna.antinodes.insert((r, j + cd));
+                    cd += distance;
+                }
+            }
+
+            // check remaining cells down
+            for i in r + 1..rows {
+                for j in 0..cols {
+                    if l != grid[i][j] { continue; }
+
+                    antenna.positions.insert((i, j));
+
+                    let r_dist = i - r; // always positive
+                    let c_dist = if c >= j { c - j } else { j - c };
+
+                    if c == j {
+                        // up antinode
+                        let (mut rd, mut cd) = (r_dist, c_dist);
+                        while r >= rd {
+                            antenna.antinodes.insert((r - rd, c));
+                            rd += r_dist;
+                            cd += c_dist;
+                        }
+
+                        // down antinode
+                        let (mut rd, mut cd) = (r_dist, c_dist);
+                        while i + rd < rows {
+                            antenna.antinodes.insert((i + rd, c));
+                            rd += r_dist;
+                            cd += c_dist;
+                        }
+                    } else if j < c {
+                        // other letter is on bottom left
+
+                        // up right antinode
+                        let (mut rd, mut cd) = (r_dist, c_dist);
+                        while r >= rd && c + cd < cols {
+                            antenna.antinodes.insert((r - rd, c + cd));
+                            rd += r_dist;
+                            cd += c_dist;
+                        }
+
+                        // down left antinode
+                        let (mut rd, mut cd) = (r_dist, c_dist);
+                        while i + rd < rows && j >= cd {
+                            antenna.antinodes.insert((i + rd, j - cd));
+                            rd += r_dist;
+                            cd += c_dist;
+                        }
+                    } else {
+                        // other letter is on bottom right
+
+                        // up left antinode
+                        let (mut rd, mut cd) = (r_dist, c_dist);
+                        while r >= rd && c >= cd {
+                            antenna.antinodes.insert((r - rd, c - cd));
+                            rd += r_dist;
+                            cd += c_dist;
+                        }
+
+                        // down right antinode
+                        let (mut rd, mut cd) = (r_dist, c_dist);
+                        while i + rd < rows && j + cd < cols {
+                            antenna.antinodes.insert((i + rd, j + cd));
+                            rd += r_dist;
+                            cd += c_dist;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    let mut set = HashSet::new();
+    map.into_iter()
+        .for_each(|(_, v)| {
+            set.extend(v.antinodes.into_iter());
+            set.extend(v.positions.into_iter());
+        });
+
+    for (i, row) in grid.it() {
+        for (j, l) in row.it() {
+            if set.contains(&(i, j)) {
+                print!("#");
+            } else {
+                print!("{l}");
+            }
+        }
+        println!();
+    }
+
+    set.len()
 }
 
 
@@ -120,15 +249,13 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_p2_sample() {
-        assert_eq!(171, p1(SAMPLE));
+        assert_eq!(34, p2(SAMPLE));
     }
 
     #[test]
-    #[ignore]
     fn test_p2_in() {
-        assert_eq!(171, p2(IN));
+        assert_eq!(1263, p2(IN));
     }
 }
 
