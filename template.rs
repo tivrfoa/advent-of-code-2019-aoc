@@ -32,13 +32,19 @@ mod tests {
     }
 
     #[test]
-    fn test_p1() {
+    fn test_p1_in() {
         assert_eq!(171, p1(IN));
     }
 
     #[test]
     #[ignore]
-    fn test_p2() {
+    fn test_p2_sample() {
+        assert_eq!(171, p1(SAMPLE));
+    }
+
+    #[test]
+    #[ignore]
+    fn test_p2_in() {
         assert_eq!(171, p2(IN));
     }
 }

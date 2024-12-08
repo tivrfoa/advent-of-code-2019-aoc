@@ -19,46 +19,82 @@ pub fn p1(input: &str) -> usize {
         for (c, l) in row.it() {
             let l = *l;
             if l == '.' { continue; }
+
             // check right
-            if c + 2 < cols && l == grid[r][c + 2] {
-                if c >= 2 { uniq.insert((r, c - 2)); qt += 1; qt += 1; }
-                if c + 4 < cols { uniq.insert((r, c + 4)); qt += 1; }
+            for j in c + 2..cols {
+                if l != grid[r][j] { continue; }
+
+                let distance = j - c;
+
+                // left antinode
+                if c >= distance {
+                    uniq.insert((r, c - distance));
+                    qt += 1;
+                }
+
+                // right antinode
+                if j + distance < cols {
+                    uniq.insert((r, j + distance));
+                    qt += 1;
+                }
             }
 
-            // check down
-            if r + 2 < rows && l == grid[r + 2][c] {
-                if r >= 2 { uniq.insert((r - 2, c)); qt += 1; }
-                if r + 4 < rows { uniq.insert((r + 4, c));  qt += 1;}
-            }
+            // check remaining cells down
+            for i in r + 1..rows {
+                for j in 0..cols {
+                    if l != grid[i][j] { continue; }
+                    let r_dist = i - r; // always positive
+                    let c_dist = if c >= j { c - j } else { j - c };
+                    if r_dist == 1 && c_dist == 0 { continue; }
 
-            // check 2 down 1 right
-            if r + 2 < rows && c + 1 < cols && l == grid[r + 2][c + 1] {
-                if r >= 2 && c >= 1 { uniq.insert((r - 2, c - 1)); qt += 1; }
-                if r + 4 < rows && c + 2 < cols { uniq.insert((r + 4, c + 2)); qt += 1; }
-            }
+                    if c == j {
+                        // up antinode
+                        if r >= r_dist {
+                            uniq.insert((r - r_dist, c));
+                            qt += 1;
+                        }
 
-            // check 1 down 2 right
-            if r + 1 < rows && c + 2 < cols && l == grid[r + 1][c + 2] {
-                if r >= 1 && c >= 2 { uniq.insert((r - 1, c - 2)); qt += 1; }
-                if r + 2 < rows && c + 4 < cols { uniq.insert((r + 2, c + 4)); qt += 1; }
-            }
+                        // down antinode
+                        if i + r_dist < rows {
+                            uniq.insert((i + r_dist, c));
+                            qt += 1;
+                        }
+                    } else if j < c {
+                        // other letter is on bottom left
 
-            // check 2 down 1 left
-            if r + 2 < rows && c >= 1 && l == grid[r + 2][c - 1] {
-                if r >= 2 && c + 1 < cols { uniq.insert((r - 2, c + 1)); qt += 1; }
-                if r + 4 < rows && c >= 2 { uniq.insert((r + 4, c - 2)); qt += 1; }
-            }
+                        // up right antinode
+                        if r >= r_dist && c + c_dist < cols {
+                            uniq.insert((r - r_dist, c + c_dist));
+                            qt += 1;
+                        }
 
-            // check 1 down 2 left
-            if r + 1 < rows && c >= 2 && l == grid[r + 1][c - 2] {
-                if r >= 1 && c + 2 < cols { uniq.insert((r - 1, c + 2)); qt += 1; }
-                if r + 2 < rows && c >= 4 { uniq.insert((r + 2, c - 4)); qt += 1; }
+                        // down left antinode
+                        if i + r_dist < rows && j >= c_dist {
+                            uniq.insert((i + r_dist, j - c_dist));
+                            qt += 1;
+                        }
+                    } else {
+                        // other letter is on bottom right
+
+                        // up left antinode
+                        if r >= r_dist && c >= c_dist {
+                            uniq.insert((r - r_dist, c - c_dist));
+                            qt += 1;
+                        }
+
+                        // down right antinode
+                        if i + r_dist < rows && j + c_dist < cols {
+                            uniq.insert((i + r_dist, j + c_dist));
+                            qt += 1;
+                        }
+                    }
+                }
             }
         }
     }
 
-    dbg!(uniq.len());
-    qt
+    dbg!(qt, uniq.len());
+    uniq.len()
 }
 
 pub fn p2(input: &str) -> usize {
@@ -75,13 +111,12 @@ mod tests {
 
     #[test]
     fn test_p1_sample() {
-        assert_eq!(171, p1(SAMPLE));
+        assert_eq!(14, p1(SAMPLE));
     }
 
     #[test]
-    #[ignore]
     fn test_p1_in() {
-        assert_eq!(171, p1(IN));
+        assert_eq!(354, p1(IN));
     }
 
     #[test]
