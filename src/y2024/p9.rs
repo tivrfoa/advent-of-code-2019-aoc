@@ -1,4 +1,4 @@
-use std::collections::*;
+use std::{collections::*, io::empty};
 use crate::util::*;
 
 #[allow(dead_code)]
@@ -30,10 +30,13 @@ pub fn p1(input: &str) -> i64 {
     // debug_fs(&fs);
 
     let mut last_nom_empty_block = fs.iter().rposition(|v| *v != EMPTY).unwrap();
+    let mut previous_empty = 0;
 
-    while let Some(empty_pos) = fs[..last_nom_empty_block].iter().position(|v| *v == EMPTY) {
+    while let Some(mut empty_pos) = fs[previous_empty..last_nom_empty_block].iter().position(|v| *v == EMPTY) {
+        empty_pos += previous_empty;
         fs[empty_pos] = fs[last_nom_empty_block];
         last_nom_empty_block = fs[..last_nom_empty_block].iter().rposition(|v| *v != EMPTY).unwrap();
+        previous_empty = empty_pos;
     }
 
     // debug_fs(&fs);
