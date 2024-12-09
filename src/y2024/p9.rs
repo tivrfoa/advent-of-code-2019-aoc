@@ -59,10 +59,79 @@ fn debug_fs(fs: &Vec<i32>) {
     println!()
 }
 
-pub fn p2(input: &str) -> usize {
+pub fn p2(input: &str) -> i64 {
+    let mut checksum = 0;
+    let nums = input.to_i32_digits();
+    let mut fs: Vec<i32> = Vec::with_capacity(nums.len() * 6);
+
+    let mut l = 0;
+    // let mut empty = (0, 0); // pos, qt
+    let mut r = nums.len() - 1;
+
+    // while empty.pos < r {
+    'main_loop: while l < r {
+        let id = l / 2;
+        for _ in 0..nums[l] {
+            fs.push(id);
+        }
+
+        let free_blocks = nums[l + 1];
+        if free_blocks == 0 {
+            l += 2;
+            continue
+        }
+
+        // try to move some file to this empty space
+        while nums[r] > free_blocks {
+            if r - 2 == l { break 'main_loop; }
+            r -= 2;
+        }
+    }
 
 
-    0
+
+
+
+
+
+
+
+
+
+
+
+
+    let mut id = 0;
+    for i in (0..nums.len()).step_by(2) {
+        for _ in 0..nums[i] {
+            fs.push(id);
+        }
+        if i + 1 == nums.len() { break; }
+        for _ in 0..nums[i+1] {
+            fs.push(EMPTY);
+        }
+        id += 1;
+    }
+
+    // debug_fs(&fs);
+
+    let mut last_nom_empty_block = fs.iter().rposition(|v| *v != EMPTY).unwrap();
+    let mut previous_empty = 0;
+
+    while let Some(mut empty_pos) = fs[previous_empty..last_nom_empty_block].iter().position(|v| *v == EMPTY) {
+        empty_pos += previous_empty;
+        fs[empty_pos] = fs[last_nom_empty_block];
+        last_nom_empty_block = fs[..last_nom_empty_block].iter().rposition(|v| *v != EMPTY).unwrap();
+        previous_empty = empty_pos;
+    }
+
+    // debug_fs(&fs);
+
+    for (i, n) in fs[..=last_nom_empty_block].iter().enumerate() {
+        checksum += i as i64 * (*n as i64);
+    }
+
+    checksum
 }
 
 
