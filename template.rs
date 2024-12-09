@@ -21,7 +21,6 @@ pub fn p2(input: &str) -> usize {
 }
 
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -39,7 +38,7 @@ mod tests {
     #[test]
     #[ignore]
     fn test_p2_sample() {
-        assert_eq!(171, p1(SAMPLE));
+        assert_eq!(171, p2(SAMPLE));
     }
 
     #[test]
@@ -51,8 +50,6 @@ mod tests {
 
 
 // -------------------------- INPUT
-
-
 
 pub static SAMPLE: &str = "";
 
