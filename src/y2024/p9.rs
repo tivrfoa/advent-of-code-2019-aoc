@@ -13,7 +13,7 @@ const EMPTY: i32 = -1;
 
 pub fn p1(input: &str) -> i64 {
     let mut checksum = 0;
-    let nums = input.to_i32_digits();
+    let nums = input.to_digits::<i32>();
     let mut fs: Vec<i32> = Vec::with_capacity(nums.len() * 6);
 
     let mut id = 0;
@@ -62,19 +62,19 @@ fn debug_fs(fs: &Vec<i32>) {
 
 pub fn p2(input: &str) -> i64 {
     let mut checksum = 0;
-    let nums = input.to_i32_digits();
+    let nums: Vec<i32> = input.to_digits();
     let mut fs: Vec<i32> = Vec::with_capacity(nums.len() * 6);
-    let mut id_freq: HashMap<i32, i32> = HashMap::new();
-    let mut empty_places: BinaryHeap<Reverse<(usize, i32)>> = BinaryHeap::new();
+    let mut id_freq: HashMap<i32, usize> = HashMap::new();
+    let mut empty_places: Vec<(usize, usize)> = Vec::new(); // (pos, qt)
 
     let mut id = 0;
     for i in (0..nums.len()).step_by(2) {
         for _ in 0..nums[i] {
             fs.push(id);
         }
-        id_freq.insert(id, nums[i]);
+        id_freq.insert(id, nums[i] as usize);
         if i + 1 == nums.len() { break; }
-        empty_places.push(Reverse((fs.len(), nums[i+1])));
+        empty_places.push((fs.len(), nums[i+1] as usize));
         for _ in 0..nums[i+1] {
             fs.push(EMPTY);
         }
@@ -84,19 +84,53 @@ pub fn p2(input: &str) -> i64 {
 
     // debug_fs(&fs);
 
+    let e_len = empty_places.len();
+    let mut empty_idx = 0;
     let mut r = fs.len() - 1;
-    let mut previous_empty = 0;
+
+    // while fs[r - 1] == fs[r] { r -= 1; } // I guess using id_freq will be faster inside the loop
 
     // problem: how to remember how many times that ID happened
     // solution: id_freq
 
-    while let Some(empty) = empty_places.pop() {
-    }
-    while let Some(mut empty_pos) = fs[previous_empty..last_nom_empty_block].iter().position(|v| *v == EMPTY) {
-        empty_pos += previous_empty;
-        fs[empty_pos] = fs[last_nom_empty_block];
-        last_nom_empty_block = fs[..last_nom_empty_block].iter().rposition(|v| *v != EMPTY).unwrap();
-        previous_empty = empty_pos;
+    while r > 0 {
+        let id = fs[r];
+        let prev_pos: usize = r;
+        let file_len: usize = id_freq[&id];
+
+        // try to find some empty space that fits it
+        for i in 0..e_len {
+            let (pos, qt) = empty_places[i];
+            if pos > r {
+                // There's no empty space for this file
+                break;
+            }
+
+            if qt >= file_len {
+                // move file
+                for j in pos..pos+file_len {
+                    fs[j] = id;
+                    fs[r] = EMPTY;
+                    r -= 1;
+                }
+
+                // update empty
+                if qt == file_len {
+                    empty_places.remove(i);
+                } else {
+                    empty_places[i].0 += file_len;
+                    empty_places[i].1 -= file_len;
+                }
+
+                break;
+            } else {
+                // let loop continue to try new empty place
+            }
+        }
+
+        // update r
+        while r > 0 && fs[r] == fs[prev_pos] { r -= 1; }
+        while r > 0 && fs[r] == EMPTY { r -= 1; }
     }
 
     // debug_fs(&fs);
@@ -127,13 +161,12 @@ mod tests {
 
     #[test]
     fn test_p2_sample() {
-        assert_eq!(171, p2(SAMPLE));
+        assert_eq!(2858, p2(SAMPLE));
     }
 
     #[test]
-    #[ignore]
     fn test_p2_in() {
-        assert_eq!(171, p2(IN));
+        assert_eq!(6307653242596, p2(IN));
     }
 }
 
