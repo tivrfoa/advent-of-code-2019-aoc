@@ -31,10 +31,8 @@ pub fn p1(input: &str) -> i64 {
 
     let mut last_nom_empty_block = fs.iter().rposition(|v| *v != EMPTY).unwrap();
 
-    while let Some(empty_pos) = fs.iter().position(|v| *v == EMPTY) {
-        if empty_pos > last_nom_empty_block { break; }
+    while let Some(empty_pos) = fs[..last_nom_empty_block].iter().position(|v| *v == EMPTY) {
         fs[empty_pos] = fs[last_nom_empty_block];
-        fs[last_nom_empty_block] = EMPTY;
         last_nom_empty_block = fs[..last_nom_empty_block].iter().rposition(|v| *v != EMPTY).unwrap();
     }
 
