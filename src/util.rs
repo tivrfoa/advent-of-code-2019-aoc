@@ -5,6 +5,7 @@ use std::ops::{Div, Mul, Rem};
 pub trait ParseToInt {
     fn to_i(&self) -> i32;
     fn to_i64(&self) -> i64;
+    fn to_i32_digits(&self) -> Vec<i32>;
 }
 
 impl ParseToInt for str {
@@ -13,6 +14,11 @@ impl ParseToInt for str {
     }
     fn to_i64(&self) -> i64 {
         self.parse::<i64>().unwrap()
+    }
+    fn to_i32_digits(&self) -> Vec<i32> {
+        self.chars()
+            .map(|c| (c as u8 - b'0') as i32)
+            .collect()
     }
 }
 
