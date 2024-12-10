@@ -1,7 +1,45 @@
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fmt::Display;
+use std::iter::Iterator;
 use std::ops::{Div, Mul, Rem};
+
+
+pub struct DirsIterator {
+    directions: [(bool, usize, usize); 4],
+    index: usize,
+}
+
+impl DirsIterator {
+    fn new(r: usize, c: usize, rows: usize, cols: usize) -> Self {
+        let directions = [
+            (r > 0, if r > 0 { r - 1 } else { 0 }, c),
+            (r + 1 < rows, r + 1, c),
+            (c + 1 < cols, r, c + 1),
+            (c > 0, r, if c > 0 { c - 1 } else { 0 }),
+        ];
+        DirsIterator { directions, index: 0 }
+    }
+}
+
+impl Iterator for DirsIterator {
+    type Item = (usize, usize); // Only return valid (row, col) pairs
+
+    fn next(&mut self) -> Option<Self::Item> {
+        while self.index < self.directions.len() {
+            let (valid, r, c) = self.directions[self.index];
+            self.index += 1;
+            if valid {
+                return Some((r, c));
+            }
+        }
+        None
+    }
+}
+
+pub fn dirs(r: usize, c: usize, rows: usize, cols: usize) -> impl Iterator<Item = (usize, usize)> {
+    DirsIterator::new(r, c, rows, cols)
+}
 
 pub trait ParseToInt {
     fn to_i(&self) -> i32;

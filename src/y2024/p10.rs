@@ -22,15 +22,8 @@ fn dfs((r, c): (usize, usize), grid: &[Vec<usize>], visited: &mut HashSet<(usize
     let cols = grid[0].len();
     let next = grid[r][c] + 1;
 
-    let dirs: [(bool, usize, usize); 4] = [
-        (r > 0, if r > 0 { r - 1 } else { 0 }, c),
-        (r + 1 < rows, r + 1, c),
-        (c + 1 < cols, r, c + 1),
-        (c > 0, r, if c > 0 { c - 1 } else { 0 }),
-    ];
-
-    for (cond, nr, nc) in dirs {
-        if cond && grid[nr][nc] == next {
+    for (nr, nc) in dirs(r, c, rows, cols) {
+        if grid[nr][nc] == next {
             qt += dfs((nr, nc), grid, visited);
         }
     }
