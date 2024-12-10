@@ -13,8 +13,8 @@ const E: i8 = 1;
 const S: i8 = 2;
 const W: i8 = 3;
 
-fn dfs((r, c): (usize, usize), dir: i8, grid: &[Vec<usize>], visited: &mut HashSet<(i8, usize, usize)>) -> usize {
-    if !visited.insert((dir, r, c)) { return 0; }
+fn dfs((r, c): (usize, usize), grid: &[Vec<usize>], visited: &mut HashSet<(usize, usize)>) -> usize {
+    if !visited.insert((r, c)) { return 0; }
     if grid[r][c] == 9 { return 1; }
 
     let mut qt = 0;
@@ -22,24 +22,17 @@ fn dfs((r, c): (usize, usize), dir: i8, grid: &[Vec<usize>], visited: &mut HashS
     let cols = grid[0].len();
     let next = grid[r][c] + 1;
 
-    // N
-    if r > 0 && grid[r - 1][c] == next {
-        qt += dfs((r - 1, c), N, grid, visited);
-    }
+    let dirs: [(bool, usize, usize); 4] = [
+        (r > 0, if r > 0 { r - 1 } else { 0 }, c),
+        (r + 1 < rows, r + 1, c),
+        (c + 1 < cols, r, c + 1),
+        (c > 0, r, if c > 0 { c - 1 } else { 0 }),
+    ];
 
-    // S
-    if r + 1 < rows && grid[r + 1][c] == next {
-        qt += dfs((r + 1, c), N, grid, visited);
-    }
-
-    // E
-    if c + 1 < cols && grid[r][c + 1] == next {
-        qt += dfs((r, c + 1), N, grid, visited);
-    }
-
-    // W
-    if c > 0 && grid[r][c - 1] == next {
-        qt += dfs((r, c - 1), N, grid, visited);
+    for (cond, nr, nc) in dirs {
+        if cond && grid[nr][nc] == next {
+            qt += dfs((nr, nc), grid, visited);
+        }
     }
 
     qt
@@ -52,7 +45,7 @@ pub fn p1(input: &str) -> usize {
     for (r, rows) in grid.it() {
         for (c, n) in rows.it() {
             if *n != 0 { continue; }
-            qt += dfs((r, c), -1, &grid, &mut HashSet::new());
+            qt += dfs((r, c), &grid, &mut HashSet::new());
         }
     }
 
