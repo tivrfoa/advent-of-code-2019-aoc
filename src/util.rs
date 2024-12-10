@@ -5,39 +5,45 @@ use std::iter::Iterator;
 use std::ops::{Div, Mul, Rem};
 
 
+
+pub const N: i8 = 0;
+pub const E: i8 = 1;
+pub const S: i8 = 2;
+pub const W: i8 = 3;
+
 pub struct DirsIterator {
-    directions: [(bool, usize, usize); 4],
+    directions: [(bool, usize, usize, i8); 4],
     index: usize,
 }
 
 impl DirsIterator {
     fn new(r: usize, c: usize, rows: usize, cols: usize) -> Self {
         let directions = [
-            (r > 0, if r > 0 { r - 1 } else { 0 }, c),
-            (r + 1 < rows, r + 1, c),
-            (c + 1 < cols, r, c + 1),
-            (c > 0, r, if c > 0 { c - 1 } else { 0 }),
+            (r > 0, if r > 0 { r - 1 } else { 0 }, c, N),
+            (r + 1 < rows, r + 1, c, S),
+            (c + 1 < cols, r, c + 1, E),
+            (c > 0, r, if c > 0 { c - 1 } else { 0 }, W),
         ];
         DirsIterator { directions, index: 0 }
     }
 }
 
 impl Iterator for DirsIterator {
-    type Item = (usize, usize); // Only return valid (row, col) pairs
+    type Item = (usize, usize, i8);
 
     fn next(&mut self) -> Option<Self::Item> {
         while self.index < self.directions.len() {
-            let (valid, r, c) = self.directions[self.index];
+            let (valid, r, c, dir) = self.directions[self.index];
             self.index += 1;
             if valid {
-                return Some((r, c));
+                return Some((r, c, dir));
             }
         }
         None
     }
 }
 
-pub fn dirs(r: usize, c: usize, rows: usize, cols: usize) -> impl Iterator<Item = (usize, usize)> {
+pub fn dirs(r: usize, c: usize, rows: usize, cols: usize) -> impl Iterator<Item = (usize, usize, i8)> {
     DirsIterator::new(r, c, rows, cols)
 }
 

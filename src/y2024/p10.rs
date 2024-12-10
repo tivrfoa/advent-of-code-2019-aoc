@@ -1,18 +1,6 @@
 use std::collections::*;
 use crate::util::*;
 
-#[allow(dead_code)]
-fn parse(input: &str) -> usize {
-
-
-    0
-}
-
-const N: i8 = 0;
-const E: i8 = 1;
-const S: i8 = 2;
-const W: i8 = 3;
-
 fn dfs((r, c): (usize, usize), grid: &[Vec<usize>], visited: &mut HashSet<(usize, usize)>) -> usize {
     if !visited.insert((r, c)) { return 0; }
     if grid[r][c] == 9 { return 1; }
@@ -22,7 +10,7 @@ fn dfs((r, c): (usize, usize), grid: &[Vec<usize>], visited: &mut HashSet<(usize
     let cols = grid[0].len();
     let next = grid[r][c] + 1;
 
-    for (nr, nc) in dirs(r, c, rows, cols) {
+    for (nr, nc, _) in dirs(r, c, rows, cols) {
         if grid[nr][nc] == next {
             qt += dfs((nr, nc), grid, visited);
         }
@@ -45,10 +33,35 @@ pub fn p1(input: &str) -> usize {
     qt
 }
 
+fn dfs2((r, c): (usize, usize), grid: &[Vec<usize>]) -> usize {
+    if grid[r][c] == 9 { return 1; }
+
+    let mut qt = 0;
+    let rows = grid.len();
+    let cols = grid[0].len();
+    let next = grid[r][c] + 1;
+
+    for (nr, nc, _) in dirs(r, c, rows, cols) {
+        if grid[nr][nc] == next {
+            qt += dfs2((nr, nc), grid);
+        }
+    }
+
+    qt
+}
+
 pub fn p2(input: &str) -> usize {
+    let mut qt = 0;
+    let grid = input.to_digits_grid::<usize>();
 
+    for (r, rows) in grid.it() {
+        for (c, n) in rows.it() {
+            if *n != 0 { continue; }
+            qt += dfs2((r, c), &grid);
+        }
+    }
 
-    0
+    qt
 }
 
 
@@ -67,15 +80,13 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_p2_sample() {
-        assert_eq!(171, p2(SAMPLE));
+        assert_eq!(81, p2(SAMPLE));
     }
 
     #[test]
-    #[ignore]
     fn test_p2_in() {
-        assert_eq!(171, p2(IN));
+        assert_eq!(1619, p2(IN));
     }
 }
 
