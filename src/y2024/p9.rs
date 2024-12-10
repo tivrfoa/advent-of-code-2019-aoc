@@ -80,26 +80,15 @@ pub fn p2(input: &str) -> i64 {
         }
         id += 1;
     }
-    // dbg!(&empty_places, &id_freq);
 
-    // debug_fs(&fs);
-
-    let e_len = empty_places.len();
-    let mut empty_idx = 0;
     let mut r = fs.len() - 1;
-
-    // while fs[r - 1] == fs[r] { r -= 1; } // I guess using id_freq will be faster inside the loop
-
-    // problem: how to remember how many times that ID happened
-    // solution: id_freq
-
     while r > 0 {
-        let id = fs[r];
-        let prev_pos: usize = r;
-        let file_len: usize = id_freq[&id];
+        let prev_pos = r;
+        let file_id = fs[r];
+        let file_len = id_freq[&file_id];
 
         // try to find some empty space that fits it
-        for i in 0..e_len {
+        for i in 0..empty_places.len() {
             let (pos, qt) = empty_places[i];
             if pos > r {
                 // There's no empty space for this file
@@ -109,7 +98,7 @@ pub fn p2(input: &str) -> i64 {
             if qt >= file_len {
                 // move file
                 for j in pos..pos+file_len {
-                    fs[j] = id;
+                    fs[j] = file_id;
                     fs[r] = EMPTY;
                     r -= 1;
                 }
