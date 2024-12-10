@@ -9,6 +9,9 @@ pub trait ParseToInt {
     fn to_digits<T>(&self) -> Vec<T>
     where
         T: From<u8> + Display;
+    fn to_digits_grid<T>(&self) -> Vec<Vec<T>>
+    where
+        T: From<u8> + Display;
 }
 
 impl ParseToInt for str {
@@ -24,6 +27,17 @@ impl ParseToInt for str {
     {
         self.chars()
             .map(|c| (c as u8 - b'0').into())
+            .collect()
+    }
+    fn to_digits_grid<T>(&self) -> Vec<Vec<T>> 
+    where
+        T: From<u8> + Display,
+    {
+        self.lines()
+            .map(|line| line.chars()
+                .map(|c| (c as u8 - b'0').into())
+                .collect()
+            )
             .collect()
     }
 }
