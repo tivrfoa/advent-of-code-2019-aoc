@@ -1,24 +1,37 @@
 use std::collections::*;
 use crate::util::*;
 
-#[allow(dead_code)]
-fn parse(input: &str) -> usize {
-
-
-    0
+fn count_digits(mut num: usize) -> u32 {
+    if num == 0 {
+        return 1;
+    }
+    
+    let mut count = 0;
+    while num != 0 {
+        num /= 10;
+        count += 1;
+    }
+    count
 }
 
-fn change(n: usize) -> Vec<usize> {
+fn split_even_digits(num: usize, digits: u32) -> (usize, usize) {
+    let divisor = 10usize.pow(digits / 2);
+    let left = num / divisor;
+    let right = num % divisor;
+    (left, right)
+}
+
+fn change(n: usize) -> (usize, usize) {
     let sn: String = n.to_string();
     if n == 0 {
-        vec![1]
-    } else if sn.len() % 2 == 0 {
-        let m = sn.len() / 2;
-        let l = sn[0..m].parse::<usize>().unwrap();
-        let r = sn[m..].parse::<usize>().unwrap();
-        vec![l, r]
+        (n, 1)
     } else {
-        vec![n * 2024]
+        let digits = count_digits(n);
+        if digits % 2 == 0 {
+            split_even_digits(n, digits)
+        } else {
+            (n, n * 2024)
+        }
     }
 }
 
@@ -27,9 +40,13 @@ pub fn p1(input: &str) -> usize {
     let mut nums: Vec<usize> = input.split(' ').map(|n| n.to_usize()).collect();
 
     for _ in 0..25 {
-        let mut new = vec![];
+        let mut new = Vec::with_capacity(nums.len() * 2);
         for n in nums {
-            new.append(&mut change(n));
+            let (l, r) = change(n);
+            if l != n {
+                new.push(l);
+            }
+            new.push(r);
         }
         nums = new;
     }
@@ -38,9 +55,22 @@ pub fn p1(input: &str) -> usize {
 }
 
 pub fn p2(input: &str) -> usize {
+    let mut ret = 0;
+    let mut nums: Vec<usize> = input.split(' ').map(|n| n.to_usize()).collect();
 
+    for _ in 0..75 {
+        let mut new = Vec::with_capacity(nums.len() * 2);
+        for n in nums {
+            let (l, r) = change(n);
+            if l != n {
+                new.push(l);
+            }
+            new.push(r);
+        }
+        nums = new;
+    }
 
-    0
+    nums.len()
 }
 
 
@@ -59,13 +89,11 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_p2_sample() {
         assert_eq!(171, p2(SAMPLE));
     }
 
     #[test]
-    #[ignore]
     fn test_p2_in() {
         assert_eq!(171, p2(IN));
     }
