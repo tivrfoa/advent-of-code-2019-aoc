@@ -34,16 +34,20 @@ fn change(n: usize) -> (usize, usize) {
     }
 }
 
-pub fn solve(n: usize, times: u8) -> usize {
+pub fn solve(n: usize, times: u8, mem: &mut HashMap<(usize, u8), usize>) -> usize {
     if times == 0 { return 1; }
-    let mut qt = 0;
+    if let Some(qt) = mem.get(&(n, times)) {
+        return *qt;
+    }
 
+    let mut qt = 0;
     let (l, r) = change(n);
     if l != n {
-        qt += solve(l, times - 1);
+        qt += solve(l, times - 1, mem);
     }
-    qt += solve(r, times - 1);
+    qt += solve(r, times - 1, mem);
 
+    mem.insert((n, times), qt);
     qt
 }
 
@@ -73,9 +77,10 @@ pub fn p1_0(input: &str) -> usize {
 pub fn p1(input: &str) -> usize {
     let mut ret = 0;
     let mut nums: Vec<usize> = input.split(' ').map(|n| n.to_usize()).collect();
+    let mut mem = HashMap::new();
 
     for n in nums {
-        ret += solve(n, 25);
+        ret += solve(n, 25, &mut mem);
     }
 
     ret
@@ -84,9 +89,10 @@ pub fn p1(input: &str) -> usize {
 pub fn p2(input: &str) -> usize {
     let mut ret = 0;
     let mut nums: Vec<usize> = input.split(' ').map(|n| n.to_usize()).collect();
+    let mut mem = HashMap::new();
 
     for n in nums {
-        ret += solve(n, 75);
+        ret += solve(n, 75, &mut mem);
     }
 
     ret
@@ -109,12 +115,12 @@ mod tests {
 
     #[test]
     fn test_p2_sample() {
-        assert_eq!(171, p2(SAMPLE));
+        assert_eq!(65601038650482, p2(SAMPLE));
     }
 
     #[test]
     fn test_p2_in() {
-        assert_eq!(171, p2(IN));
+        assert_eq!(237994815702032, p2(IN));
     }
 }
 
