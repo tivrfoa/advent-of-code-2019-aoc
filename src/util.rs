@@ -50,6 +50,7 @@ pub fn dirs(r: usize, c: usize, rows: usize, cols: usize) -> impl Iterator<Item 
 pub trait ParseToInt {
     fn to_i(&self) -> i32;
     fn to_i64(&self) -> i64;
+    fn to_usize(&self) -> usize;
     fn to_digits<T>(&self) -> Vec<T>
     where
         T: From<u8> + Display;
@@ -64,6 +65,9 @@ impl ParseToInt for str {
     }
     fn to_i64(&self) -> i64 {
         self.parse::<i64>().unwrap()
+    }
+    fn to_usize(&self) -> usize {
+        self.parse::<usize>().unwrap()
     }
     fn to_digits<T>(&self) -> Vec<T> 
     where
