@@ -22,7 +22,6 @@ fn split_even_digits(num: usize, digits: u32) -> (usize, usize) {
 }
 
 fn change(n: usize) -> (usize, usize) {
-    let sn: String = n.to_string();
     if n == 0 {
         (n, 1)
     } else {
@@ -56,18 +55,22 @@ pub fn p1(input: &str) -> usize {
 
 pub fn p2(input: &str) -> usize {
     let mut ret = 0;
-    let mut nums: Vec<usize> = input.split(' ').map(|n| n.to_usize()).collect();
+    let mut tmp1: Vec<usize> = input.split(' ').map(|n| n.to_usize()).collect();
+    let mut nums = Vec::with_capacity(tmp1.len() * 100);
+    nums.append(&mut tmp1);
 
     for _ in 0..75 {
-        let mut new = Vec::with_capacity(nums.len() * 2);
-        for n in nums {
+        let len = nums.len();
+        for i in 0..len {
+            let n = nums[i];
             let (l, r) = change(n);
-            if l != n {
-                new.push(l);
+            if l == n {
+                nums[i] = r;
+            } else {
+                nums[i] = l;
+                nums.push(r);
             }
-            new.push(r);
         }
-        nums = new;
     }
 
     nums.len()
