@@ -34,32 +34,26 @@ fn change(n: usize) -> (usize, usize) {
     }
 }
 
-pub fn p1(input: &str) -> usize {
-    let mut ret = 0;
-    let mut nums: Vec<usize> = input.split(' ').map(|n| n.to_usize()).collect();
+pub fn solve(n: usize, times: u8) -> usize {
+    if times == 0 { return 1; }
+    let mut qt = 0;
 
-    for _ in 0..25 {
-        let mut new = Vec::with_capacity(nums.len() * 2);
-        for n in nums {
-            let (l, r) = change(n);
-            if l != n {
-                new.push(l);
-            }
-            new.push(r);
-        }
-        nums = new;
+    let (l, r) = change(n);
+    if l != n {
+        qt += solve(l, times - 1);
     }
+    qt += solve(r, times - 1);
 
-    nums.len()
+    qt
 }
 
-pub fn p2(input: &str) -> usize {
+pub fn p1_0(input: &str) -> usize {
     let mut ret = 0;
     let mut tmp1: Vec<usize> = input.split(' ').map(|n| n.to_usize()).collect();
     let mut nums = Vec::with_capacity(tmp1.len() * 100);
     nums.append(&mut tmp1);
 
-    for _ in 0..75 {
+    for _ in 0..25 {
         let len = nums.len();
         for i in 0..len {
             let n = nums[i];
@@ -74,6 +68,28 @@ pub fn p2(input: &str) -> usize {
     }
 
     nums.len()
+}
+
+pub fn p1(input: &str) -> usize {
+    let mut ret = 0;
+    let mut nums: Vec<usize> = input.split(' ').map(|n| n.to_usize()).collect();
+
+    for n in nums {
+        ret += solve(n, 25);
+    }
+
+    ret
+}
+
+pub fn p2(input: &str) -> usize {
+    let mut ret = 0;
+    let mut nums: Vec<usize> = input.split(' ').map(|n| n.to_usize()).collect();
+
+    for n in nums {
+        ret += solve(n, 75);
+    }
+
+    ret
 }
 
 
