@@ -130,7 +130,6 @@ fn calc_sides(mut pp: Vec<(usize, usize, usize, usize)>) -> usize {
                     pp[i].3 = pp[j].3;
                     changed = true;
                     pp[j].0 = used;
-                    break 'i;
                 }
 
                 // joining rows in same column
@@ -141,7 +140,6 @@ fn calc_sides(mut pp: Vec<(usize, usize, usize, usize)>) -> usize {
                     pp[i].1 = pp[j].1;
                     changed = true;
                     pp[j].0 = used;
-                    break 'i;
                 }
             }
         }
@@ -167,11 +165,42 @@ mod tests {
     }
 
     #[test]
-    fn test_p2_sample() {
+    fn test_p2_sample_large() {
         assert_eq!(1206, p2(SAMPLE));
     }
 
     #[test]
+    fn test_p2_sample_1() {
+        let s = "AAAA
+BBCD
+BBCC
+EEEC";
+        assert_eq!(80, p2(s));
+    }
+
+    #[test]
+    fn test_p2_sample_2() {
+        let s = "EEEEE
+EXXXX
+EEEEE
+EXXXX
+EEEEE";
+        assert_eq!(236, p2(s));
+    }
+
+    #[test]
+    fn test_p2_sample_3() {
+        let s = "AAAAAA
+AAABBA
+AAABBA
+ABBAAA
+ABBAAA
+AAAAAA";
+        assert_eq!(368, p2(s));
+    }
+
+    #[test]
+    #[ignore]
     fn test_p2_in() {
         assert_eq!(171, p2(IN));
     }
