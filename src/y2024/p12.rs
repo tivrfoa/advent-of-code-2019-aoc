@@ -46,7 +46,7 @@ pub fn p1(input: &str) -> usize {
     total
 }
 
-fn dfs2((r, c): (usize, usize), grid: &[Vec<char>], visited: &mut HashSet<(usize, usize)>) -> (usize, Vec<(usize, usize, usize, usize)>) {
+fn dfs2((r, c): (usize, usize), grid: &[Vec<char>], visited: &mut HashSet<(usize, usize)>) -> (usize, Vec<(usize, usize, usize, usize, usize, usize)>) {
     if !visited.insert((r, c)) {
         return (0, vec![]);
     }
@@ -55,10 +55,10 @@ fn dfs2((r, c): (usize, usize), grid: &[Vec<char>], visited: &mut HashSet<(usize
     let cols = grid[0].len();
     let mut area = 1;
     let mut p = vec![
-        (r, r, c, c + 1),         // up
-        (r + 1, r + 1, c, c + 1), // down
-        (r, r + 1, c, c),         // left
-        (r, r + 1, c + 1, c + 1), // right
+        (r, r, c, c + 1, r, c),         // up
+        (r + 1, r + 1, c, c + 1, r, c), // down
+        (r, r + 1, c, c, r, c),         // left
+        (r, r + 1, c + 1, c + 1, r, c), // right
     ];
     let mut keep_p = vec![true; 4];
     let mut pos_perimeters = vec![];
@@ -97,7 +97,7 @@ pub fn p2(input: &str) -> usize {
     for r in 0..rows {
         for c in 0..cols {
             let (a, p) = dfs2((r, c), &grid, &mut visited);
-            dbg!(a, p.len());
+            println!("({r},  {c}): {} - area = {a}, len {}", grid[r][c], p.len());
             total += a * calc_sides(p);
         }
     }
@@ -105,7 +105,7 @@ pub fn p2(input: &str) -> usize {
     total
 }
 
-fn calc_sides(mut pp: Vec<(usize, usize, usize, usize)>) -> usize {
+fn calc_sides(mut pp: Vec<(usize, usize, usize, usize, usize, usize)>) -> usize {
     if pp.len() == 0 { return 0; }
     pp.sort();
     // for p in pp {
@@ -123,17 +123,18 @@ fn calc_sides(mut pp: Vec<(usize, usize, usize, usize)>) -> usize {
                 if i == j || pp[j].0 == used { continue; }
 
                 // joining columns in same row
-                if pp[i].0 == pp[i].1 &&
+                if pp[i].4 == pp[j].4 && pp[i].0 == pp[i].1 &&
                     pp[i].0 == pp[j].0 &&
                     pp[i].0 == pp[j].1 &&
                     pp[i].3 == pp[j].2 {
                     pp[i].3 = pp[j].3;
                     changed = true;
                     pp[j].0 = used;
+                    continue;
                 }
 
                 // joining rows in same column
-                if pp[i].2 == pp[i].3 &&
+                if  pp[i].5 == pp[j].5 && pp[i].2 == pp[i].3 &&
                     pp[i].2 == pp[j].2 &&
                     pp[i].2 == pp[j].3 &&
                     pp[i].1 == pp[j].0 {
@@ -147,7 +148,7 @@ fn calc_sides(mut pp: Vec<(usize, usize, usize, usize)>) -> usize {
         if !changed || pp.len() == 1 { break; }
     }
 
-    pp.iter().filter(|(u, _, _, _)| *u != used).count()
+    pp.iter().filter(|(u, _, _, _, _, _)| *u != used).count()
 }
 
 #[cfg(test)]
@@ -200,9 +201,8 @@ AAAAAA";
     }
 
     #[test]
-    #[ignore]
     fn test_p2_in() {
-        assert_eq!(171, p2(IN));
+        assert_eq!(909564, p2(IN));
     }
 }
 
