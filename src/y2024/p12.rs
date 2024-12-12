@@ -24,13 +24,9 @@ fn dfs((r, c): (usize, usize), grid: &[Vec<char>], visited: &mut HashSet<(usize,
 }
 
 /*
-
 area -> # garden plots
-
 perimeter -> sum of the outer sides of the region
-
 region_price = region_area * region_perimeter
-
 total_price = sum(all(regions))
 */
 pub fn p1(input: &str) -> usize {
@@ -50,12 +46,75 @@ pub fn p1(input: &str) -> usize {
     total
 }
 
-pub fn p2(input: &str) -> usize {
+fn dfs2((r, c): (usize, usize), grid: &[Vec<char>], perimeters: &mut HashMap<(usize, usize), Vec<(usize, usize, usize, usize)>>) -> usize {
+    if perimeters.contains_key(&(r, c)) {
+        return 0;
+    }
+    perimeters.insert((r, c), vec![]);
 
+    let rows = grid.len();
+    let cols = grid[0].len();
+    let mut area = 1;
+    let mut p = vec![
+        (r, r, c, c + 1),         // up
+        (r + 1, r + 1, c, c + 1), // down
+        (r, r + 1, c, c),         // left
+        (r, r + 1, c + 1, c + 1), // right
+    ];
+    let mut keep_p = vec![true; 4];
+    let mut pos_perimeters = vec![];
 
-    0
+    for (nr, nc, d) in dirs(r, c, rows, cols) {
+        if grid[r][c] == grid[nr][nc] {
+            match d {
+                N => keep_p[0] = false,
+                S => keep_p[1] = false,
+                W => keep_p[2] = false,
+                E => keep_p[3] = false,
+                _ => panic!("Invalid dir: {d}"),
+            }
+            area += dfs2((nr, nc), grid, perimeters);
+            let p = perimeters.insert(k, v)
+        }
+    }
+
+    for i in 0..4 {
+        if keep_p[i] {
+            pos_perimeters.push(p[i]);
+        }
+    }
+
+    perimeters.insert((r, c), pos_perimeters);
+
+    area
 }
 
+pub fn p2(input: &str) -> usize {
+    let mut total = 0;
+    let grid = input_to_char_grid(input);
+    let rows = grid.len();
+    let cols = grid[0].len();
+    //                           r      c            r0     r1     c0     c1
+    let mut perimeters: HashMap<(usize, usize), Vec<(usize, usize, usize, usize)>> = HashMap::new();
+
+    for r in 0..rows {
+        for c in 0..cols {
+            let a = dfs2((r, c), &grid, &mut perimeters);
+            dbg!(r, c);
+            let p = perimeters.insert((r, c), vec![]).unwrap();
+            total += a * calc_sides(p);
+        }
+    }
+
+    dbg!(perimeters);
+
+    total
+}
+
+fn calc_sides(mut perimeters: Vec<(usize, usize, usize, usize)>) -> usize {
+    dbg!(perimeters);
+    0
+}
 
 #[cfg(test)]
 mod tests {
@@ -72,7 +131,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_p2_sample() {
         assert_eq!(171, p2(SAMPLE));
     }
