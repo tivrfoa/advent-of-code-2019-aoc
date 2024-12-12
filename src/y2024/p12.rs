@@ -46,11 +46,10 @@ pub fn p1(input: &str) -> usize {
     total
 }
 
-fn dfs2((r, c): (usize, usize), grid: &[Vec<char>], perimeters: &mut HashMap<(usize, usize), Vec<(usize, usize, usize, usize)>>) -> usize {
-    if perimeters.contains_key(&(r, c)) {
-        return 0;
+fn dfs2((r, c): (usize, usize), grid: &[Vec<char>], visited: &mut HashSet<(usize, usize)>) -> (usize, Vec<(usize, usize, usize, usize)>) {
+    if !visited.insert((r, c)) {
+        return (0, vec![]);
     }
-    perimeters.insert((r, c), vec![]);
 
     let rows = grid.len();
     let cols = grid[0].len();
@@ -73,8 +72,9 @@ fn dfs2((r, c): (usize, usize), grid: &[Vec<char>], perimeters: &mut HashMap<(us
                 E => keep_p[3] = false,
                 _ => panic!("Invalid dir: {d}"),
             }
-            area += dfs2((nr, nc), grid, perimeters);
-            let p = perimeters.insert(k, v)
+            let (a, mut p) = dfs2((nr, nc), grid, visited);
+            area += a;
+            pos_perimeters.append(&mut p);
         }
     }
 
@@ -84,9 +84,7 @@ fn dfs2((r, c): (usize, usize), grid: &[Vec<char>], perimeters: &mut HashMap<(us
         }
     }
 
-    perimeters.insert((r, c), pos_perimeters);
-
-    area
+    (area, pos_perimeters)
 }
 
 pub fn p2(input: &str) -> usize {
@@ -94,26 +92,64 @@ pub fn p2(input: &str) -> usize {
     let grid = input_to_char_grid(input);
     let rows = grid.len();
     let cols = grid[0].len();
-    //                           r      c            r0     r1     c0     c1
-    let mut perimeters: HashMap<(usize, usize), Vec<(usize, usize, usize, usize)>> = HashMap::new();
+    let mut visited = HashSet::new();
 
     for r in 0..rows {
         for c in 0..cols {
-            let a = dfs2((r, c), &grid, &mut perimeters);
-            dbg!(r, c);
-            let p = perimeters.insert((r, c), vec![]).unwrap();
+            let (a, p) = dfs2((r, c), &grid, &mut visited);
+            dbg!(a, p.len());
             total += a * calc_sides(p);
         }
     }
 
-    dbg!(perimeters);
-
     total
 }
 
-fn calc_sides(mut perimeters: Vec<(usize, usize, usize, usize)>) -> usize {
-    dbg!(perimeters);
-    0
+fn calc_sides(mut pp: Vec<(usize, usize, usize, usize)>) -> usize {
+    if pp.len() == 0 { return 0; }
+    pp.sort();
+    // for p in pp {
+    //     println!("{:?}", p);
+    // }
+    let used = usize::MAX;
+
+    loop {
+        let len = pp.len();
+        let mut changed = false;
+        'i:
+        for i in 0..len {
+            if pp[i].0 == used { continue; }
+            for j in 0..len {
+                if i == j || pp[j].0 == used { continue; }
+
+                // joining columns in same row
+                if pp[i].0 == pp[i].1 &&
+                    pp[i].0 == pp[j].0 &&
+                    pp[i].0 == pp[j].1 &&
+                    pp[i].3 == pp[j].2 {
+                    pp[i].3 = pp[j].3;
+                    changed = true;
+                    pp[j].0 = used;
+                    break 'i;
+                }
+
+                // joining rows in same column
+                if pp[i].2 == pp[i].3 &&
+                    pp[i].2 == pp[j].2 &&
+                    pp[i].2 == pp[j].3 &&
+                    pp[i].1 == pp[j].0 {
+                    pp[i].1 = pp[j].1;
+                    changed = true;
+                    pp[j].0 = used;
+                    break 'i;
+                }
+            }
+        }
+
+        if !changed || pp.len() == 1 { break; }
+    }
+
+    pp.iter().filter(|(u, _, _, _)| *u != used).count()
 }
 
 #[cfg(test)]
@@ -132,11 +168,10 @@ mod tests {
 
     #[test]
     fn test_p2_sample() {
-        assert_eq!(171, p2(SAMPLE));
+        assert_eq!(1206, p2(SAMPLE));
     }
 
     #[test]
-    #[ignore]
     fn test_p2_in() {
         assert_eq!(171, p2(IN));
     }
