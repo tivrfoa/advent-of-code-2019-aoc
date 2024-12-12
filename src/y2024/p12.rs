@@ -54,7 +54,7 @@ fn dfs2((r, c): (usize, usize), grid: &[Vec<char>], visited: &mut HashSet<(usize
     let rows = grid.len();
     let cols = grid[0].len();
     let mut area = 1;
-    let mut p = vec![
+    let p = vec![
         (r, r, c, c + 1, r, c),         // up
         (r + 1, r + 1, c, c + 1, r, c), // down
         (r, r + 1, c, c, r, c),         // left
@@ -97,7 +97,6 @@ pub fn p2(input: &str) -> usize {
     for r in 0..rows {
         for c in 0..cols {
             let (a, p) = dfs2((r, c), &grid, &mut visited);
-            println!("({r},  {c}): {} - area = {a}, len {}", grid[r][c], p.len());
             total += a * calc_sides(p);
         }
     }
@@ -106,17 +105,11 @@ pub fn p2(input: &str) -> usize {
 }
 
 fn calc_sides(mut pp: Vec<(usize, usize, usize, usize, usize, usize)>) -> usize {
-    if pp.len() == 0 { return 0; }
-    pp.sort();
-    // for p in pp {
-    //     println!("{:?}", p);
-    // }
     let used = usize::MAX;
+    let len = pp.len();
 
     loop {
-        let len = pp.len();
         let mut changed = false;
-        'i:
         for i in 0..len {
             if pp[i].0 == used { continue; }
             for j in 0..len {
@@ -148,7 +141,7 @@ fn calc_sides(mut pp: Vec<(usize, usize, usize, usize, usize, usize)>) -> usize 
         if !changed || pp.len() == 1 { break; }
     }
 
-    pp.iter().filter(|(u, _, _, _, _, _)| *u != used).count()
+    pp.iter().filter(|t| t.0 != used).count()
 }
 
 #[cfg(test)]
