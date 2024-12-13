@@ -63,9 +63,35 @@ pub fn p1(input: &str) -> usize {
 }
 
 pub fn p2(input: &str) -> usize {
+    let mut tokens = 0;
+    let mut lines = input.lines();
 
+    while let Some(a) = lines.next() {
+        let (ax, ay) = parse(a);
+        let (bx, by) = parse(lines.next().unwrap());
+        let prize = lines.next().unwrap();
+        let (_, t) = prize.split_once(": X=").unwrap();
+        let (x, y) = t.split_once(", Y=").unwrap();
+        let (px, py) = (x.to_usize(), y.to_usize());
 
-    0
+        let mut min = usize::MAX;
+        for i in 1..10_000 {
+            for j in 1..10_000 {
+                if px % (ax * i + ay * j) == 0 && py % (bx * i + by * j) == 0 {
+                    min = min.min(i * A + j * B);
+                    break;
+                }
+            }
+        }
+        if min != usize::MAX {
+            println!("Found min");
+            tokens += min;
+        }
+
+        lines.next(); // empty line
+    }
+
+    tokens
 }
 
 
@@ -90,7 +116,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_p2_in() {
         assert_eq!(171, p2(IN));
     }
