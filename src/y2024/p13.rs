@@ -2,11 +2,13 @@ use std::collections::*;
 use crate::util::*;
 use std::cmp::Reverse;
 
+use rayon::prelude::*;
+
 const A: usize = 3;
 const B: usize = 1;
-const T: usize = 200;
+// const T: usize = 200;
 
-fn solve_claw(ax: usize, ay: usize, bx: usize, by: usize, prize_pos: (usize, usize)) -> Option<usize> {
+fn solve_claw(T: usize, ax: usize, ay: usize, bx: usize, by: usize, prize_pos: (usize, usize)) -> Option<usize> {
     let mut visited = HashSet::new();
 
     // state: tokens used, times, x, y
@@ -52,7 +54,7 @@ pub fn p1(input: &str) -> usize {
         let (x, y) = t.split_once(", Y=").unwrap();
         let prize = (x.to_usize(), y.to_usize());
 
-        if let Some(t) = solve_claw(ax, ay, bx, by, prize) {
+        if let Some(t) = solve_claw(200, ax, ay, bx, by, prize) {
             tokens += t;
         }
 
@@ -72,17 +74,48 @@ pub fn p2(input: &str) -> usize {
         let prize = lines.next().unwrap();
         let (_, t) = prize.split_once(": X=").unwrap();
         let (x, y) = t.split_once(", Y=").unwrap();
+        let prize = (x.to_usize(), y.to_usize());
+
+        if let Some(t) = solve_claw(200_000, ax, ay, bx, by, prize) {
+            tokens += t;
+        }
+
+        lines.next(); // empty line
+    }
+
+    tokens
+}
+
+pub fn p20(input: &str) -> usize {
+    let mut tokens = 0;
+    let mut lines = input.lines();
+
+    while let Some(a) = lines.next() {
+        let (ax, ay) = parse(a);
+        let (bx, by) = parse(lines.next().unwrap());
+        let prize = lines.next().unwrap();
+        let (_, t) = prize.split_once(": X=").unwrap();
+        let (x, y) = t.split_once(", Y=").unwrap();
         let (px, py) = (x.to_usize(), y.to_usize());
 
         let mut min = usize::MAX;
-        for i in 1..10_000 {
-            for j in 1..10_000 {
-                if px % (ax * i + ay * j) == 0 && py % (bx * i + by * j) == 0 {
-                    min = min.min(i * A + j * B);
-                    break;
-                }
-            }
-        }
+        let i_range = 1..=1_000_000;
+        let j_range = 1..=1_000_000;
+
+        let min = i_range
+            .into_par_iter()
+            .flat_map(|i| {
+                j_range.clone()
+                    .into_par_iter()
+                    .map(move |j| if px % (ax * i + ay * j) == 0 && py % (bx * i + by * j) == 0 {
+                        i * A + j * B
+                    } else {
+                        usize::MAX
+                    })
+            })
+            .min()
+            .unwrap();
+
         if min != usize::MAX {
             println!("Found min");
             tokens += min;
