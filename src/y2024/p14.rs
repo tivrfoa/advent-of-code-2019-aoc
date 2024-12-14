@@ -44,9 +44,7 @@ impl Robot {
 
 pub fn p1(input: &str, w: usize, h: usize) -> usize {
     let mut robots: Vec<Robot> = input.lines().map(|l| Robot::from_line(l)).collect();
-    let num_robots = robots.len();
-    // dbg!(robots);
-    //
+
     for _ in 0..100 {
         for r in robots.iter_mut() {
             r.move0(w, h);
@@ -83,10 +81,93 @@ pub fn p1(input: &str, w: usize, h: usize) -> usize {
     total_each_quadrant.into_iter().product()
 }
 
-pub fn p2(input: &str) -> usize {
+pub fn p2(input: &str, w: usize, h: usize) -> usize {
+    let mut robots: Vec<Robot> = input.lines().map(|l| Robot::from_line(l)).collect();
 
+    for s in 1..=10_000 {
+        for r in robots.iter_mut() {
+            r.move0(w, h);
+        }
+        let mw = w / 2;
+        let mh = h / 2;
+        let mut total_each_quadrant: [usize; 4] = [0; 4]; // tl, tr, bl, br
+        for r in robots.iter() {
+            if r.x == mw || r.y == mh { continue; }
+
+            // top left
+            if r.x < mw && r.y < mh {
+                total_each_quadrant[0] += 1;
+            }
+
+            // top right
+            if r.x > mw && r.y < mh {
+                total_each_quadrant[1] += 1;
+            }
+
+            // bottom left
+            if r.x < mw && r.y > mh {
+                total_each_quadrant[2] += 1;
+            }
+
+            // bottom right
+            if r.x > mw && r.y > mh {
+                total_each_quadrant[3] += 1;
+            }
+        }
+
+        println!("------------- Second {s} -------------------");
+        let [tl, tr, bl, br] = total_each_quadrant;
+        if bl > tl && br > tr {
+            draw(&robots, w, h);
+        }
+        if tl == tr && bl == br {
+            println!("======================================================");
+            println!("======================================================");
+            println!("======================================================");
+            draw(&robots, w, h);
+            println!("======================================================");
+            println!("======================================================");
+            println!("======================================================");
+        }
+    }
 
     0
+}
+
+fn draw(robots: &[Robot], w: usize, h: usize) {
+    let mw = w / 2;
+    println!("---------------- r.y r.x --------------");
+    let mut grid = vec![vec![' '; w]; h];
+    for r in robots.iter() {
+        grid[r.y][r.x] = '@';
+        // if r.x < mw {
+        //     grid[r.y][r.x] = '/';
+        // } else if r.x == mw {
+        //     grid[r.y][r.x] = '|';
+        // } else {
+        //     grid[r.y][r.x] = '\\';
+        // }
+    }
+
+    for row in grid.iter() {
+        for c in row.iter() {
+            print!("{c}");
+        }
+        println!();
+    }
+
+    // println!("---------------- r.x r.y --------------");
+    // let mut grid = vec![vec!['.'; h]; w];
+    // for r in robots.iter() {
+    //     grid[r.x][r.y] = '@';
+    // }
+
+    // for row in grid.iter() {
+    //     for c in row.iter() {
+    //         print!("{c}");
+    //     }
+    //     println!();
+    // }
 }
 
 
@@ -107,13 +188,12 @@ mod tests {
     #[test]
     #[ignore]
     fn test_p2_sample() {
-        assert_eq!(171, p2(SAMPLE));
+        assert_eq!(171, p2(SAMPLE, 11, 7));
     }
 
     #[test]
-    #[ignore]
     fn test_p2_in() {
-        assert_eq!(171, p2(IN));
+        assert_eq!(7572, p2(IN, 101, 103));
     }
 }
 
