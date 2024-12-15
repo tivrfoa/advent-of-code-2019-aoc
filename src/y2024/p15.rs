@@ -1,9 +1,10 @@
-use std::cmp::Reverse;
 use std::collections::*;
 use crate::util::*;
 
 const EMPTY: char = '.';
 const BOX: char = 'O';
+const BL: char = '[';
+const BR: char = ']';
 const WALL: char = '#';
 const ROBOT: char = '@';
 
@@ -35,9 +36,6 @@ pub fn p1(input: &str) -> usize {
     while let Some(l) = lines.next() {
         mvs.append(&mut l.chars().collect::<Vec<char>>());
     }
-    // dbg!(mvs);
-    //
-    // apply moves
 
     for m in mvs {
         match m {
@@ -47,7 +45,6 @@ pub fn p1(input: &str) -> usize {
                     cr -= 1;
                 }
                 if g[cr - 1][c] == EMPTY {
-                    // move all interval up
                     for i in cr - 1..r {
                         g[i][c] = g[i + 1][c];
                     }
@@ -65,7 +62,6 @@ pub fn p1(input: &str) -> usize {
                     cr += 1;
                 }
                 if g[cr + 1][c] == EMPTY {
-                    // move all interval up
                     for i in (r + 1..=cr + 1).rev() {
                         g[i][c] = g[i - 1][c];
                     }
@@ -100,7 +96,6 @@ pub fn p1(input: &str) -> usize {
                     cc -= 1;
                 }
                 if g[cr][cc - 1] == EMPTY {
-                    // move all interval up
                     for i in cc - 1..c {
                         g[r][i] = g[r][i + 1];
                     }
@@ -128,9 +123,175 @@ pub fn p1(input: &str) -> usize {
 }
 
 pub fn p2(input: &str) -> usize {
+    let mut sum_box_positions = 0;
+    let mut g = vec![];
+    let mut lines = input.lines();
 
+    while let Some(l) = lines.next() {
+        if l.is_empty() { break; }
 
-    0
+        g.push(l.chars().collect::<Vec<char>>());
+    }
+    // make it wider
+    let mut ng = vec![vec!['.'; g[0].len() * 2]; g.len()];
+    for (r, row) in g.it() {
+        let mut col = 0;
+        for (_, v) in row.it() {
+            if *v == ROBOT {
+                ng[r][col] = *v;
+            } else if *v == BOX {
+                ng[r][col] = '[';
+                ng[r][col + 1] = ']';
+            } else { // WALL or EMPTY
+                ng[r][col] = *v;
+                ng[r][col + 1] = *v;
+            }
+            col += 2;
+        }
+    }
+    g = ng;
+    let (mut r, mut c) = get_robot_pos(&g);
+    dbg!(r, c);
+
+    let mut mvs: Vec<char> = vec![];
+    while let Some(l) = lines.next() {
+        mvs.append(&mut l.chars().collect::<Vec<char>>());
+    }
+
+    for (midx, m) in mvs.it() {
+        assert_eq!(ROBOT, g[r][c]);
+        // println!("{} {} {} {}", midx, m, r, c);
+        // draw_grid(&g);
+        // wait_input();
+        match m {
+            '^' => {
+                let mut to_move = vec![(r, c)];
+                let mut move_set = HashSet::from([(r, c)]);
+                let mut to_test = HashSet::from([(r - 1, c)]);
+                let mut stop = false;
+                loop {
+                    let mut new_test = HashSet::new();
+                    for (nr, nc) in to_test {
+                        if g[nr][nc] == WALL {
+                            stop = true;
+                            break;
+                        }
+                        if g[nr][nc] == BL {
+                            if move_set.insert((nr, nc)) { to_move.push((nr, nc)); }
+                            if move_set.insert((nr, nc + 1)) { to_move.push((nr, nc + 1)); }
+                            new_test.insert((nr - 1, nc));
+                            new_test.insert((nr - 1, nc + 1));
+                        } else if g[nr][nc] == BR {
+                            if move_set.insert((nr, nc - 1)) { to_move.push((nr, nc - 1)); }
+                            if move_set.insert((nr, nc))  { to_move.push((nr, nc)); }
+                            new_test.insert((nr - 1, nc - 1));
+                            new_test.insert((nr - 1, nc));
+                        }
+                    }
+                    if stop || new_test.is_empty() { break; }
+                    to_test = new_test;
+                }
+
+                if !stop {
+                    dbg!(&to_move);
+                    for (nr, nc) in to_move.into_iter().rev() {
+                        g[nr - 1][nc] = g[nr][nc];
+                        g[nr][nc] = EMPTY;
+                    }
+                    r -= 1;
+                }
+            }
+            'v' => {
+                let mut to_move = vec![(r, c)];
+                let mut move_set = HashSet::from([(r, c)]);
+                let mut to_test = HashSet::from([(r + 1, c)]);
+                let mut stop = false;
+                loop {
+                    let mut new_test = HashSet::new();
+                    for (nr, nc) in to_test {
+                        if g[nr][nc] == WALL {
+                            stop = true;
+                            break;
+                        }
+                        if g[nr][nc] == BL {
+                            if move_set.insert((nr, nc)) { to_move.push((nr, nc)); }
+                            if move_set.insert((nr, nc + 1)) { to_move.push((nr, nc + 1)); }
+                            new_test.insert((nr + 1, nc));
+                            new_test.insert((nr + 1, nc + 1));
+                        } else if g[nr][nc] == BR {
+                            if move_set.insert((nr, nc - 1)) { to_move.push((nr, nc - 1)); }
+                            if move_set.insert((nr, nc))  { to_move.push((nr, nc)); }
+                            new_test.insert((nr + 1, nc - 1));
+                            new_test.insert((nr + 1, nc));
+                        }
+                    }
+                    if stop || new_test.is_empty() { break; }
+                    to_test = new_test;
+                }
+
+                if !stop {
+                    for (nr, nc) in to_move.into_iter().rev() {
+                        g[nr + 1][nc] = g[nr][nc];
+                        g[nr][nc] = EMPTY;
+                    }
+                    r += 1;
+                }
+            }
+            '>' => {
+                let (mut cr, mut cc) = (r, c);
+                while g[cr][cc + 1] == BL {
+                    cc += 2;
+                }
+                if g[cr][cc + 1] == EMPTY {
+                    for i in (c + 1..=cc + 1).rev() {
+                        g[r][i] = g[r][i - 1];
+                    }
+                    g[r][c] = EMPTY;
+                    c += 1;
+                } else if g[cr][cc + 1] == WALL {
+                    // don't move
+                } else {
+                    panic!("{}", g[cr][cc + 1]);
+                }
+            }
+            '<' => {
+                let (mut cr, mut cc) = (r, c);
+                while g[cr][cc - 1] == BR {
+                    cc -= 2;
+                }
+                if g[cr][cc - 1] == EMPTY {
+                    for i in cc - 1..c {
+                        g[r][i] = g[r][i + 1];
+                    }
+                    g[r][c] = EMPTY;
+                    c -= 1;
+                } else if g[cr][cc - 1] == WALL {
+                    // don't move
+                } else {
+                    panic!("{}", g[cr][cc - 1]);
+                }
+            }
+            _ => panic!("..."),
+        }
+    }
+
+    for (r, row) in g.it() {
+        for (c, v) in row.it() {
+            if *v == BL {
+                sum_box_positions += r * 100 + c;
+            }
+        }
+    }
+
+    sum_box_positions
+}
+
+fn wait_input() {
+    use std::io::Write;
+    let mut input = String::new();
+    print!("Please enter some input: ");
+    std::io::stdout().flush().unwrap(); // Ensure the prompt is displayed
+    std::io::stdin().read_line(&mut input).expect("Failed to read line");
 }
 
 
@@ -154,15 +315,14 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_p2_sample() {
-        assert_eq!(171, p2(SAMPLE0));
+        assert_eq!(9021, p2(SAMPLE1));
     }
 
     #[test]
     #[ignore]
     fn test_p2_in() {
-        assert_eq!(171, p2(IN));
+        assert_eq!(1597035, p2(IN));
     }
 }
 

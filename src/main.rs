@@ -13,11 +13,11 @@ mod p16;
 mod y2024;
 mod util;
 
-use y2024::p13 as Main;
+use y2024::p15 as Main;
 // use p16 as Main;
 
 fn main() {
-    Main::p1(Main::SAMPLE);
+    Main::p2(Main::SAMPLE1);
     // Main::p1(Main::IN);
 }
  

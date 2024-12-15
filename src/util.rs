@@ -185,7 +185,17 @@ pub fn get_grid(panels: &HashMap<(i64, i64), i64>, convertion: &HashMap<i64, cha
 }
 
 #[allow(dead_code)]
-pub fn draw_grid(panels: &HashMap<(i64, i64), i64>, convertion: &HashMap<i64, char>) {
+pub fn draw_grid<T: Display>(grid: &Vec<Vec<T>>) {
+    for row in grid {
+        for v in row {
+            print!("{v}");
+        }
+        println!();
+    }
+}
+
+#[allow(dead_code)]
+pub fn draw_grid_with_convertion(panels: &HashMap<(i64, i64), i64>, convertion: &HashMap<i64, char>) {
     let grid = get_grid(panels, convertion);
 
     // Print the grid (flipped vertically)
