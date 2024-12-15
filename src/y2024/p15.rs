@@ -19,76 +19,55 @@ fn get_robot_pos(g: &Vec<Vec<char>>) -> (usize, usize) {
     panic!("Failed to find robot.");
 }
 
-pub fn p1(input: &str) -> usize {
-    let mut sum_box_positions = 0; // answer
+fn parse(input: &str) -> (Vec<Vec<char>>, Vec<char>) {
     let mut g = vec![];
+    let mut mvs: Vec<char> = vec![];
     let mut lines = input.lines();
 
     while let Some(l) = lines.next() {
         if l.is_empty() { break; }
         g.push(l.chars().collect::<Vec<char>>());
     }
-    let (mut r, mut c) = get_robot_pos(&g);
-    let mut mvs: Vec<char> = vec![];
     while let Some(l) = lines.next() {
         mvs.append(&mut l.chars().collect::<Vec<char>>());
     }
 
+    (g, mvs)
+}
+
+
+pub fn p1(input: &str) -> usize {
+    let mut sum_box_positions = 0;
+    let (mut g, mvs) = parse(input);
+    let (mut r, mut c) = get_robot_pos(&g);
+
     for m in mvs {
-        match m {
-            '^' => {
-                let mut cr = r;
-                while g[cr - 1][c] == BOX {
-                    cr -= 1;
-                }
-                if g[cr - 1][c] == EMPTY {
-                    for i in cr - 1..r {
-                        g[i][c] = g[i + 1][c];
-                    }
-                    g[r][c] = EMPTY;
-                    r -= 1;
-                }
+        assert_eq!(ROBOT, g[r][c]);
+        let mut targets = vec![(r, c)];
+        let (mut cr, mut cc) = (r, c);
+        let mut stop = false;
+        let dr = if m == '^' { -1 } else if m == 'v' { 1 } else { 0 };
+        let dc = if m == '<' { -1 } else if m == '>' { 1 } else { 0 };
+
+        loop {
+            cr.ad(dr);
+            cc.ad(dc);
+            if g[cr][cc] == WALL {
+                stop = true;
+                break;
             }
-            'v' => {
-                let mut cr = r;
-                while g[cr + 1][c] == BOX {
-                    cr += 1;
-                }
-                if g[cr + 1][c] == EMPTY {
-                    for i in (r + 1..=cr + 1).rev() {
-                        g[i][c] = g[i - 1][c];
-                    }
-                    g[r][c] = EMPTY;
-                    r += 1;
-                }
+            if g[cr][cc] == BOX {
+                targets.push((cr, cc));
+            } else {
+                break;
             }
-            '>' => {
-                let mut cc = c;
-                while g[r][cc + 1] == BOX {
-                    cc += 1;
-                }
-                if g[r][cc + 1] == EMPTY {
-                    for i in (c + 1..=cc + 1).rev() {
-                        g[r][i] = g[r][i - 1];
-                    }
-                    g[r][c] = EMPTY;
-                    c += 1;
-                }
-            }
-            '<' => {
-                let mut cc = c;
-                while g[r][cc - 1] == BOX {
-                    cc -= 1;
-                }
-                if g[r][cc - 1] == EMPTY {
-                    for i in cc - 1..c {
-                        g[r][i] = g[r][i + 1];
-                    }
-                    g[r][c] = EMPTY;
-                    c -= 1;
-                }
-            }
-            _ => panic!("..."),
+        }
+        if stop { continue; }
+
+        g[r][c] = EMPTY;
+        g[r.ad(dr)][c.ad(dc)] = ROBOT;
+        for (r, c) in targets.into_iter().skip(1) {
+            g[ad(r, dr)][ad(c, dc)] = BOX;
         }
     }
 

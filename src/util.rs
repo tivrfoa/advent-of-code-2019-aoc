@@ -2,12 +2,50 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fmt::Display;
 use std::iter::Iterator;
-use std::ops::{Div, Mul, Rem};
+use std::ops::{AddAssign, Div, Mul, Rem};
 
 /// apply direction
 #[inline(always)]
 pub fn ad(u: usize, d: i64) -> usize {
     (u as i64 + d) as usize
+}
+
+// Define a trait for adding signed integers to usize
+pub trait Ad<T> {
+    fn ad(&mut self, other: T) -> usize;
+}
+
+impl Ad<i8> for usize {
+    fn ad(&mut self, other: i8) -> usize {
+        if other >= 0 {
+            *self += other as usize;
+        } else {
+            *self -= (-other) as usize;
+        }
+        *self
+    }
+}
+
+impl Ad<i32> for usize {
+    fn ad(&mut self, other: i32) -> usize {
+        if other >= 0 {
+            *self += other as usize;
+        } else {
+            *self -= (-other) as usize;
+        }
+        *self
+    }
+}
+
+impl Ad<i64> for usize {
+    fn ad(&mut self, other: i64) -> usize {
+        if other >= 0 {
+            *self += other as usize;
+        } else {
+            *self -= (-other) as usize;
+        }
+        *self
+    }
 }
 
 pub const N: i8 = 0;
