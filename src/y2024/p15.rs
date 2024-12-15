@@ -26,12 +26,9 @@ pub fn p1(input: &str) -> usize {
 
     while let Some(l) = lines.next() {
         if l.is_empty() { break; }
-
         g.push(l.chars().collect::<Vec<char>>());
     }
     let (mut r, mut c) = get_robot_pos(&g);
-    // dbg!(g);
-
     let mut mvs: Vec<char> = vec![];
     while let Some(l) = lines.next() {
         mvs.append(&mut l.chars().collect::<Vec<char>>());
@@ -40,8 +37,8 @@ pub fn p1(input: &str) -> usize {
     for m in mvs {
         match m {
             '^' => {
-                let (mut cr, mut cc) = (r, c);
-                while g[cr - 1][cc] == BOX {
+                let mut cr = r;
+                while g[cr - 1][c] == BOX {
                     cr -= 1;
                 }
                 if g[cr - 1][c] == EMPTY {
@@ -50,15 +47,11 @@ pub fn p1(input: &str) -> usize {
                     }
                     g[r][c] = EMPTY;
                     r -= 1;
-                } else if g[cr - 1][cc] == WALL {
-                    // don't move
-                } else {
-                    panic!("{}", g[cr - 1][cc]);
                 }
             }
             'v' => {
-                let (mut cr, mut cc) = (r, c);
-                while g[cr + 1][cc] == BOX {
+                let mut cr = r;
+                while g[cr + 1][c] == BOX {
                     cr += 1;
                 }
                 if g[cr + 1][c] == EMPTY {
@@ -67,44 +60,32 @@ pub fn p1(input: &str) -> usize {
                     }
                     g[r][c] = EMPTY;
                     r += 1;
-                } else if g[cr + 1][cc] == WALL {
-                    // don't move
-                } else {
-                    panic!("{}", g[cr - 1][cc]);
                 }
             }
             '>' => {
-                let (mut cr, mut cc) = (r, c);
-                while g[cr][cc + 1] == BOX {
+                let mut cc = c;
+                while g[r][cc + 1] == BOX {
                     cc += 1;
                 }
-                if g[cr][cc + 1] == EMPTY {
+                if g[r][cc + 1] == EMPTY {
                     for i in (c + 1..=cc + 1).rev() {
                         g[r][i] = g[r][i - 1];
                     }
                     g[r][c] = EMPTY;
                     c += 1;
-                } else if g[cr][cc + 1] == WALL {
-                    // don't move
-                } else {
-                    panic!("{}", g[cr][cc + 1]);
                 }
             }
             '<' => {
-                let (mut cr, mut cc) = (r, c);
-                while g[cr][cc - 1] == BOX {
+                let mut cc = c;
+                while g[r][cc - 1] == BOX {
                     cc -= 1;
                 }
-                if g[cr][cc - 1] == EMPTY {
+                if g[r][cc - 1] == EMPTY {
                     for i in cc - 1..c {
                         g[r][i] = g[r][i + 1];
                     }
                     g[r][c] = EMPTY;
                     c -= 1;
-                } else if g[cr][cc - 1] == WALL {
-                    // don't move
-                } else {
-                    panic!("{}", g[cr][cc - 1]);
                 }
             }
             _ => panic!("..."),
@@ -194,7 +175,6 @@ pub fn p2(input: &str) -> usize {
                 }
 
                 if !stop {
-                    dbg!(&to_move);
                     for (nr, nc) in to_move.into_iter().rev() {
                         g[ad(nr, d)][nc] = g[nr][nc];
                         g[nr][nc] = EMPTY;
@@ -203,37 +183,29 @@ pub fn p2(input: &str) -> usize {
                 }
             }
             '>' => {
-                let (mut cr, mut cc) = (r, c);
-                while g[cr][cc + 1] == BL {
+                let mut cc = c;
+                while g[r][cc + 1] == BL {
                     cc += 2;
                 }
-                if g[cr][cc + 1] == EMPTY {
+                if g[r][cc + 1] == EMPTY {
                     for i in (c + 1..=cc + 1).rev() {
                         g[r][i] = g[r][i - 1];
                     }
                     g[r][c] = EMPTY;
                     c += 1;
-                } else if g[cr][cc + 1] == WALL {
-                    // don't move
-                } else {
-                    panic!("{}", g[cr][cc + 1]);
                 }
             }
             '<' => {
-                let (mut cr, mut cc) = (r, c);
-                while g[cr][cc - 1] == BR {
+                let mut cc = c;
+                while g[r][cc - 1] == BR {
                     cc -= 2;
                 }
-                if g[cr][cc - 1] == EMPTY {
+                if g[r][cc - 1] == EMPTY {
                     for i in cc - 1..c {
                         g[r][i] = g[r][i + 1];
                     }
                     g[r][c] = EMPTY;
                     c -= 1;
-                } else if g[cr][cc - 1] == WALL {
-                    // don't move
-                } else {
-                    panic!("{}", g[cr][cc - 1]);
                 }
             }
             _ => panic!("..."),
