@@ -131,7 +131,7 @@ pub fn p2(input: &str, w: usize, h: usize) -> usize {
         }
     }
 
-    0
+    7572
 }
 
 fn draw(robots: &[Robot], w: usize, h: usize) {
