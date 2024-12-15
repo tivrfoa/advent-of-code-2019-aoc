@@ -4,7 +4,11 @@ use std::fmt::Display;
 use std::iter::Iterator;
 use std::ops::{Div, Mul, Rem};
 
-
+/// apply direction
+#[inline(always)]
+pub fn ad(u: usize, d: i64) -> usize {
+    (u as i64 + d) as usize
+}
 
 pub const N: i8 = 0;
 pub const E: i8 = 1;

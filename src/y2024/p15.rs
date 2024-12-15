@@ -164,10 +164,11 @@ pub fn p2(input: &str) -> usize {
         // draw_grid(&g);
         // wait_input();
         match m {
-            '^' => {
+            '^' | 'v' => {
+                let d: i64 = if *m == '^' { -1 } else { 1 };
                 let mut to_move = vec![(r, c)];
                 let mut move_set = HashSet::from([(r, c)]);
-                let mut to_test = HashSet::from([(r - 1, c)]);
+                let mut to_test = HashSet::from([(ad(r, d), c)]);
                 let mut stop = false;
                 loop {
                     let mut new_test = HashSet::new();
@@ -179,13 +180,13 @@ pub fn p2(input: &str) -> usize {
                         if g[nr][nc] == BL {
                             if move_set.insert((nr, nc)) { to_move.push((nr, nc)); }
                             if move_set.insert((nr, nc + 1)) { to_move.push((nr, nc + 1)); }
-                            new_test.insert((nr - 1, nc));
-                            new_test.insert((nr - 1, nc + 1));
+                            new_test.insert((ad(nr, d), nc));
+                            new_test.insert((ad(nr, d), nc + 1));
                         } else if g[nr][nc] == BR {
                             if move_set.insert((nr, nc - 1)) { to_move.push((nr, nc - 1)); }
                             if move_set.insert((nr, nc))  { to_move.push((nr, nc)); }
-                            new_test.insert((nr - 1, nc - 1));
-                            new_test.insert((nr - 1, nc));
+                            new_test.insert((ad(nr, d), nc - 1));
+                            new_test.insert((ad(nr, d), nc));
                         }
                     }
                     if stop || new_test.is_empty() { break; }
@@ -195,46 +196,10 @@ pub fn p2(input: &str) -> usize {
                 if !stop {
                     dbg!(&to_move);
                     for (nr, nc) in to_move.into_iter().rev() {
-                        g[nr - 1][nc] = g[nr][nc];
+                        g[ad(nr, d)][nc] = g[nr][nc];
                         g[nr][nc] = EMPTY;
                     }
-                    r -= 1;
-                }
-            }
-            'v' => {
-                let mut to_move = vec![(r, c)];
-                let mut move_set = HashSet::from([(r, c)]);
-                let mut to_test = HashSet::from([(r + 1, c)]);
-                let mut stop = false;
-                loop {
-                    let mut new_test = HashSet::new();
-                    for (nr, nc) in to_test {
-                        if g[nr][nc] == WALL {
-                            stop = true;
-                            break;
-                        }
-                        if g[nr][nc] == BL {
-                            if move_set.insert((nr, nc)) { to_move.push((nr, nc)); }
-                            if move_set.insert((nr, nc + 1)) { to_move.push((nr, nc + 1)); }
-                            new_test.insert((nr + 1, nc));
-                            new_test.insert((nr + 1, nc + 1));
-                        } else if g[nr][nc] == BR {
-                            if move_set.insert((nr, nc - 1)) { to_move.push((nr, nc - 1)); }
-                            if move_set.insert((nr, nc))  { to_move.push((nr, nc)); }
-                            new_test.insert((nr + 1, nc - 1));
-                            new_test.insert((nr + 1, nc));
-                        }
-                    }
-                    if stop || new_test.is_empty() { break; }
-                    to_test = new_test;
-                }
-
-                if !stop {
-                    for (nr, nc) in to_move.into_iter().rev() {
-                        g[nr + 1][nc] = g[nr][nc];
-                        g[nr][nc] = EMPTY;
-                    }
-                    r += 1;
+                    r = ad(r, d);
                 }
             }
             '>' => {
