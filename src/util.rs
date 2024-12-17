@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 use std::collections::HashSet;
-use std::fmt::Display;
+use std::fmt::{Debug, Display};
 use std::iter::Iterator;
 use std::ops::{AddAssign, Div, Mul, Rem};
+use std::str::FromStr;
 
 /// apply direction
 #[inline(always)]
@@ -96,6 +97,7 @@ pub trait ParseToInt {
     fn to_digits<T>(&self) -> Vec<T>
     where
         T: From<u8> + Display;
+    fn split_to_digits<T: std::str::FromStr>(&self, separator: char) -> Vec<T> where <T as FromStr>::Err: Debug;
     fn to_digits_grid<T>(&self) -> Vec<Vec<T>>
     where
         T: From<u8> + Display;
@@ -117,6 +119,12 @@ impl ParseToInt for str {
     {
         self.chars()
             .map(|c| (c as u8 - b'0').into())
+            .collect()
+    }
+    fn split_to_digits<T: std::str::FromStr>(&self, separator: char) -> Vec<T> where <T as FromStr>::Err: Debug
+    {
+        self.split(separator)
+            .map(|s| s.parse::<T>().unwrap())
             .collect()
     }
     fn to_digits_grid<T>(&self) -> Vec<Vec<T>> 
