@@ -30,6 +30,8 @@ const bst: i32 = 2;
 const jnz: i32 = 3;
 const bxc: i32 = 4;
 const out: i32 = 5;
+const bdv: i32 = 6;
+const cdv: i32 = 7;
 
 struct Computer {
     registers: [i32; 3],
@@ -39,20 +41,8 @@ struct Computer {
 }
 
 impl Computer {
-    fn process_operand(&mut self, operand: i32) -> i32 {
-        match operand {
-            0..=3 => operand,
-            4 => A,
-            5 => B,
-            6 => C,
-            7 => todo!(),
-            _ => panic!("{}", operand),
-        }
-    }
-
     fn get_combo_operand(&self) -> i32 {
-        let ip = self.ip;
-        let operand = self.program[ip + 1];
+        let operand = self.program[self.ip + 1];
         if operand <= 3 {
             operand
         } else {
@@ -156,7 +146,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_p1_in() {
         assert_eq!("171".to_string(), p1(IN));
     }
