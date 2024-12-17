@@ -84,14 +84,10 @@ impl Computer {
                 self.outputs.push(self.get_combo_operand() % 8);
             }
             bdv => {
-                // division
-                // B /= 2i32.pow(process_operand(operand))
-                self.registers[1] /= 2i32.pow(self.get_combo_operand() as u32);
+                self.registers[1] = self.registers[0] / 2i32.pow(self.get_combo_operand() as u32);
             }
             cdv => {
-                // division
-                // C /= 2i32.pow(process_operand(operand))
-                self.registers[2] /= 2i32.pow(self.get_combo_operand() as u32);
+                self.registers[2] = self.registers[0] / 2i32.pow(self.get_combo_operand() as u32);
             }
             _ => panic!("Invalid opcode: {opcode}"),
         }
@@ -147,7 +143,7 @@ mod tests {
 
     #[test]
     fn test_p1_in() {
-        assert_eq!("171".to_string(), p1(IN));
+        assert_eq!("2,1,0,1,7,2,5,0,3".to_string(), p1(IN));
     }
 
     #[test]
