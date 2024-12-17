@@ -24,17 +24,6 @@ const A: i32 = 8;
 const B: i32 = 9;
 const C: i32 = 10;
 
-fn process_operand(operand: i32) -> i32 {
-    match operand {
-        0..=3 => operand,
-        4 => A,
-        5 => B,
-        6 => C,
-        7 => todo!(),
-        _ => panic!("{}", operand),
-    }
-}
-
 const adv: i32 = 0;
 const bxl: i32 = 1;
 const bst: i32 = 2;
@@ -42,39 +31,83 @@ const jnz: i32 = 3;
 const bxc: i32 = 4;
 const out: i32 = 5;
 
-fn process_opcode(opcode: i32) {
-    match opcode {
-        adv => {
-            // division
-            // A /= 2i32.pow(process_operand(operand))
+struct Computer {
+    registers: [i32; 3],
+    program: Vec<i32>,
+    ip: usize,
+    outputs: Vec<i32>,
+}
+
+impl Computer {
+    fn process_operand(&mut self, operand: i32) -> i32 {
+        match operand {
+            0..=3 => operand,
+            4 => A,
+            5 => B,
+            6 => C,
+            7 => todo!(),
+            _ => panic!("{}", operand),
         }
-        bxl => {
-            // B ^= operand
+    }
+
+    fn get_combo_operand(&self) -> i32 {
+        let ip = self.ip;
+        let operand = self.program[ip + 1];
+        if operand <= 3 {
+            operand
+        } else {
+            self.registers[operand as usize - 4]
         }
-        bst => {
-            // B %= 8
-        }
-        jnz => {
-            if A != 0 {
-                // ip = literal operandd
-                // do not increase ip by 2 after this
-            } else {
-                // do nothing
+    }
+
+    fn process_opcode(&mut self) {
+        let ip = self.ip;
+        let opcode = self.program[ip];
+        let operand = self.program[ip + 1];
+        let mut jumped = false;
+        match opcode {
+            adv => {
+                // division
+                // A /= 2i32.pow(process_operand(operand))
+                self.registers[0] /= 2i32.pow(self.get_combo_operand() as u32);
             }
+            bxl => {
+                // B ^= operand
+                self.registers[1] ^= operand;
+            }
+            bst => {
+                // B = combo % 8
+                self.registers[1] = self.get_combo_operand() % 8;
+            }
+            jnz => {
+                if self.registers[0] != 0 {
+                    jumped = true;
+                    self.ip = operand as usize;
+                }
+            }
+            bxc => {
+                // B ^= C
+                self.registers[1] ^= self.registers[2];
+            }
+            out => {
+                // outputs.push(process_operand(operand) % 8)
+                self.outputs.push(self.get_combo_operand() % 8);
+            }
+            bdv => {
+                // division
+                // B /= 2i32.pow(process_operand(operand))
+                self.registers[1] /= 2i32.pow(self.get_combo_operand() as u32);
+            }
+            cdv => {
+                // division
+                // C /= 2i32.pow(process_operand(operand))
+                self.registers[2] /= 2i32.pow(self.get_combo_operand() as u32);
+            }
+            _ => panic!("Invalid opcode: {opcode}"),
         }
-        bxc => {
-            // B ^= C
-        }
-        out => {
-            // outputs.push(process_operand(operand) % 8)
-        }
-        bdv => {
-            // division
-            // B /= 2i32.pow(process_operand(operand))
-        }
-        cdv => {
-            // division
-            // C /= 2i32.pow(process_operand(operand))
+
+        if !jumped {
+            self.ip += 2;
         }
     }
 }
@@ -84,16 +117,26 @@ fn process_opcode(opcode: i32) {
 ///
 /// opcode is followed by an operand (3 bit)
 pub fn p1(input: &str) -> String {
-    let mut comma_joined_output = String::new();
+    let mut ret = String::new();
+    let (registers, program) = parse(input);
+    let plen = program.len();
+    let mut computer = Computer {
+        registers,
+        program,
+        ip: 0,
+        outputs: vec![],
+    };
 
-    let (mut registers, program) = parse(input);
-    dbg!(registers, program);
+    while computer.ip < plen {
+        computer.process_opcode();
+    }
 
-    // instruction pointer
-    let mut ip = 0;
+    for o in computer.outputs {
+        if !ret.is_empty() { ret.push(','); }
+        ret.push_str(&mut o.to_string());
+    }
 
-
-    comma_joined_output
+    ret
 }
 
 pub fn p2(input: &str) -> usize {
@@ -109,7 +152,7 @@ mod tests {
 
     #[test]
     fn test_p1_sample() {
-        assert_eq!("171".to_string(), p1(SAMPLE));
+        assert_eq!("4,6,3,5,6,3,5,2,1,0".to_string(), p1(SAMPLE));
     }
 
     #[test]
