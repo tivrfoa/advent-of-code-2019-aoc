@@ -177,19 +177,25 @@ pub fn p1(input: &str) -> String {
     ret
 }
 
-fn solve(a: usize, mut computer: Computer) -> Option<usize> {
-    computer.registers[0] = a;
-    let plen = computer.program.len();
-    loop {
-        if !computer.process_opcode_p2() {
-            break;
-        }
-        if computer.outputs.len() == plen {
-            println!("{a}");
-            return Some(a);
-        }
-        if computer.ip == plen {
-            break;
+fn solve(program: &[usize], ans: usize) -> Option<usize> {
+    println!("{:?} - {ans}", program);
+    if program.is_empty() { return Some(ans); }
+    for t in 0..8 {
+        let mut a = (ans << 3) | t;
+        let mut b = a % 8; // bst(2, 4)
+        b = b ^ 7;         // bxl(1, 7)
+        let c = a >> b;    // cdv(7, 5)
+        a = a >> 3;        // adv(0, 3)
+        b = b ^ c;         // bxc(4, 4)
+        b = b ^ 7;         // bxl(1, 7)
+        if b % 8 == program[program.len() - 1] {
+            match solve(&program[..program.len() - 1], a) {
+                None => continue,
+                Some(v) => {
+                    println!("a: {a} sub: {v}");
+                    return Some(v);
+                }
+            }
         }
     }
 
@@ -198,24 +204,13 @@ fn solve(a: usize, mut computer: Computer) -> Option<usize> {
 
 pub fn p2(input: &str) -> usize {
     let mut ret = String::new();
-    let (registers, program) = parse(input);
-    let plen = program.len();
-    let fresh_computer = Computer {
-        registers: registers.clone(),
-        program,
-        ip: 0,
-        outputs: vec![],
-    };
+    let (_, program) = parse(input);
 
-    // (1..128).into_par_iter().for_each(|i| {
-    //     solve(2usize.pow(i), fresh_computer.clone());
-    // });
-    // solve(817133116390102794240, fresh_computer);
-    (30000000000000..40_000_000_000_000).into_par_iter().for_each(|i| {
-        solve(i, fresh_computer.clone());
-    });
-
-    panic!("Mission failed!");
+    if let Some(ans) = solve(&program, 0) {
+        return ans;
+    } else {
+        panic!("Mission Failed!");
+    }
 }
 
 
