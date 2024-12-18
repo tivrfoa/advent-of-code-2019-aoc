@@ -1,6 +1,7 @@
 use std::cmp::Reverse;
 use std::collections::*;
 use crate::util::*;
+use rayon::prelude::*;
 
 #[allow(dead_code)]
 fn parse(input: &str) -> ([usize; 3], Vec<usize>) {
@@ -104,16 +105,12 @@ impl Computer {
         let mut jumped = false;
         match opcode {
             adv => {
-                // division
-                // A /= 2usize.pow(process_operand(operand))
                 self.registers[0] /= 2usize.pow(self.get_combo_operand() as u32);
             }
             bxl => {
-                // B ^= operand
                 self.registers[1] ^= operand;
             }
             bst => {
-                // B = combo % 8
                 self.registers[1] = self.get_combo_operand() % 8;
             }
             jnz => {
@@ -123,7 +120,6 @@ impl Computer {
                 }
             }
             bxc => {
-                // B ^= C
                 self.registers[1] ^= self.registers[2];
             }
             out => {
@@ -181,21 +177,19 @@ pub fn p1(input: &str) -> String {
     ret
 }
 
-fn solve(l: usize, r: usize, fresh_computer: Computer) -> Option<usize> {
-    for a in l..=r {
-        let mut computer = fresh_computer.clone();
-        computer.registers[0] = a;
-        let plen = computer.program.len();
-        loop {
-            if !computer.process_opcode_p2() {
-                break;
-            }
-            if computer.outputs.len() == plen {
-                return Some(a);
-            }
-            if computer.ip == plen {
-                break;
-            }
+fn solve(a: usize, mut computer: Computer) -> Option<usize> {
+    computer.registers[0] = a;
+    let plen = computer.program.len();
+    loop {
+        if !computer.process_opcode_p2() {
+            break;
+        }
+        if computer.outputs.len() == plen {
+            println!("{a}");
+            return Some(a);
+        }
+        if computer.ip == plen {
+            break;
         }
     }
 
@@ -213,47 +207,13 @@ pub fn p2(input: &str) -> usize {
         outputs: vec![],
     };
 
-    use std::thread::{self, available_parallelism};
-    let num_cpus = available_parallelism().unwrap().get() - 3;
-    dbg!(num_cpus);
-    let total_range: usize = 1_000_000_000_000;
-    let chunk_size = total_range / num_cpus;
-
-    let mut threads = vec![];
-
-    for i in 0..num_cpus {
-        let left = i * chunk_size;
-        let right = if i == num_cpus - 1 {
-            total_range
-        } else {
-            (i + 1) * chunk_size
-        };
-        dbg!(i, left, right);
-
-        let computer = fresh_computer.clone();
-        threads.push(thread::spawn(move || {
-            solve(left, right, computer)
-        }));
-    }
-
-    let mut min_value: Option<usize> = None;
-
-    for t in threads {
-        if let Ok(result) = t.join() {
-            if let Some(value) = result {
-                println!("{}", value);
-                min_value = match min_value {
-                    Some(mv) => Some(mv.min(value)),
-                    None => Some(value),
-                };
-            }
-        }
-    }
-
-    if let Some(mv) = min_value {
-        println!("Minimum value: {}", mv);
-        return mv;
-    }
+    // (1..128).into_par_iter().for_each(|i| {
+    //     solve(2usize.pow(i), fresh_computer.clone());
+    // });
+    // solve(817133116390102794240, fresh_computer);
+    (30000000000000..40_000_000_000_000).into_par_iter().for_each(|i| {
+        solve(i, fresh_computer.clone());
+    });
 
     panic!("Mission failed!");
 }
@@ -302,3 +262,81 @@ Register B: 0
 Register C: 0
 
 Program: 2,4,1,7,7,5,0,3,4,4,1,7,5,5,3,0";
+
+/*
+
+(2, 4) bst b = A % 8 -> b <= 7
+
+(1, 7) bxl b ˆ= 7 -> b <= 7
+
+(7, 5) cdv c = A / 2 ** b
+
+(0, 3) adv A = A / 2 ** 3 => A = A / 8
+
+(4, 4) bxc b ˆ= c -> b can be greater than 7 now
+
+(1, 7) bxl b ˆ= 7
+
+(5, 5) prints b % 8 = 2
+
+
+
+Based on the formulas below, that happen in order, what might be the value of A? Divisions are rounded down.
+
+b = A % 8
+
+b = b ^ 7
+
+c = A / (2 ** b)
+
+A = A / 8
+
+b = b ^ c
+
+b = b ^ 7
+
+b % 8  = 2
+
+256 satisfy the first output!
+
+The value of A that satisfies all the steps and the condition b%8=4 is 512!
+
+The value of A that satisfies all the steps and the condition b%8=1 is 128!
+
+The value of A that satisfies all the steps and the condition b%8=7 is 896!
+
+The value of A that satisfies all the steps and the condition b%8=5 is 640!
+
+The value of AA that satisfies all the steps and the condition b%8=0b%8=0 is 1024!
+
+The value of AA that satisfies all the steps and the condition b%8=3b%8=3 is 384!
+
+maybe try powers of two
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Let's try to do the reverse operation:
+
+- It always prints register b % 8
+- Last printed number is 0 -> b is a multiple of 8, or b is 0
+- A is zero, because program finished
+- bxl b ˆ= 7, b was 7 or any multiple of 8 - 1
+- bxc b ˆ= c, 
+- adv a /= 2.pow(3) => a /= 8, A can be any value lower than 8 ...
+- cdv c = a / 2.pow(b) => 0 = a / 2 ** 7 => a: any value lower than 8
+- bxl b ˆ= 7, it means b was 0
+- bst b = a % 8, a was already 0
+
+
+*/

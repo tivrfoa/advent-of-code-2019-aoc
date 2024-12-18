@@ -94,6 +94,7 @@ pub trait ParseToInt {
     fn to_i(&self) -> i32;
     fn to_i64(&self) -> i64;
     fn to_usize(&self) -> usize;
+    fn to_u128(&self) -> u128;
     fn to_digits<T>(&self) -> Vec<T>
     where
         T: From<u8> + Display;
@@ -112,6 +113,9 @@ impl ParseToInt for str {
     }
     fn to_usize(&self) -> usize {
         self.parse::<usize>().unwrap()
+    }
+    fn to_u128(&self) -> u128 {
+        self.parse::<u128>().unwrap()
     }
     fn to_digits<T>(&self) -> Vec<T> 
     where
