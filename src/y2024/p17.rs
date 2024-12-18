@@ -180,12 +180,12 @@ pub fn p1(input: &str) -> String {
 fn solve(program: &[usize], ans: usize) -> Option<usize> {
     println!("{:?} - {ans}", program);
     if program.is_empty() { return Some(ans); }
-    for t in 0..8 {
+    for t in 0..=8 {
         let mut a = (ans << 3) | t;
         let mut b = a % 8; // bst(2, 4)
         b = b ^ 7;         // bxl(1, 7)
         let c = a >> b;    // cdv(7, 5)
-        a = a >> 3;        // adv(0, 3)
+        // a = a >> 3;        // adv(0, 3)
         b = b ^ c;         // bxc(4, 4)
         b = b ^ 7;         // bxl(1, 7)
         if b % 8 == program[program.len() - 1] {
