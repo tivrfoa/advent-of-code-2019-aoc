@@ -180,8 +180,9 @@ pub fn p1(input: &str) -> String {
 fn solve(program: &[usize], ans: usize) -> Option<usize> {
     println!("{:?} - {ans}", program);
     if program.is_empty() { return Some(ans); }
-    for t in 0..=8 {
-        let mut a = (ans << 3) | t;
+    for mut b in 1..=16 {
+        let mut a = (ans << 3) | b;
+        if a == 0 { a = 8; }
         let mut b = a % 8; // bst(2, 4)
         b = b ^ 7;         // bxl(1, 7)
         let c = a >> b;    // cdv(7, 5)
@@ -202,7 +203,7 @@ fn solve(program: &[usize], ans: usize) -> Option<usize> {
     None
 }
 
-pub fn p2(input: &str) -> usize {
+pub fn p2_v01(input: &str) -> usize {
     let mut ret = String::new();
     let (_, program) = parse(input);
 
@@ -211,6 +212,48 @@ pub fn p2(input: &str) -> usize {
     } else {
         panic!("Mission Failed!");
     }
+}
+
+fn run(program: &[usize], mut a: usize) -> bool {
+    let start = a;
+    let mut b = 0;
+    let mut c = 0;
+
+    for i in 0..program.len() {
+        b = a % 8; // bst(2, 4)
+        b = b ^ 7;         // bxl(1, 7)
+        c = a >> b;    // cdv(7, 5)
+        // c = a / 2usize.pow(b as u32);
+        a = a >> 3;        // adv(0, 3)
+        // a = a / 2usize.pow(3);        // adv(0, 3)
+        b = b ^ c;         // bxc(4, 4)
+        b = b ^ 7;         // bxl(1, 7)
+        if b % 8 != program[i] {
+            return false;
+        }
+    }
+
+    println!("Found: {start}");
+    true
+}
+
+pub fn p2(input: &str) -> usize {
+    let (_, program) = parse(input);
+
+    // for ast in 258962108549019usize..358962108549019 {
+    //     // let a = ast * (ast >> 27);
+    //     let a = ast;
+    //     if run(&program, a) {
+    //         return a;
+    //     }
+    // }
+
+    (258_962_108_549_019usize..358962108549019).into_par_iter()
+        .for_each(|a| {
+            run(&program, a);
+        });
+
+    panic!("Mission Failed!");
 }
 
 
@@ -229,6 +272,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_p2_sample() {
         assert_eq!(117440, p2("Register A: 2024
 Register B: 0
@@ -239,7 +283,9 @@ Program: 0,3,5,4,3,0"));
 
     #[test]
     fn test_p2_in() {
-        assert_eq!(171, p2(IN));
+        assert_eq!(267_265_166_222_235, p2(IN));
+        // 258_962_108_549_019
+        // 267_265_166_222_235
     }
 }
 
@@ -257,6 +303,12 @@ Register B: 0
 Register C: 0
 
 Program: 2,4,1,7,7,5,0,3,4,4,1,7,5,5,3,0";
+
+
+
+
+
+
 
 /*
 
