@@ -52,6 +52,12 @@ impl Computer {
         }
     }
 
+    fn run(&mut self) {
+        while self.ip < self.program.len() {
+            self.process_opcode();
+        }
+    }
+
     fn process_opcode(&mut self) {
         let ip = self.ip;
         let opcode = self.program[ip];
@@ -259,7 +265,7 @@ fn run_once(program: &[usize], mut a: usize) -> usize {
     b % 8
 }
 
-pub fn p2(input: &str) -> usize {
+pub fn p2_v004(input: &str) -> usize {
     let (_, program) = parse(input);
     let mut saved = Vec::new();
     for a in 1..1024 {
@@ -276,6 +282,44 @@ pub fn p2(input: &str) -> usize {
             for bit in 0..8 {
                 let num = (bit << (7 + 3 * pos)) | consider;
                 if run_once(&program, num) == program[pos] {
+                    next.push(num);
+                }
+            }
+        }
+        saved = next;
+    }
+
+    *saved.iter().min().unwrap()
+}
+
+/// [Rust Programming] Advent of Code 2024 - Day 17 - Chronospatial Computer
+/// https://www.youtube.com/watch?v=OjFGKL54yJQ
+pub fn p2(input: &str) -> usize {
+    let (registers, program) = parse(input);
+    let fresh_computer = Computer {
+        registers,
+        program: program.clone(),
+        ip: 0,
+        outputs: vec![],
+    };
+    let mut saved = Vec::new();
+    for a in 1..1024 {
+        if run_once(&program, a) == program[0] {
+            saved.push(a);
+        }
+    }
+    // dbg!(&saved);
+
+    for pos in 1..program.len() {
+        println!("{pos} - {saved:?}");
+        let mut next = Vec::new();
+        for consider in saved {
+            for bit in 0..8 {
+                let num = (bit << (7 + 3 * pos)) | consider;
+                let mut computer = fresh_computer.clone();
+                computer.registers[0] = num;
+                computer.run();
+                if computer.outputs.len() > pos && computer.outputs[pos] == program[pos] {
                     next.push(num);
                 }
             }
