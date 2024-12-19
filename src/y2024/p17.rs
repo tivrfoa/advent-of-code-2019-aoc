@@ -3,28 +3,6 @@ use std::collections::*;
 use crate::util::*;
 use rayon::prelude::*;
 
-#[allow(dead_code)]
-fn parse(input: &str) -> ([usize; 3], Vec<usize>) {
-    let mut lines = input.lines();
-    let a = lines.next().unwrap();
-    let b = lines.next().unwrap();
-    let c = lines.next().unwrap();
-    let _ = lines.next().unwrap();
-    let program = lines.next().unwrap();
-
-    let a = a.split_once(": ").unwrap().1.to_usize();
-    let b = b.split_once(": ").unwrap().1.to_usize();
-    let c = c.split_once(": ").unwrap().1.to_usize();
-
-    let program: Vec<usize> = program.split_once(": ").unwrap().1.split_to_digits(',');
-
-    ([a, b, c], program)
-}
-
-const A: usize = 8;
-const B: usize = 9;
-const C: usize = 10;
-
 const adv: usize = 0;
 const bxl: usize = 1;
 const bst: usize = 2;
@@ -64,95 +42,23 @@ impl Computer {
         let operand = self.program[ip + 1];
         let mut jumped = false;
         match opcode {
-            adv => {
-                // division
-                // A /= 2usize.pow(process_operand(operand))
-                self.registers[0] /= 2usize.pow(self.get_combo_operand() as u32);
-            }
-            bxl => {
-                // B ^= operand
-                self.registers[1] ^= operand;
-            }
-            bst => {
-                // B = combo % 8
-                self.registers[1] = self.get_combo_operand() % 8;
-            }
-            jnz => {
-                if self.registers[0] != 0 {
+            adv => self.registers[0] /= 2usize.pow(self.get_combo_operand() as u32),
+            bxl => self.registers[1] ^= operand,
+            bst => self.registers[1] = self.get_combo_operand() % 8,
+            jnz => if self.registers[0] != 0 {
                     jumped = true;
                     self.ip = operand as usize;
-                }
             }
-            bxc => {
-                // B ^= C
-                self.registers[1] ^= self.registers[2];
-            }
-            out => {
-                self.outputs.push(self.get_combo_operand() % 8);
-            }
-            bdv => {
-                self.registers[1] = self.registers[0] / 2usize.pow(self.get_combo_operand() as u32);
-            }
-            cdv => {
-                self.registers[2] = self.registers[0] / 2usize.pow(self.get_combo_operand() as u32);
-            }
+            bxc => self.registers[1] ^= self.registers[2], // B ^= C
+            out => self.outputs.push(self.get_combo_operand() % 8),
+            bdv => self.registers[1] = self.registers[0] / 2usize.pow(self.get_combo_operand() as u32),
+            cdv => self.registers[2] = self.registers[0] / 2usize.pow(self.get_combo_operand() as u32),
             _ => panic!("Invalid opcode: {opcode}"),
         }
 
         if !jumped {
             self.ip += 2;
         }
-    }
-
-    fn process_opcode_p2(&mut self) -> bool {
-        let ip = self.ip;
-        let opcode = self.program[ip];
-        let operand = self.program[ip + 1];
-        let mut jumped = false;
-        match opcode {
-            adv => {
-                self.registers[0] /= 2usize.pow(self.get_combo_operand() as u32);
-            }
-            bxl => {
-                self.registers[1] ^= operand;
-            }
-            bst => {
-                self.registers[1] = self.get_combo_operand() % 8;
-            }
-            jnz => {
-                if self.registers[0] != 0 {
-                    jumped = true;
-                    self.ip = operand as usize;
-                }
-            }
-            bxc => {
-                self.registers[1] ^= self.registers[2];
-            }
-            out => {
-                if self.outputs.len() == self.program.len() {
-                    return false;
-                }
-                let v = self.get_combo_operand() % 8;
-                let out_idx = self.outputs.len();
-                if v != self.program[out_idx] {
-                    return false;
-                }
-                self.outputs.push(v);
-            }
-            bdv => {
-                self.registers[1] = self.registers[0] / 2usize.pow(self.get_combo_operand() as u32);
-            }
-            cdv => {
-                self.registers[2] = self.registers[0] / 2usize.pow(self.get_combo_operand() as u32);
-            }
-            _ => panic!("Invalid opcode: {opcode}"),
-        }
-
-        if !jumped {
-            self.ip += 2;
-        }
-
-        true
     }
 }
 
@@ -170,126 +76,13 @@ pub fn p1(input: &str) -> String {
         ip: 0,
         outputs: vec![],
     };
-
-    while computer.ip < plen {
-        computer.process_opcode();
-    }
-
+    computer.run();
     for o in computer.outputs {
         if !ret.is_empty() { ret.push(','); }
         ret.push_str(&mut o.to_string());
     }
 
     ret
-}
-
-fn solve(program: &[usize], ans: usize) -> Option<usize> {
-    println!("{:?} - {ans}", program);
-    if program.is_empty() { return Some(ans); }
-    for mut b in 1..=16 {
-        let mut a = (ans << 3) | b;
-        if a == 0 { a = 8; }
-        let mut b = a % 8; // bst(2, 4)
-        b = b ^ 7;         // bxl(1, 7)
-        let c = a >> b;    // cdv(7, 5)
-        // a = a >> 3;        // adv(0, 3)
-        b = b ^ c;         // bxc(4, 4)
-        b = b ^ 7;         // bxl(1, 7)
-        if b % 8 == program[program.len() - 1] {
-            match solve(&program[..program.len() - 1], a) {
-                None => continue,
-                Some(v) => {
-                    println!("a: {a} sub: {v}");
-                    return Some(v);
-                }
-            }
-        }
-    }
-
-    None
-}
-
-pub fn p2_v01(input: &str) -> usize {
-    let mut ret = String::new();
-    let (_, program) = parse(input);
-
-    if let Some(ans) = solve(&program, 0) {
-        return ans;
-    } else {
-        panic!("Mission Failed!");
-    }
-}
-
-fn run(program: &[usize], mut a: usize) -> bool {
-    let start = a;
-    let mut b = 0;
-    let mut c = 0;
-
-    for i in 0..program.len() {
-        b = a % 8;         // bst(2, 4)
-        b = b ^ 7;         // bxl(1, 7)
-        c = a >> b;        // cdv(7, 5)
-        a = a >> 3;        // adv(0, 3)
-        b = b ^ c;         // bxc(4, 4)
-        b = b ^ 7;         // bxl(1, 7)
-        if b % 8 != program[i] {
-            return false;
-        }
-    }
-
-    println!("Found: {start}");
-    true
-}
-
-pub fn p2_v003(input: &str) -> usize {
-    let (_, program) = parse(input);
-    if let Some(start_a) = (258_962_108_549_019usize..358962108549019).into_par_iter()
-        .find_any(|a| run(&program, *a)) {
-        return start_a;
-    }
-
-    panic!("Mission Failed!");
-}
-
-
-fn run_once(program: &[usize], mut a: usize) -> usize {
-    let mut b = 0;
-    let mut c = 0;
-
-    b = a % 8;         // bst(2, 4)
-    b = b ^ 7;         // bxl(1, 7)
-    c = a >> b;        // cdv(7, 5)
-    a = a >> 3;        // adv(0, 3)
-    b = b ^ c;         // bxc(4, 4)
-    b = b ^ 7;         // bxl(1, 7)
-    b % 8
-}
-
-pub fn p2_v004(input: &str) -> usize {
-    let (_, program) = parse(input);
-    let mut saved = Vec::new();
-    for a in 1..1024 {
-        if run_once(&program, a) == program[0] {
-            saved.push(a);
-        }
-    }
-    // dbg!(&saved);
-
-    for pos in 1..program.len() {
-        println!("{pos} - {saved:?}");
-        let mut next = Vec::new();
-        for consider in saved {
-            for bit in 0..8 {
-                let num = (bit << (7 + 3 * pos)) | consider;
-                if run_once(&program, num) == program[pos] {
-                    next.push(num);
-                }
-            }
-        }
-        saved = next;
-    }
-
-    *saved.iter().min().unwrap()
 }
 
 /// [Rust Programming] Advent of Code 2024 - Day 17 - Chronospatial Computer
@@ -308,7 +101,6 @@ pub fn p2(input: &str) -> usize {
             saved.push(a);
         }
     }
-    // dbg!(&saved);
 
     for pos in 1..program.len() {
         println!("{pos} - {saved:?}");
@@ -328,6 +120,37 @@ pub fn p2(input: &str) -> usize {
     }
 
     *saved.iter().min().unwrap()
+}
+
+fn run_once(program: &[usize], mut a: usize) -> usize {
+    let mut b = 0;
+    let mut c = 0;
+
+    b = a % 8;         // bst(2, 4)
+    b = b ^ 7;         // bxl(1, 7)
+    c = a >> b;        // cdv(7, 5)
+    a = a >> 3;        // adv(0, 3)
+    b = b ^ c;         // bxc(4, 4)
+    b = b ^ 7;         // bxl(1, 7)
+    b % 8
+}
+
+#[allow(dead_code)]
+fn parse(input: &str) -> ([usize; 3], Vec<usize>) {
+    let mut lines = input.lines();
+    let a = lines.next().unwrap();
+    let b = lines.next().unwrap();
+    let c = lines.next().unwrap();
+    let _ = lines.next().unwrap();
+    let program = lines.next().unwrap();
+
+    let a = a.split_once(": ").unwrap().1.to_usize();
+    let b = b.split_once(": ").unwrap().1.to_usize();
+    let c = c.split_once(": ").unwrap().1.to_usize();
+
+    let program: Vec<usize> = program.split_once(": ").unwrap().1.split_to_digits(',');
+
+    ([a, b, c], program)
 }
 
 
