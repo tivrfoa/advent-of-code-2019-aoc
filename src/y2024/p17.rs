@@ -220,12 +220,10 @@ fn run(program: &[usize], mut a: usize) -> bool {
     let mut c = 0;
 
     for i in 0..program.len() {
-        b = a % 8; // bst(2, 4)
+        b = a % 8;         // bst(2, 4)
         b = b ^ 7;         // bxl(1, 7)
-        c = a >> b;    // cdv(7, 5)
-        // c = a / 2usize.pow(b as u32);
+        c = a >> b;        // cdv(7, 5)
         a = a >> 3;        // adv(0, 3)
-        // a = a / 2usize.pow(3);        // adv(0, 3)
         b = b ^ c;         // bxc(4, 4)
         b = b ^ 7;         // bxl(1, 7)
         if b % 8 != program[i] {
@@ -237,23 +235,55 @@ fn run(program: &[usize], mut a: usize) -> bool {
     true
 }
 
-pub fn p2(input: &str) -> usize {
+pub fn p2_v003(input: &str) -> usize {
     let (_, program) = parse(input);
-
-    // for ast in 258962108549019usize..358962108549019 {
-    //     // let a = ast * (ast >> 27);
-    //     let a = ast;
-    //     if run(&program, a) {
-    //         return a;
-    //     }
-    // }
-
-    (258_962_108_549_019usize..358962108549019).into_par_iter()
-        .for_each(|a| {
-            run(&program, a);
-        });
+    if let Some(start_a) = (258_962_108_549_019usize..358962108549019).into_par_iter()
+        .find_any(|a| run(&program, *a)) {
+        return start_a;
+    }
 
     panic!("Mission Failed!");
+}
+
+
+fn run_once(program: &[usize], mut a: usize) -> usize {
+    let mut b = 0;
+    let mut c = 0;
+
+    b = a % 8;         // bst(2, 4)
+    b = b ^ 7;         // bxl(1, 7)
+    c = a >> b;        // cdv(7, 5)
+    a = a >> 3;        // adv(0, 3)
+    b = b ^ c;         // bxc(4, 4)
+    b = b ^ 7;         // bxl(1, 7)
+    b % 8
+}
+
+pub fn p2(input: &str) -> usize {
+    let (_, program) = parse(input);
+    let mut saved = Vec::new();
+    for a in 1..1024 {
+        if run_once(&program, a) == program[0] {
+            saved.push(a);
+        }
+    }
+    // dbg!(&saved);
+
+    for pos in 1..program.len() {
+        println!("{pos} - {saved:?}");
+        let mut next = Vec::new();
+        for consider in saved {
+            for bit in 0..8 {
+                let num = (bit << (7 + 3 * pos)) | consider;
+                if run_once(&program, num) == program[pos] {
+                    next.push(num);
+                }
+            }
+        }
+        saved = next;
+    }
+
+    *saved.iter().min().unwrap()
 }
 
 
