@@ -61,7 +61,6 @@ fn solve(mut g: Vec<Vec<char>>, bytes: &[(usize, usize)], l: usize, r: usize) ->
 }
 
 pub fn p2(input: &str, bf: usize, rows: usize, cols: usize) -> (usize, usize) {
-    let mut min = usize::MAX;
     let mut g = vec![vec!['.'; cols]; rows];
     let bytes: Vec<(usize, usize)> = input.lines()
         .map(|l| l.split_once_to_num::<usize>(','))
@@ -78,16 +77,11 @@ pub fn p2(input: &str, bf: usize, rows: usize, cols: usize) -> (usize, usize) {
         if let Some(v) = solve(g.clone(), &bytes, bf, md) {
             l = md + 1;
         } else {
-            min = md;
             h = md - 1;
         }
     }
 
-    if min == usize::MAX {
-        panic!("MF");
-    } else {
-        bytes[min]
-    }
+    bytes[l]
 }
 
 #[cfg(test)]
