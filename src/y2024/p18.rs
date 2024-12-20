@@ -21,7 +21,6 @@ pub fn p1(input: &str, bf: usize, rows: usize, cols: usize) -> usize {
     pq.push(Reverse((0, 0, 0, vec![vec![false; cols]; rows])));
     while let Some(Reverse((steps, r, c, mut visited))) = pq.pop() {
         if r + 1 == rows && c + 1 == cols { return steps; }
-        if r == rows || c == cols { continue; }
         if let Some(v) = mem.get(&(r, c)) {
             if steps >= *v { continue; }
         }
@@ -48,7 +47,6 @@ fn solve(mut g: Vec<Vec<char>>, bytes: &[(usize, usize)], l: usize, r: usize) ->
     pq.push(Reverse((0, 0, 0, vec![vec![false; cols]; rows])));
     while let Some(Reverse((steps, r, c, mut visited))) = pq.pop() {
         if r + 1 == rows && c + 1 == cols { return Some(steps); }
-        if r == rows || c == cols { continue; }
         if let Some(v) = mem.get(&(r, c)) {
             if steps >= *v { continue; }
         }
