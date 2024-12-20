@@ -36,12 +36,61 @@ pub fn p1(input: &str, bf: usize, rows: usize, cols: usize) -> usize {
     panic!("MF");
 }
 
-pub fn p2(input: &str) -> usize {
-
-
-    0
+fn solve(mut g: Vec<Vec<char>>, bytes: &[(usize, usize)], l: usize, r: usize) -> Option<usize> {
+    let rows = g.len();
+    let cols = g[0].len();
+    for i in l..=r {
+        let (x, y) = (bytes[i].0, bytes[i].1);
+        g[y][x] = '#';
+    }
+    let mut mem: HashMap<(usize, usize), usize> = HashMap::new();
+    let mut pq = BinaryHeap::new();
+    pq.push(Reverse((0, 0, 0, vec![vec![false; cols]; rows])));
+    while let Some(Reverse((steps, r, c, mut visited))) = pq.pop() {
+        if r + 1 == rows && c + 1 == cols { return Some(steps); }
+        if r == rows || c == cols { continue; }
+        if let Some(v) = mem.get(&(r, c)) {
+            if steps >= *v { continue; }
+        }
+        mem.insert((r, c), steps);
+        visited[r][c] = true;
+        for (nr, nc, _) in dirs(r, c, rows, cols) {
+            if g[nr][nc] == '#' || visited[nr][nc] { continue; }
+            pq.push(Reverse((steps + 1, nr, nc, visited.clone())));
+        }
+    }
+    None
 }
 
+pub fn p2(input: &str, bf: usize, rows: usize, cols: usize) -> (usize, usize) {
+    let mut min = usize::MAX;
+    let mut g = vec![vec!['.'; cols]; rows];
+    let bytes: Vec<(usize, usize)> = input.lines()
+        .map(|l| l.split_once_to_num::<usize>(','))
+        .collect();
+    for i in 0..bf {
+        let (x, y) = (bytes[i].0, bytes[i].1);
+        g[y][x] = '#';
+    }
+
+    let mut l = bf;
+    let mut h = bytes.len() - 1;
+    while l <= h {
+        let md = l + (h - l) / 2;
+        if let Some(v) = solve(g.clone(), &bytes, bf, md) {
+            l = md + 1;
+        } else {
+            min = md;
+            h = md - 1;
+        }
+    }
+
+    if min == usize::MAX {
+        panic!("MF");
+    } else {
+        bytes[min]
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -58,15 +107,13 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_p2_sample() {
-        assert_eq!(171, p2(SAMPLE));
+        assert_eq!((6, 1), p2(SAMPLE, 12, 7, 7));
     }
 
     #[test]
-    #[ignore]
     fn test_p2_in() {
-        assert_eq!(171, p2(IN));
+        assert_eq!((58, 19), p2(IN, 1024, 71, 71));
     }
 }
 
