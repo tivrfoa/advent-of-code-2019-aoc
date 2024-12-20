@@ -107,7 +107,12 @@ pub fn p2(input: &str) -> usize {
         let mut next = Vec::new();
         for consider in saved {
             for bit in 0..8 {
-                let num = (bit << (7 + 3 * pos)) | consider;
+                let bit_shifted = bit << (7 + 3 * pos);
+                let num = bit_shifted | consider;
+                println!("Consider: {consider} - pos {pos} bit {bit} -> {bit:b}:");
+                println!("\t  {consider:055b}");
+                println!("\t| {bit_shifted:055b}");
+                println!("\t= {num:055b}");
                 let mut computer = fresh_computer.clone();
                 computer.registers[0] = num;
                 computer.run();

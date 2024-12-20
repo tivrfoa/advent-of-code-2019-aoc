@@ -102,6 +102,7 @@ pub trait ParseToInt {
     fn to_digits_grid<T>(&self) -> Vec<Vec<T>>
     where
         T: From<u8> + Display;
+    fn split_once_to_num<T: FromStr>(&self, separator: char) -> (T, T) where <T as FromStr>::Err: Debug;
 }
 
 impl ParseToInt for str {
@@ -141,6 +142,10 @@ impl ParseToInt for str {
                 .collect()
             )
             .collect()
+    }
+    fn split_once_to_num<T: FromStr>(&self, separator: char) -> (T, T) where <T as FromStr>::Err: Debug {
+        let (l, r) = self.split_once(separator).unwrap();
+        (l.parse::<T>().unwrap(), r.parse::<T>().unwrap())
     }
 }
 
