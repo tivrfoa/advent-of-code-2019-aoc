@@ -1,9 +1,30 @@
-use std::collections::HashMap;
-use std::collections::HashSet;
+#![allow(dead_code)]
+
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::fmt::{Debug, Display};
 use std::iter::Iterator;
-use std::ops::{AddAssign, Div, Mul, Rem};
+use std::ops::{Div, Mul, Rem};
 use std::str::FromStr;
+
+const INF: usize = usize::MAX;
+
+pub fn get_min_distances<T>(g: &[Vec<T>], allow: impl Fn(usize, usize, &[Vec<T>]) -> bool) -> Vec<Vec<usize>> {
+    let rows = g.len();
+    let cols = g[0].len();
+    let mut dists = vec![vec![INF; cols]; rows];
+    let mut pq = VecDeque::new();
+    pq.push_back((0, 0, 0));
+    while let Some((steps, r, c)) = pq.pop_front() {
+        if dists[r][c] != INF { continue; }
+        dists[r][c] = steps;
+        for (nr, nc, _) in dirs(r, c, rows, cols) {
+            if allow(nr, nc, g) {
+                pq.push_back((steps + 1, nr, nc));
+            }
+        }
+    }
+    dists
+}
 
 /// apply direction
 #[inline(always)]

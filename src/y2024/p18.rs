@@ -1,13 +1,7 @@
-use std::cmp::Reverse;
 use std::collections::*;
 use crate::util::*;
 
-#[allow(dead_code)]
-fn parse(input: &str) -> usize {
-
-
-    0
-}
+const INF: usize = usize::MAX;
 
 pub fn p1(input: &str, bf: usize, rows: usize, cols: usize) -> usize {
     let mut g = vec![vec!['.'; cols]; rows];
@@ -16,42 +10,25 @@ pub fn p1(input: &str, bf: usize, rows: usize, cols: usize) -> usize {
         let (x, y) = lines.next().unwrap().split_once_to_num::<usize>(',');
         g[y][x] = '#';
     }
-    let mut visited = vec![vec![false; cols]; rows];
-    let mut pq = VecDeque::new();
-    pq.push_back((0, 0, 0));
-    while let Some((steps, r, c)) = pq.pop_front() {
-        if r + 1 == rows && c + 1 == cols { return steps; }
-        if visited[r][c] { continue; }
-        visited[r][c] = true;
-        for (nr, nc, _) in dirs(r, c, rows, cols) {
-            if g[nr][nc] == '#' { continue; }
-            pq.push_back((steps + 1, nr, nc));
-        }
-    }
-
-    panic!("MF");
+    get_min_distances(&g, |r: usize, c: usize, g: &[Vec<char>]| g[r][c] != '#')[rows - 1][cols - 1]
 }
 
-fn solve(mut g: Vec<Vec<char>>, bytes: &[(usize, usize)], l: usize, r: usize) -> Option<usize> {
+fn get_min_distances(g: &[Vec<char>], allow: impl Fn(usize, usize, &[Vec<char>]) -> bool) -> Vec<Vec<usize>> {
     let rows = g.len();
     let cols = g[0].len();
-    for i in l..=r {
-        let (x, y) = (bytes[i].0, bytes[i].1);
-        g[y][x] = '#';
-    }
-    let mut visited = vec![vec![false; cols]; rows];
+    let mut dists = vec![vec![INF; cols]; rows];
     let mut pq = VecDeque::new();
     pq.push_back((0, 0, 0));
     while let Some((steps, r, c)) = pq.pop_front() {
-        if r + 1 == rows && c + 1 == cols { return Some(steps); }
-        if visited[r][c] { continue; }
-        visited[r][c] = true;
+        if dists[r][c] != INF { continue; }
+        dists[r][c] = steps;
         for (nr, nc, _) in dirs(r, c, rows, cols) {
-            if g[nr][nc] == '#' { continue; }
-            pq.push_back((steps + 1, nr, nc));
+            if allow(nr, nc, g) {
+                pq.push_back((steps + 1, nr, nc));
+            }
         }
     }
-    None
+    dists
 }
 
 pub fn p2(input: &str, bf: usize, rows: usize, cols: usize) -> (usize, usize) {
@@ -68,7 +45,12 @@ pub fn p2(input: &str, bf: usize, rows: usize, cols: usize) -> (usize, usize) {
     let mut h = bytes.len() - 1;
     while l <= h {
         let md = l + (h - l) / 2;
-        if let Some(v) = solve(g.clone(), &bytes, bf, md) {
+        let mut grid = g.clone();
+        for i in bf..=md {
+            let (x, y) = (bytes[i].0, bytes[i].1);
+            grid[y][x] = '#';
+        }
+        if get_min_distances(&grid, |r: usize, c: usize, g: &[Vec<char>]| g[r][c] != '#')[rows - 1][cols - 1] != INF {
             l = md + 1;
         } else {
             h = md - 1;
