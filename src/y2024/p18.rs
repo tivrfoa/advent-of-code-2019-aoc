@@ -16,19 +16,16 @@ pub fn p1(input: &str, bf: usize, rows: usize, cols: usize) -> usize {
         let (x, y) = lines.next().unwrap().split_once_to_num::<usize>(',');
         g[y][x] = '#';
     }
-    let mut mem: HashMap<(usize, usize), usize> = HashMap::new();
+    let mut visited = vec![vec![false; cols]; rows];
     let mut pq = VecDeque::new();
-    pq.push_back((0, 0, 0, vec![vec![false; cols]; rows]));
-    while let Some((steps, r, c, mut visited)) = pq.pop_front() {
+    pq.push_back((0, 0, 0));
+    while let Some((steps, r, c)) = pq.pop_front() {
         if r + 1 == rows && c + 1 == cols { return steps; }
-        if let Some(v) = mem.get(&(r, c)) {
-            if steps >= *v { continue; }
-        }
-        mem.insert((r, c), steps);
+        if visited[r][c] { continue; }
         visited[r][c] = true;
         for (nr, nc, _) in dirs(r, c, rows, cols) {
-            if g[nr][nc] == '#' || visited[nr][nc] { continue; }
-            pq.push_back((steps + 1, nr, nc, visited.clone()));
+            if g[nr][nc] == '#' { continue; }
+            pq.push_back((steps + 1, nr, nc));
         }
     }
 
@@ -42,19 +39,16 @@ fn solve(mut g: Vec<Vec<char>>, bytes: &[(usize, usize)], l: usize, r: usize) ->
         let (x, y) = (bytes[i].0, bytes[i].1);
         g[y][x] = '#';
     }
-    let mut mem: HashMap<(usize, usize), usize> = HashMap::new();
+    let mut visited = vec![vec![false; cols]; rows];
     let mut pq = VecDeque::new();
-    pq.push_back((0, 0, 0, vec![vec![false; cols]; rows]));
-    while let Some((steps, r, c, mut visited)) = pq.pop_front() {
+    pq.push_back((0, 0, 0));
+    while let Some((steps, r, c)) = pq.pop_front() {
         if r + 1 == rows && c + 1 == cols { return Some(steps); }
-        if let Some(v) = mem.get(&(r, c)) {
-            if steps >= *v { continue; }
-        }
-        mem.insert((r, c), steps);
+        if visited[r][c] { continue; }
         visited[r][c] = true;
         for (nr, nc, _) in dirs(r, c, rows, cols) {
-            if g[nr][nc] == '#' || visited[nr][nc] { continue; }
-            pq.push_back((steps + 1, nr, nc, visited.clone()));
+            if g[nr][nc] == '#' { continue; }
+            pq.push_back((steps + 1, nr, nc));
         }
     }
     None
