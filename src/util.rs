@@ -6,7 +6,7 @@ use std::iter::Iterator;
 use std::ops::{Div, Mul, Rem};
 use std::str::FromStr;
 
-const INF: usize = usize::MAX;
+pub const INF: usize = usize::MAX;
 
 pub fn get_min_distances<T>(g: &[Vec<T>], allow: impl Fn(usize, usize, &[Vec<T>]) -> bool) -> Vec<Vec<usize>> {
     let rows = g.len();
