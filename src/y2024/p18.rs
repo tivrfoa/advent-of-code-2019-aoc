@@ -17,9 +17,9 @@ pub fn p1(input: &str, bf: usize, rows: usize, cols: usize) -> usize {
         g[y][x] = '#';
     }
     let mut mem: HashMap<(usize, usize), usize> = HashMap::new();
-    let mut pq = BinaryHeap::new();
-    pq.push(Reverse((0, 0, 0, vec![vec![false; cols]; rows])));
-    while let Some(Reverse((steps, r, c, mut visited))) = pq.pop() {
+    let mut pq = VecDeque::new();
+    pq.push_back((0, 0, 0, vec![vec![false; cols]; rows]));
+    while let Some((steps, r, c, mut visited)) = pq.pop_front() {
         if r + 1 == rows && c + 1 == cols { return steps; }
         if let Some(v) = mem.get(&(r, c)) {
             if steps >= *v { continue; }
@@ -28,7 +28,7 @@ pub fn p1(input: &str, bf: usize, rows: usize, cols: usize) -> usize {
         visited[r][c] = true;
         for (nr, nc, _) in dirs(r, c, rows, cols) {
             if g[nr][nc] == '#' || visited[nr][nc] { continue; }
-            pq.push(Reverse((steps + 1, nr, nc, visited.clone())));
+            pq.push_back((steps + 1, nr, nc, visited.clone()));
         }
     }
 
@@ -43,9 +43,9 @@ fn solve(mut g: Vec<Vec<char>>, bytes: &[(usize, usize)], l: usize, r: usize) ->
         g[y][x] = '#';
     }
     let mut mem: HashMap<(usize, usize), usize> = HashMap::new();
-    let mut pq = BinaryHeap::new();
-    pq.push(Reverse((0, 0, 0, vec![vec![false; cols]; rows])));
-    while let Some(Reverse((steps, r, c, mut visited))) = pq.pop() {
+    let mut pq = VecDeque::new();
+    pq.push_back((0, 0, 0, vec![vec![false; cols]; rows]));
+    while let Some((steps, r, c, mut visited)) = pq.pop_front() {
         if r + 1 == rows && c + 1 == cols { return Some(steps); }
         if let Some(v) = mem.get(&(r, c)) {
             if steps >= *v { continue; }
@@ -54,7 +54,7 @@ fn solve(mut g: Vec<Vec<char>>, bytes: &[(usize, usize)], l: usize, r: usize) ->
         visited[r][c] = true;
         for (nr, nc, _) in dirs(r, c, rows, cols) {
             if g[nr][nc] == '#' || visited[nr][nc] { continue; }
-            pq.push(Reverse((steps + 1, nr, nc, visited.clone())));
+            pq.push_back((steps + 1, nr, nc, visited.clone()));
         }
     }
     None
