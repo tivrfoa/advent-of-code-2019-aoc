@@ -18,7 +18,7 @@ fn solve<'a>(s: &'a str, max_tp: usize, tp: &HashSet<&str>, memo: &mut HashMap<&
         if !tp.contains(&s[0..i]) {
             continue;
         }
-        if solve(&s[i..], max_tp, tp, memo) {
+        if tp.contains(&s[i..]) || solve(&s[i..], max_tp, tp, memo) {
             memo.insert(s, true);
             return true;
         }
@@ -62,7 +62,7 @@ mod tests {
 
     #[test]
     fn test_p1_in() {
-        assert_eq!(171, p1(IN));
+        assert_eq!(213, p1(IN));
     }
 
     #[test]
