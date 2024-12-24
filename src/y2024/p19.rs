@@ -27,7 +27,6 @@ fn solve<'a>(s: &'a str, max_tp: usize, tp: &HashSet<&str>, memo: &mut HashMap<&
     false
 }
 
-/// How many designs are possible?
 pub fn p1(input: &str) -> usize {
     let (tp, dd) = parse(input);
     let max_tp = tp.iter().map(|s| s.len()).max().unwrap();
@@ -38,10 +37,39 @@ pub fn p1(input: &str) -> usize {
         .count()
 }
 
+fn solve2<'a>(s: &'a str, max_tp: usize, tp: &HashSet<&str>, memo: &mut HashMap<&'a str, usize>) -> usize {
+    if s.is_empty() {
+        return 1;
+    }
+    if let Some(v) = memo.get(s) {
+        return *v;
+    }
+    if s.len() == 1 {
+        if tp.contains(s) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+    let mut qt = 0;
+    for i in 0..=max_tp.min(s.len()) {
+        if !tp.contains(&s[0..i]) {
+            continue;
+        }
+        qt += solve2(&s[i..], max_tp, tp, memo);
+    }
+    memo.insert(s, qt);
+    qt
+}
+
 pub fn p2(input: &str) -> usize {
-
-
-    0
+    let (tp, dd) = parse(input);
+    let max_tp = tp.iter().map(|s| s.len()).max().unwrap();
+    let tp: HashSet<&str> = HashSet::from_iter(tp);
+    let mut memo: HashMap<&str, usize> = HashMap::new();
+    dd.into_iter()
+        .map(|s| solve2(s, max_tp, &tp, &mut memo))
+        .sum()
 }
 
 
@@ -60,15 +88,13 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_p2_sample() {
-        assert_eq!(171, p2(SAMPLE));
+        assert_eq!(16, p2(SAMPLE));
     }
 
     #[test]
-    #[ignore]
     fn test_p2_in() {
-        assert_eq!(171, p2(IN));
+        assert_eq!(1016700771200474, p2(IN));
     }
 }
 
