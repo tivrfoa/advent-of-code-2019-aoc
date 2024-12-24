@@ -33,14 +33,8 @@ pub fn p1(input: &str) -> usize {
     let max_tp = tp.iter().map(|s| s.len()).max().unwrap();
     let tp: HashSet<&str> = HashSet::from_iter(tp);
     let mut memo: HashMap<&str, bool> = HashMap::new();
-    // dbg!(max_tp, tp, dd);
     dd.into_iter()
-        // .filter(|s| solve(s, max_tp, &tp))
-        .filter(|s| {
-            let tmp = solve(s, max_tp, &tp, &mut memo);
-            println!("{s} {}", if tmp { "solved"} else {"impossible"});
-            tmp
-        })
+        .filter(|s| solve(s, max_tp, &tp, &mut memo))
         .count()
 }
 
