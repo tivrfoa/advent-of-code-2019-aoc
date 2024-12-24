@@ -14,7 +14,7 @@ fn solve<'a>(s: &'a str, max_tp: usize, tp: &HashSet<&str>, memo: &mut HashMap<&
     if s.len() == 1 {
         return tp.contains(s);
     }
-    for i in 1..=max_tp.min(s.len() - 1) {
+    for i in 1..=max_tp.min(s.len()) {
         if !tp.contains(&s[0..i]) {
             continue;
         }
