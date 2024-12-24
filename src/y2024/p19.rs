@@ -41,13 +41,6 @@ fn solve2<'a>(s: &'a str, max_tp: usize, tp: &HashSet<&str>, memo: &mut HashMap<
     if let Some(v) = memo.get(s) {
         return *v;
     }
-    if s.len() == 1 {
-        if tp.contains(s) {
-            return 1;
-        } else {
-            return 0;
-        }
-    }
     let mut qt = 0;
     for i in 0..=max_tp.min(s.len()) {
         if !tp.contains(&s[0..i]) {
