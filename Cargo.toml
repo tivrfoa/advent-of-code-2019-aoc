@@ -1,9 +1,10 @@
 [package]
-name = "advent-of-code-2019-aoc"
+name = "advent_of_code_2019_aoc"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 regex = "1.11.1"
 rayon = "1.10.0"
+criterion = { version = "0.5.1", features = ["html_reports"] }
 
