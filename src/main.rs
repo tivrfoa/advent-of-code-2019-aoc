@@ -10,7 +10,10 @@
 // mod p14;
 // mod p15;
 // mod p16;
-mod y2024;
+// pub mod y2024 {
+//     pub mod p19;
+// }
+pub mod y2024;
 mod util;
 
 // use y2024::p17 as Main;
