@@ -76,26 +76,50 @@ pub fn p1(input: &str) -> u64 {
         wires = new_wires;
     }
 
+    get_num('z', &gates)
+}
+
+fn get_num(start_letter: char, gates: &HashMap<&str, u8>) -> u64 {
     let mut set: BTreeSet<(&str, u8)> = BTreeSet::new();
     for (k, v) in gates {
-        if k.starts_with('z') {
-            println!("{} -> {}", k, v);
-            set.insert((k, v));
+        if k.starts_with(start_letter) {
+            set.insert((k, *v));
         }
     }
 
     let mut bin_num_str = String::with_capacity(set.len());
-    for (name, v) in set.into_iter().rev() {
-        println!("{} -> {}", name, v);
+    for (_, v) in set.into_iter().rev() {
         bin_num_str.push(if v == 0 { '0' } else { '1' });
     }
     u64::from_str_radix(&bin_num_str, 2).unwrap()
 }
 
 pub fn p2(input: &str) -> usize {
+    let (mut gates, mut wires) = parse(input);
+    let x: u64 = get_num('x', &gates);
+    let y: u64 = get_num('y', &gates);
+    let z: u64 = x + y;
+    
+    while !wires.is_empty() {
+        let mut new_wires = vec![];
+        for w in wires {
+            if !gates.contains_key(w.a) || !gates.contains_key(w.b) {
+                new_wires.push(w);
+                continue;
+            }
+            let a = gates[w.a];
+            let b = gates[w.b];
+            gates.insert(w.dest, match w.op {
+                AND => a & b,
+                OR => a | b,
+                XOR => a ^ b,
+            });
+        }
 
+        wires = new_wires;
+    }
 
-    0
+    todo!()
 }
 
 
