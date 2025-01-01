@@ -2,7 +2,7 @@ use std::cmp::Reverse;
 use std::collections::*;
 use crate::util::*;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 enum GateType {
     AND,
     OR,
@@ -22,7 +22,7 @@ impl GateType {
 
 use GateType::*;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 struct Wire<'a> {
     a: &'a str,
     op: GateType,
@@ -94,11 +94,45 @@ fn get_num(start_letter: char, gates: &HashMap<&str, u8>) -> u64 {
     u64::from_str_radix(&bin_num_str, 2).unwrap()
 }
 
+fn generate_pairs_combinations<'a>(strings: &[&'a str], k: usize, start: usize, current_combination: &mut Vec<(&'a str, &'a str)>, result: &mut Vec<Vec<(&'a str, &'a str)>>) {
+    if current_combination.len() == k {
+        result.push(current_combination.clone());
+        return;
+    }
+
+    for i in start..strings.len() {
+        for j in (i + 1)..strings.len() {
+            current_combination.push((strings[i], strings[j]));
+            generate_pairs_combinations(strings, k, j + 1, current_combination, result);
+            current_combination.pop();
+        }
+    }
+}
+
+#[inline(always)]
+fn sum_bits(a: u8, b: u8) -> u8 {
+    (a + b) & 1
+}
+
 pub fn p2(input: &str) -> usize {
     let (mut gates, mut wires) = parse(input);
-    let x: u64 = get_num('x', &gates);
-    let y: u64 = get_num('y', &gates);
-    let z: u64 = x + y;
+    let x = get_num('x', &gates);
+    let y = get_num('y', &gates);
+    let z = x + y;
+    let z_str = format!("{:045b}", z);
+    dbg!(x, y, z, &z_str);
+    let mut z_gates = Vec::with_capacity(45);
+    for n in 0..45 {
+        z_gates.push(format!("z{:02}", n));
+    }
+    for (n, v) in (0..45).rev().zip(z_str.chars()) {
+        gates.insert(&z_gates[n], if v == '0' { 0 } else { 1 });
+        // println!("{} {:?}", &z_gates[n], gates.get(&z_gates[n] as &str));
+        println!("{} {:?}", &z_gates[n], gates[&z_gates[n] as &str]);
+    }
+    gates.insert("z45", 0); // TODO is this correct?!
+
+    let mut bad_wires = vec![];
     
     while !wires.is_empty() {
         let mut new_wires = vec![];
@@ -107,16 +141,50 @@ pub fn p2(input: &str) -> usize {
                 new_wires.push(w);
                 continue;
             }
-            let a = gates[w.a];
-            let b = gates[w.b];
-            gates.insert(w.dest, match w.op {
-                AND => a & b,
-                OR => a | b,
-                XOR => a ^ b,
-            });
+            
+            if w.dest.starts_with('z') && ((w.a.starts_with('x') && w.b.starts_with('y')) ||
+                (w.a.starts_with('y') && w.b.starts_with('x'))) {
+                if w.dest[1..] != w.a[1..] {
+                    todo!("bad x y z: {:?}", &w);
+                    // bad_wires.push(w.clone());
+                } else {
+                    dbg!("good x y z", &w);
+                    assert_eq!(gates[w.dest], sum_bits(gates[w.a], gates[w.b]));
+                }
+            } else {
+                let a = gates[w.a];
+                let b = gates[w.b];
+                let new_v = match w.op {
+                    AND => a & b,
+                    OR => a | b,
+                    XOR => a ^ b,
+                };
+
+                // check bad wire
+                if w.dest.starts_with('z') {
+                    if gates[w.dest] != new_v {
+                        bad_wires.push(w.clone());
+                    }
+                } else {
+                    gates.insert(w.dest, new_v);
+                }
+            }
         }
 
         wires = new_wires;
+    }
+
+    dbg!(&bad_wires);
+    dbg!(bad_wires.len());
+
+    let outputs: Vec<&str> = bad_wires.iter().map(|w| w.dest).collect();
+
+    let k = 4;
+    let mut result = Vec::new();
+    generate_pairs_combinations(&outputs, k, 0, &mut Vec::new(), &mut result);
+
+    for combination in result.iter() {
+        // println!("{:?}", combination);
     }
 
     todo!()
@@ -144,12 +212,17 @@ mod tests {
 
     #[test]
     #[ignore]
+    fn test_p2_sample3() {
+        assert_eq!(171, p2(SAMPLE3));
+    }
+
+    #[test]
+    #[ignore]
     fn test_p2_sample() {
         assert_eq!(171, p2(SAMPLE));
     }
 
     #[test]
-    #[ignore]
     fn test_p2_in() {
         assert_eq!(171, p2(IN));
     }
@@ -216,6 +289,26 @@ y03 OR x01 -> nrd
 hwm AND bqk -> z03
 tgd XOR rvg -> z12
 tnw OR pbm -> gnj";
+
+pub static SAMPLE3: &str = "x00: 0
+x01: 1
+x02: 0
+x03: 1
+x04: 0
+x05: 1
+y00: 0
+y01: 0
+y02: 1
+y03: 1
+y04: 0
+y05: 1
+
+x00 AND y00 -> z05
+x01 AND y01 -> z02
+x02 AND y02 -> z01
+x03 AND y03 -> z03
+x04 AND y04 -> z04
+x05 AND y05 -> z00";
 
 pub static IN: &str = "x00: 1
 x01: 1
