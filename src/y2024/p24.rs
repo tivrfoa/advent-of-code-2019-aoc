@@ -2,7 +2,7 @@ use std::cmp::Reverse;
 use std::collections::*;
 use crate::util::*;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 enum GateType {
     AND,
     OR,
@@ -94,100 +94,84 @@ fn get_num(start_letter: char, gates: &HashMap<&str, u8>) -> u64 {
     u64::from_str_radix(&bin_num_str, 2).unwrap()
 }
 
-fn generate_pairs_combinations<'a>(strings: &[&'a str], k: usize, start: usize, current_combination: &mut Vec<(&'a str, &'a str)>, result: &mut Vec<Vec<(&'a str, &'a str)>>) {
-    if current_combination.len() == k {
-        result.push(current_combination.clone());
-        return;
-    }
-
-    for i in start..strings.len() {
-        for j in (i + 1)..strings.len() {
-            current_combination.push((strings[i], strings[j]));
-            generate_pairs_combinations(strings, k, j + 1, current_combination, result);
-            current_combination.pop();
-        }
-    }
-}
-
 #[inline(always)]
 fn sum_bits(a: u8, b: u8) -> u8 {
     (a + b) & 1
 }
 
-pub fn p2(input: &str) -> usize {
+/// Porting nim-ka solution:
+/// https://github.com/nim-ka/aocutil/blob/2024/2024/24.js
+pub fn p2(input: &str) -> String {
     let (mut gates, mut wires) = parse(input);
-    let x = get_num('x', &gates);
-    let y = get_num('y', &gates);
-    let z = x + y;
-    let z_str = format!("{:045b}", z);
-    dbg!(x, y, z, &z_str);
-    let mut z_gates = Vec::with_capacity(45);
-    for n in 0..45 {
-        z_gates.push(format!("z{:02}", n));
-    }
-    for (n, v) in (0..45).rev().zip(z_str.chars()) {
-        gates.insert(&z_gates[n], if v == '0' { 0 } else { 1 });
-        // println!("{} {:?}", &z_gates[n], gates.get(&z_gates[n] as &str));
-        println!("{} {:?}", &z_gates[n], gates[&z_gates[n] as &str]);
-    }
-    gates.insert("z45", 0); // TODO is this correct?!
+    let num_bits = 45;
 
-    let mut bad_wires = vec![];
-    
-    while !wires.is_empty() {
-        let mut new_wires = vec![];
-        for w in wires {
-            if !gates.contains_key(w.a) || !gates.contains_key(w.b) {
-                new_wires.push(w);
-                continue;
-            }
-            
-            if w.dest.starts_with('z') && ((w.a.starts_with('x') && w.b.starts_with('y')) ||
-                (w.a.starts_with('y') && w.b.starts_with('x'))) {
-                if w.dest[1..] != w.a[1..] {
-                    todo!("bad x y z: {:?}", &w);
-                    // bad_wires.push(w.clone());
-                } else {
-                    dbg!("good x y z", &w);
-                    assert_eq!(gates[w.dest], sum_bits(gates[w.a], gates[w.b]));
-                }
-            } else {
-                let a = gates[w.a];
-                let b = gates[w.b];
-                let new_v = match w.op {
-                    AND => a & b,
-                    OR => a | b,
-                    XOR => a ^ b,
-                };
+    let mut gates_map: HashMap<&str, HashMap<GateType, (&str, &str)>> = HashMap::new();
+    for w in wires {
+        gates_map.entry(w.a).or_insert(HashMap::new()).insert(w.op, (w.b, w.dest));
+        gates_map.entry(w.b).or_insert(HashMap::new()).insert(w.op, (w.a, w.dest));
+    }
 
-                // check bad wire
-                if w.dest.starts_with('z') {
-                    if gates[w.dest] != new_v {
-                        bad_wires.push(w.clone());
-                    }
-                } else {
-                    gates.insert(w.dest, new_v);
-                }
-            }
+    let mut swaps: BTreeSet<&str> = BTreeSet::new();
+
+    let mut carry = "";
+    let mut xy_keys = HashMap::new();
+    for bit in 0..num_bits {
+        let x = format!("x{:02}", bit);
+        let y = format!("y{:02}", bit);
+        xy_keys.insert(('x', bit), x);
+        xy_keys.insert(('y', bit), y);
+    }
+
+    for bit in 0..num_bits {
+        let x = xy_keys[&('x', bit)].as_str();
+        let y = xy_keys[&('y', bit)].as_str();
+
+        let mut low = expect(&mut gates, &gates_map, &mut swaps, x, XOR, y).2;
+        let mut new_carry = expect(&mut gates, &gates_map, &mut swaps, x, AND, y).2;
+
+        if bit > 0 {
+            (carry, low, _) = expect(&mut gates, &gates_map, &mut swaps, carry, XOR, low);
+
+            let (_, _, cont) = expect(&mut gates, &gates_map, &mut swaps, carry, AND, low);
+            (_, _, new_carry) = expect(&mut gates, &gates_map, &mut swaps, new_carry, OR, low);
         }
 
-        wires = new_wires;
+        carry = new_carry;
     }
 
-    dbg!(&bad_wires);
-    dbg!(bad_wires.len());
+    swaps.into_iter().collect::<Vec<_>>().join(",")
+}
 
-    let outputs: Vec<&str> = bad_wires.iter().map(|w| w.dest).collect();
+fn expect<'a>(gates: &mut HashMap<&'a str, u8>, gates_map: &HashMap<&'a str, HashMap<GateType, (&'a str, &'a str)>>,
+        swaps: &mut BTreeSet<&'a str>,
+        mut in0: &'a str, op: GateType, mut in1: &'a str) -> (&'a str, &'a str, &'a str) {
+    let res = match gates_map.get(in0).and_then(|i| i.get(&op)) {
+        None => {
+            let res = gates_map[in1][&op];
+            swaps.insert(in0);
+            swaps.insert(res.0);
+            in0 = res.0;
+            res
+        }
+        Some(res) => {
+            if res.0 != in1 {
+                swaps.insert(in1);
+                swaps.insert(res.0);
+                in1 = res.0;
+            }
+            *res
+        }
+    };
 
-    let k = 4;
-    let mut result = Vec::new();
-    generate_pairs_combinations(&outputs, k, 0, &mut Vec::new(), &mut result);
+    let out = res.1;
+    let v = match op {
+        AND => gates[in0] & gates[in1],
+        OR => gates[in0] | gates[in1],
+        XOR => gates[in0] ^ gates[in1],
+    };
+    gates.insert(out, v);
 
-    for combination in result.iter() {
-        // println!("{:?}", combination);
-    }
-
-    todo!()
+    (in0, in1, out)
 }
 
 
@@ -213,18 +197,18 @@ mod tests {
     #[test]
     #[ignore]
     fn test_p2_sample3() {
-        assert_eq!(171, p2(SAMPLE3));
+        assert_eq!("171", p2(SAMPLE3));
     }
 
     #[test]
     #[ignore]
     fn test_p2_sample() {
-        assert_eq!(171, p2(SAMPLE));
+        assert_eq!("171", p2(SAMPLE));
     }
 
     #[test]
     fn test_p2_in() {
-        assert_eq!(171, p2(IN));
+        assert_eq!("171", p2(IN));
     }
 }
 
