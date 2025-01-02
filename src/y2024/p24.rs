@@ -125,6 +125,7 @@ pub fn p2(input: &str) -> String {
     for bit in 0..num_bits {
         let x = xy_keys[&('x', bit)].as_str();
         let y = xy_keys[&('y', bit)].as_str();
+        println!("{x} {y}");
 
         let mut low = expect(&mut gates, &gates_map, &mut swaps, x, XOR, y).2;
         let mut new_carry = expect(&mut gates, &gates_map, &mut swaps, x, AND, y).2;
@@ -133,7 +134,7 @@ pub fn p2(input: &str) -> String {
             (carry, low, _) = expect(&mut gates, &gates_map, &mut swaps, carry, XOR, low);
 
             let (_, _, cont) = expect(&mut gates, &gates_map, &mut swaps, carry, AND, low);
-            (_, _, new_carry) = expect(&mut gates, &gates_map, &mut swaps, new_carry, OR, low);
+            (_, _, new_carry) = expect(&mut gates, &gates_map, &mut swaps, new_carry, OR, cont);
         }
 
         carry = new_carry;
@@ -145,6 +146,7 @@ pub fn p2(input: &str) -> String {
 fn expect<'a>(gates: &mut HashMap<&'a str, u8>, gates_map: &HashMap<&'a str, HashMap<GateType, (&'a str, &'a str)>>,
         swaps: &mut BTreeSet<&'a str>,
         mut in0: &'a str, op: GateType, mut in1: &'a str) -> (&'a str, &'a str, &'a str) {
+    println!("{in0} {op:?} {in1}");
     let res = match gates_map.get(in0).and_then(|i| i.get(&op)) {
         None => {
             let res = gates_map[in1][&op];
@@ -166,7 +168,7 @@ fn expect<'a>(gates: &mut HashMap<&'a str, u8>, gates_map: &HashMap<&'a str, Has
     let out = res.1;
     let v = match op {
         AND => gates[in0] & gates[in1],
-        OR => gates[in0] | gates[in1],
+        OR  => gates[in0] | gates[in1],
         XOR => gates[in0] ^ gates[in1],
     };
     gates.insert(out, v);
@@ -208,7 +210,7 @@ mod tests {
 
     #[test]
     fn test_p2_in() {
-        assert_eq!("171", p2(IN));
+        assert_eq!("frn,gmq,vtj,wnf,wtt,z05,z21,z39", p2(IN));
     }
 }
 
