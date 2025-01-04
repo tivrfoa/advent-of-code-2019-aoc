@@ -8,12 +8,12 @@ use std::str::FromStr;
 
 pub const INF: usize = usize::MAX;
 
-pub fn get_min_distances<T>(g: &[Vec<T>], allow: impl Fn(usize, usize, &[Vec<T>]) -> bool) -> Vec<Vec<usize>> {
+pub fn get_min_distances<T>((start_row, start_col): (usize, usize), g: &[Vec<T>], allow: impl Fn(usize, usize, &[Vec<T>]) -> bool) -> Vec<Vec<usize>> {
     let rows = g.len();
     let cols = g[0].len();
     let mut dists = vec![vec![INF; cols]; rows];
     let mut pq = VecDeque::new();
-    pq.push_back((0, 0, 0));
+    pq.push_back((0, start_row, start_col));
     while let Some((steps, r, c)) = pq.pop_front() {
         if dists[r][c] != INF { continue; }
         dists[r][c] = steps;

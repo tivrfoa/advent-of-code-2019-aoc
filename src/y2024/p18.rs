@@ -8,7 +8,7 @@ pub fn p1(input: &str, bf: usize, rows: usize, cols: usize) -> usize {
         let (x, y) = lines.next().unwrap().split_once_to_num::<usize>(',');
         g[y][x] = '#';
     }
-    get_min_distances(&g, |r: usize, c: usize, g: &[Vec<char>]| g[r][c] != '#')[rows - 1][cols - 1]
+    get_min_distances((0, 0), &g, |r: usize, c: usize, g: &[Vec<char>]| g[r][c] != '#')[rows - 1][cols - 1]
 }
 
 pub fn p2(input: &str, bf: usize, rows: usize, cols: usize) -> (usize, usize) {
@@ -30,7 +30,7 @@ pub fn p2(input: &str, bf: usize, rows: usize, cols: usize) -> (usize, usize) {
             let (x, y) = (bytes[i].0, bytes[i].1);
             grid[y][x] = '#';
         }
-        if get_min_distances(&grid, |r: usize, c: usize, g: &[Vec<char>]| g[r][c] != '#')[rows - 1][cols - 1] != INF {
+        if get_min_distances((0, 0), &grid, |r: usize, c: usize, g: &[Vec<char>]| g[r][c] != '#')[rows - 1][cols - 1] != INF {
             l = md + 1;
         } else {
             h = md - 1;
