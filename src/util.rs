@@ -75,6 +75,40 @@ pub const E: i8 = 1;
 pub const S: i8 = 2;
 pub const W: i8 = 3;
 
+pub struct DirsNIterator {
+    directions: Vec<(usize, usize)>,
+    index: usize,
+}
+
+impl DirsNIterator {
+    fn new(n: usize, r: usize, c: usize, rows: usize, cols: usize) -> Self {
+        let mut directions = vec![];
+        for nr in if r < n { 0 } else { r - n }..=(rows - 1).min(r + n) {
+            for nc in if c < n { 0 } else { c - n }..=(cols - 1).min(c + n) {
+                directions.push((nr, nc));
+            }
+        }
+        DirsNIterator { directions, index: 0 }
+    }
+}
+
+impl Iterator for DirsNIterator {
+    type Item = (usize, usize);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        while self.index < self.directions.len() {
+            let n = self.directions[self.index];
+            self.index += 1;
+            return Some(n);
+        }
+        None
+    }
+}
+
+pub fn dirsn(n: usize, r: usize, c: usize, rows: usize, cols: usize) -> impl Iterator<Item = (usize, usize)> {
+    DirsNIterator::new(n, r, c, rows, cols)
+}
+
 pub struct DirsIterator {
     directions: [(bool, usize, usize, i8); 4],
     index: usize,
