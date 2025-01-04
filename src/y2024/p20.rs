@@ -88,13 +88,15 @@ pub fn p2(input: &str) -> usize {
     for r in 0..rows {
         for c in 0..cols {
             if g[r][c] == '#' { continue; }
-            for (nr, nc) in dirsn(M, r, c, rows, cols) {
-                let abs_diff = r.abs_diff(nr) + c.abs_diff(nc);
-                if abs_diff <= M {
-                    if g[nr][nc] != '#' && B[nr][nc] != INF {
-                        let here = A[r][c] + B[nr][nc] + abs_diff;
-                        if here <= normal - 100 {
-                            answer += 1;
+            for nr in nrange(M, r, rows) {
+                for nc in nrange(M, c, cols) {
+                    let abs_diff = r.abs_diff(nr) + c.abs_diff(nc);
+                    if abs_diff <= M {
+                        if g[nr][nc] != '#' && B[nr][nc] != INF {
+                            let here = A[r][c] + B[nr][nc] + abs_diff;
+                            if here <= normal - 100 {
+                                answer += 1;
+                            }
                         }
                     }
                 }

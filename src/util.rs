@@ -75,6 +75,10 @@ pub const E: i8 = 1;
 pub const S: i8 = 2;
 pub const W: i8 = 3;
 
+pub fn nrange(n: usize, p: usize, len: usize) -> std::ops::Range<usize> {
+    (if p < n { 0 } else { p - n })..len.min(p + n + 1)
+}
+
 pub struct DirsNIterator {
     directions: Vec<(usize, usize)>,
     index: usize,
