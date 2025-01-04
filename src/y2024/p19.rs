@@ -136,7 +136,7 @@ pub fn p2_dp(input: &str) -> usize {
             if dp[i] > 0 {
                 for p in &tp {
                     let k = p.len();
-                    if s[i..].starts_with(p) {
+                    if i + k <= n && s[i..].starts_with(p) {
                         dp[i + k] +=  dp[i];
                     }
                 }
