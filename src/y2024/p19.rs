@@ -90,7 +90,7 @@ pub fn p2_same_memo(input: &str) -> usize {
 
 /// Based on Elizarov:
 /// https://github.com/elizarov/AdventOfCode2024/blob/main/src/Day19_2.kt
-pub fn p2_dp(input: &str) -> usize {
+pub fn p2_dp_rev(input: &str) -> usize {
     let (tp, dd) = parse(input);
     let count = |s: &str| -> usize {
         let n = s.len();
@@ -104,6 +104,48 @@ pub fn p2_dp(input: &str) -> usize {
     dd.into_iter().map(|s| count(s)).sum()
 }
 
+/// Errichto https://www.youtube.com/watch?v=Mu0XXZeCFqw
+pub fn p1_dp(input: &str) -> usize {
+    let (tp, dd) = parse(input);
+    let test = |s: &str| -> bool {
+        let n = s.len();
+        let mut dp = vec![false; n + 1];
+        dp[0] = true;
+        for i in 0..n {
+            if dp[i] {
+                for p in &tp {
+                    let k = p.len();
+                    if i + k <= n && !dp[i + k] {
+                        dp[i + k] = s[i..].starts_with(p);
+                    }
+                }
+            }
+        }
+        dp[n]
+    };
+    dd.into_iter().filter(|s| test(s)).count()
+}
+
+pub fn p2_dp(input: &str) -> usize {
+    let (tp, dd) = parse(input);
+    let count = |s: &str| -> usize {
+        let n = s.len();
+        let mut dp = vec![0; n + 1];
+        dp[0] = 1;
+        for i in 0..n {
+            if dp[i] > 0 {
+                for p in &tp {
+                    let k = p.len();
+                    if s[i..].starts_with(p) {
+                        dp[i + k] +=  dp[i];
+                    }
+                }
+            }
+        }
+        dp[n]
+    };
+    dd.into_iter().map(|s| count(s)).sum()
+}
 
 
 
@@ -156,13 +198,23 @@ mod tests {
     }
 
     #[test]
-    fn test_p2_sample_dp() {
-        assert_eq!(16, p2_dp(SAMPLE));
+    fn test_p1_dp() {
+        assert_eq!(213, p1_dp(IN));
     }
 
     #[test]
     fn test_p2_dp() {
         assert_eq!(1016700771200474, p2_dp(IN));
+    }
+
+    #[test]
+    fn test_p2_sample_dp() {
+        assert_eq!(16, p2_dp_rev(SAMPLE));
+    }
+
+    #[test]
+    fn test_p2_dp_rev() {
+        assert_eq!(1016700771200474, p2_dp_rev(IN));
     }
 
     #[test]
