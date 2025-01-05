@@ -21,8 +21,32 @@ fn parse(input: &str) -> usize {
     +---+---+
 
 Directional keypad:
-  - first change dir
-  - then press A to move
+  - the up / down / left / right buttons cause it to move its arm one button in that direction,
+  - the A button causes the robot to briefly move forward, pressing the button being aimed at by the robotic arm.
+
+Person directional keypad
+  -> 1 robot at directional keypad
+    -> 2 robot at directional keypad
+      -> 3 robot at numeric keypad
+
+    +---+---+
+    | ^ | A |
++---+---+---+
+| < | v | > |
++---+---+---+
+
+num_keypad A to 0 -> <A
+
+How does this sequence on robot 2 makes robot 3 type 029A ?
+
+v<<A>>^A<A>AvA<^AA>A<vAAA>^A
+
+v<<A -> down, left, left, activate
+  - makes robot 3 move to zero
+
+>>^A -> must go back to A to activate
+  - makes robot 3 push the button
+
 */
 
 fn get_dir_char(d: i8) -> char {
@@ -35,59 +59,82 @@ fn get_dir_char(d: i8) -> char {
     }
 }
 
-fn get_min_movement(from: (usize, usize), target: u8, g: &NKeyPad) -> String {
-    if g[from.0][from.1] == target {
-        println!("WARNING: from {from:?} is target:  {target}");
-        return "".into();
+fn get_min_movement<const R: usize, const C: usize>(from: (usize, usize), to: (usize, usize), g: &[[char; C]; R]) -> String {
+    if g[from.0][from.1] == GAP || g[to.0][to.1] == GAP {
+        return "PANIC".into();
     }
-    let mut mov = String::new();
+    if from == to {
+        println!("WARNING: from {from:?} is target:  {to:?}");
+        return "".into(); // TODO ? maybe should return A here instead ?
+    }
+
     let rows = g.len();
     let cols = g[0].len();
     let mut pq = VecDeque::new();
+    let mut vis: [[bool; C]; R] = [[false; C]; R];
     pq.push_front(("".to_string(), from));
 
-    while let Some((mut m, (r, c))) = pq.pop_front() {
-        if g[r][c] == target {
+    while let Some((mut m, pos)) = pq.pop_front() {
+        let (r, c) = pos;
+        if vis[r][c] { continue; }
+        vis[r][c] = true;
+        if pos == to {
             m.push('A');
             return m;
         }
         for (nr, nc, d) in dirs(r, c, rows, cols) {
+            if g[nr][nc] == GAP { continue; }
             let mut nm = m.clone();
             nm.push(get_dir_char(d));
             pq.push_back((nm, (nr, nc)));
         }
     }
-    panic!("failed: from {:?}, target:  {}", from, target);
+    panic!("failed: from {from:?}, to: {to:?}");
 }
 
-type NKeyPad = [[u8; 3]; 4];
-const A: u8 = 10;
-const nkeypad: [[u8; 3]; 4] = [
-    [7, 8, 9],
-    [4, 5, 6],
-    [1, 2, 3],
-    [11,0, A],
+const GAP: char = 'G';
+const nkeypad: [[char; 3]; 4] = [
+    ['7', '8', '9'],
+    ['4', '5', '6'],
+    ['1', '2', '3'],
+    [GAP, '0', 'A'],
+];
+const dkeypad: [[char; 3]; 2] = [
+    [GAP, '^', 'A'],
+    ['<', 'v', '>'],
 ];
 
-pub fn p1(input: &str) -> usize {
-    let mut nkeypad_idx_map: [usize; 12] = [0; 12];
-    let nkeypad_distances: Vec<Vec<String>> = {
-        let mut v: Vec<Vec<String>> = vec![];
-        let mut idx = 0;
-        for r in 0..4 {
-            for c in 0..3 {
-                nkeypad_idx_map[nkeypad[r][c] as usize] = idx;
-                idx += 1;
-                v.push((0..=9)
-                    .map(|t| get_min_movement((r, c), t, &nkeypad))
-                    .collect());
+fn get_path<const R: usize, const C: usize>(g: &[[char; C]; R])
+        -> (HashMap<char, usize>, Vec<Vec<String>>) {
+    let mut map: HashMap<char, usize> = HashMap::new();
+    let mut v: Vec<Vec<String>> = vec![];
+    let mut idx = 0;
+    for r in 0..R {
+        for c in 0..C {
+            map.insert(g[r][c], idx);
+            idx += 1;
+            let mut iv: Vec<String> = vec![];
+            for nr in 0..R {
+                for nc in 0..C {
+                    if r == nr && c == nc {
+                        iv.push("".into());
+                    } else {
+                        iv.push(get_min_movement((r, c), (nr, nc), g));
+                    }
+                }
             }
+            v.push(iv);
         }
-        v
-    };
+    }
+    (map, v)
+}
 
-    // dbg!(nkeypad_idx_map);
-    // dbg!(nkeypad_distances);
+pub fn p1(input: &str) -> usize {
+    let (nmap, ndist) = get_path(&nkeypad);
+    let (dmap, ddist) = get_path(&dkeypad);
+
+    dbg!(nmap, ndist);
+    dbg!(dmap, ddist);
     0
 }
 
