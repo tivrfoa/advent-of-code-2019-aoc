@@ -128,32 +128,60 @@ fn get_path<const R: usize, const C: usize>(g: &[[char; C]; R])
     (map, v)
 }
 
+fn solve_directional_keypad(c: char, robot_idx: usize, rp: &mut [char; 4],
+        dmap: &HashMap<char, usize>, ddist: &[Vec<String>]) -> String {
+    let from_idx = dmap[&rp[robot_idx]];
+    let to_idx = dmap[&c];
+    let p = &ddist[from_idx][to_idx];
+    if robot_idx == 0 {
+        if let Some(c) = p.chars().last() {
+            rp[robot_idx] = c;
+        }
+        p.to_string()
+    } else {
+        let mut s = String::new();
+        for c in p.chars() {
+            let from_idx = dmap[&rp[robot_idx]];
+            let to_idx = dmap[&c];
+            let p = &ddist[from_idx][to_idx];
+            // dbg!(nk_r, nk_c, from_idx, to_idx, p);
+            for c2 in p.chars() {
+                s.push_str(&mut solve_directional_keypad(c2, robot_idx - 1, rp, dmap, ddist));
+            }
+            rp[robot_idx] = c;
+        }
+        s
+    }
+}
+
 pub fn p1(input: &str) -> usize {
     let (nmap, ndist) = get_path(&nkeypad);
     let (dmap, ddist) = get_path(&dkeypad);
+    // dbg!(nmap, ndist);
+    // dbg!(dmap, ddist);
 
     const NIDX: usize = 3;
     // robots position
-    let mut rp = [
-        (0, 2),
-        (0, 2),
-        (0, 2),
-        (3, 2), // numeric keypad robot
-    ];
+    let mut rp = ['A'; 4];
 
-    let solve = |code: &str, rp: &mut [(usize, usize); 4]| -> usize {
+    let solve = |code: &str, rp: &mut [char; 4]| -> usize {
         println!("Solving code: {code}");
+        let mut s = String::new();
         for c in code.chars() {
-            let (nk_r, nk_c) = rp[NIDX];
-            let from_idx = nmap[&nkeypad[nk_r][nk_c]];
+            let from_idx = nmap[&rp[NIDX]];
             let to_idx = nmap[&c];
             let p = &ndist[from_idx][to_idx];
-            dbg!(nk_r, nk_c, from_idx, to_idx, p);
+            // dbg!(nk_r, nk_c, from_idx, to_idx, p);
+            for c2 in p.chars() {
+                s.push_str(&mut solve_directional_keypad(c2, NIDX - 1, rp, &dmap, &ddist));      
+            }
+            rp[NIDX] = c;
         }
-        0
+        let n = (&code[..3]).parse::<usize>().unwrap();
+        let v = s.len() * n;
+        dbg!(s.len(), n, v);
+        v
     };
-    // dbg!(nmap, ndist);
-    // dbg!(dmap, ddist);
 
     input.lines()
         .map(|l| solve(l, &mut rp))
