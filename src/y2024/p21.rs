@@ -132,11 +132,11 @@ fn s3(dest: char, robot_idx: usize, rp: &mut [char; NUM_ROBOTS],
 pub fn p1(input: &str) -> usize {
     let (nmap, ndist) = get_path(&nkeypad);
     let (dmap, ddist) = get_path(&dkeypad);
-    let mut rp = ['A'; NUM_ROBOTS]; // robots position
-    let nidx = rp.len() - 1;
 
     let mut solve = |code: &str| -> usize {
         println!("Solving code: {code}");
+        let mut rp = ['A'; NUM_ROBOTS]; // robots position
+        let nidx = rp.len() - 1;
         let mut curr = code.to_string();
         for i in (0..=nidx).rev() {
             let mut s = String::new();
