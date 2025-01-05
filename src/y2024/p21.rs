@@ -117,6 +117,64 @@ fn get_path<const R: usize, const C: usize>(g: &[[char; C]; R])
     (map, v)
 }
 
+fn paths<const R: usize, const C: usize>(g: &[[char; C]; R])
+        -> (HashMap<char, usize>, Vec<Vec<Vec<String>>>) {
+    let mut map: HashMap<char, usize> = HashMap::new();
+    let mut v: Vec<Vec<Vec<String>>> = vec![];
+    let mut idx = 0;
+    for r in 0..R {
+        for c in 0..C {
+            map.insert(g[r][c], idx);
+            idx += 1;
+            let mut iv: Vec<Vec<String>> = vec![];
+            for nr in 0..R {
+                for nc in 0..C {
+                    iv.push(get_min_movements((r, c), (nr, nc), g));
+                }
+            }
+            v.push(iv);
+        }
+    }
+    (map, v)
+}
+
+fn get_min_movements<const R: usize, const C: usize>(from: (usize, usize), to: (usize, usize), g: &[[char; C]; R]) -> Vec<String> {
+    if g[from.0][from.1] == GAP || g[to.0][to.1] == GAP {
+        return vec!["PANIC".into()];
+    }
+    if from == to {
+        // println!("WARNING: from {from:?} is target:  {to:?}");
+        return vec!["".into()];
+    }
+
+    let mut ret = vec![];
+    let mut min = usize::MAX;
+    let rows = g.len();
+    let cols = g[0].len();
+    let mut pq = VecDeque::new();
+    pq.push_front(("".to_string(), from, [[false; C]; R]));
+
+    while let Some((mut m, pos, mut vis)) = pq.pop_front() {
+        if m.len() > min { return ret; }
+        if pos == to {
+            min = m.len();
+            ret.push(m);
+            continue;
+        }
+        let (r, c) = pos;
+        if vis[r][c] { continue; }
+        vis[r][c] = true;
+        for (nr, nc, d) in dirs(r, c, rows, cols) {
+            if g[nr][nc] == GAP { continue; }
+            let mut nm = m.clone();
+            nm.push(get_dir_char(d));
+            pq.push_back((nm, (nr, nc), vis.clone()));
+        }
+    }
+
+    ret
+}
+
 fn s3(dest: char, robot_idx: usize, rp: &mut [char; NUM_ROBOTS],
         dmap: &HashMap<char, usize>, ddist: &[Vec<String>]) -> String {
     let mut ret = String::new();
@@ -132,6 +190,10 @@ fn s3(dest: char, robot_idx: usize, rp: &mut [char; NUM_ROBOTS],
 pub fn p1(input: &str) -> usize {
     let (nmap, ndist) = get_path(&nkeypad);
     let (dmap, ddist) = get_path(&dkeypad);
+
+    dbg!(paths(&nkeypad));
+    dbg!(paths(&dkeypad));
+    todo!();
 
     let mut solve = |code: &str| -> usize {
         println!("Solving code: {code}");
