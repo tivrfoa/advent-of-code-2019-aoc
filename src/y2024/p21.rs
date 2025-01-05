@@ -40,7 +40,7 @@ v<<A -> down, left, left, activate
   - makes robot 3 push the button
 
 */
-const NUM_ROBOTS: usize = 4;
+const NUM_ROBOTS: usize = 3;
 const GAP: char = 'G';
 const nkeypad: [[char; 3]; 4] = [
     ['7', '8', '9'],
@@ -117,65 +117,48 @@ fn get_path<const R: usize, const C: usize>(g: &[[char; C]; R])
     (map, v)
 }
 
-
-fn solve_directional_keypad(dest: char, robot_idx: usize, rp: &mut [char; NUM_ROBOTS],
-        dmap: &HashMap<char, usize>, ddist: &[Vec<String>],
-        robots_path: &mut Vec<String>) {
+fn s3(dest: char, robot_idx: usize, rp: &mut [char; NUM_ROBOTS],
+        dmap: &HashMap<char, usize>, ddist: &[Vec<String>]) -> String {
+    let mut ret = String::new();
     let from_idx = dmap[&rp[robot_idx]];
     let to_idx = dmap[&dest];
     let p = &ddist[from_idx][to_idx];
-    if robot_idx > 0 {
-        for c in p.chars() {
-            solve_directional_keypad(c, robot_idx - 1, rp, dmap, ddist, robots_path);
-        }
-    }
-    robots_path[robot_idx].push_str(p);
-    robots_path[robot_idx].push('A');
+    ret.push_str(p);
+    ret.push('A');
     rp[robot_idx] = dest;
+    ret
 }
 
 pub fn p1(input: &str) -> usize {
     let (nmap, ndist) = get_path(&nkeypad);
     let (dmap, ddist) = get_path(&dkeypad);
-
-    // make ddist A to v be equals problem description for debugging
-    // ddist[2][4] = "<v".into();
-
-    // dbg!(nmap, ndist);
-    // dbg!(dmap, ddist);
-
     let mut rp = ['A'; NUM_ROBOTS]; // robots position
-    let mut robots_path: Vec<String> = vec![String::new(); NUM_ROBOTS];
     let nidx = rp.len() - 1;
 
     let mut solve = |code: &str| -> usize {
         println!("Solving code: {code}");
-        for c in code.chars() {
-            let from_idx = nmap[&rp[nidx]];
-            let to_idx = nmap[&c];
-            let p = &ndist[from_idx][to_idx];
-            robots_path[nidx].push_str(p);
-            robots_path[nidx].push('A');
-            // dbg!(nk_r, nk_c, from_idx, to_idx, p);
-            for c2 in p.chars() {
-                solve_directional_keypad(c2, nidx - 1, &mut rp, &dmap, &ddist, &mut robots_path);
+        let mut curr = code.to_string();
+        for i in (0..=nidx).rev() {
+            let mut s = String::new();
+            for c in curr.chars() {
+                if i == nidx {
+                    s.push_str(&mut s3(c, i, &mut rp, &nmap, &ndist));
+                } else {
+                    s.push_str(&mut s3(c, i, &mut rp, &dmap, &ddist));
+                }
             }
-            solve_directional_keypad('A', nidx - 1, &mut rp, &dmap, &ddist, &mut robots_path);
-            rp[nidx] = c;
+            println!("{i}: {s} - {}", s.len());
+            curr = s;
         }
-        let s = &robots_path[0];
         let n = (&code[..3]).parse::<usize>().unwrap();
-        let v = s.len() * n;
-        dbg!(&s, s.len(), n, v);
+        let v = curr.len() * n;
+        dbg!(&curr, curr.len(), n, v);
         v
     };
 
-    // let sum = input.lines()
-    //     .map(|l| solve(l, &mut rp))
-    //     .sum();
-    let sum = solve("029A");
-
-    dbg!(robots_path);
+    let sum = input.lines()
+        .map(|l| solve(l))
+        .sum();
 
     sum
 }
