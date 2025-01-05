@@ -70,26 +70,19 @@ const nkeypad: [[u8; 3]; 4] = [
 ];
 pub fn p1(input: &str) -> usize {
 
-    // let min_num_keypad_movements: [[usize; 10]; 10] = [
-    //     [
-    //         "",
-    //         "^<A",
-    //         "^A",
-    //         "^>A",    // 3
-    //         "^^<A",   // 4
-    //         "^^A",    // 5
-    //         "^^>A",   // 6
-    //         "^^^<A",  // 7
-    //         "^^^A",   // 8
-    //         "^>A",
-    //     ]
-    // ];
+    let nkeypad_distances: Vec<Vec<String>> = {
+        let mut v: Vec<Vec<String>> = vec![];
+        for r in 0..4 {
+            for c in 0..3 {
+                v.push((0..=9)
+                    .map(|t| get_min_movement((r, c), t, &nkeypad))
+                    .collect());
+            }
+        }
+        v
+    };
 
-    let nkeypad_distances_from_A: Vec<String> = (0..=9)
-        .map(|t| get_min_movement((3, 2), t, &nkeypad))
-        .collect();
-
-    dbg!(nkeypad_distances_from_A);
+    dbg!(nkeypad_distances);
     0
 }
 
