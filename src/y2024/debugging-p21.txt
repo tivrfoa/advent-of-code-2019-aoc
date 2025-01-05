@@ -7,7 +7,7 @@ you
 numeric robot
 <A^A>^^AvvvA, <A^A^>^AvvvA, and <A^A^^>AvvvA
 
-2 robot
+2 robots
 v<<A|>>^A|<A|>A|vA|<^A|A|>A|<vA|A|A|>^A
 
     v<<A - <
