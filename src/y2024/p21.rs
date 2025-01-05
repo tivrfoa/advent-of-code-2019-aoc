@@ -40,7 +40,7 @@ v<<A -> down, left, left, activate
   - makes robot 3 push the button
 
 */
-const NUM_ROBOTS: usize = 4;
+const NUM_ROBOTS: usize = 2;
 const GAP: char = 'G';
 const nkeypad: [[char; 3]; 4] = [
     ['7', '8', '9'],
@@ -131,6 +131,7 @@ fn solve_directional_keypad(dest: char, robot_idx: usize, rp: &mut [char; NUM_RO
         for c in p.chars() {
             s.push_str(&mut solve_directional_keypad(c, robot_idx - 1, rp, dmap, ddist, robots_path));
         }
+        // s.push_str(&mut solve_directional_keypad('A', robot_idx - 1, rp, dmap, ddist, robots_path));
         s
     };
 
