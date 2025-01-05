@@ -1,13 +1,6 @@
 use std::collections::*;
 use crate::util::*;
 
-#[allow(dead_code)]
-fn parse(input: &str) -> usize {
-
-
-    0
-}
-
 /*
 +---+---+---+
 | 7 | 8 | 9 |
@@ -47,6 +40,18 @@ v<<A -> down, left, left, activate
   - makes robot 3 push the button
 
 */
+const NUM_ROBOTS: usize = 4;
+const GAP: char = 'G';
+const nkeypad: [[char; 3]; 4] = [
+    ['7', '8', '9'],
+    ['4', '5', '6'],
+    ['1', '2', '3'],
+    [GAP, '0', 'A'],
+];
+const dkeypad: [[char; 3]; 2] = [
+    [GAP, '^', 'A'],
+    ['<', 'v', '>'],
+];
 
 fn get_dir_char(d: i8) -> char {
     match d {
@@ -63,8 +68,8 @@ fn get_min_movement<const R: usize, const C: usize>(from: (usize, usize), to: (u
         return "PANIC".into();
     }
     if from == to {
-        println!("WARNING: from {from:?} is target:  {to:?}");
-        return "".into(); // TODO ? maybe should return A here instead ?
+        // println!("WARNING: from {from:?} is target:  {to:?}");
+        return "".into();
     }
 
     let rows = g.len();
@@ -78,7 +83,6 @@ fn get_min_movement<const R: usize, const C: usize>(from: (usize, usize), to: (u
         if vis[r][c] { continue; }
         vis[r][c] = true;
         if pos == to {
-            m.push('A');
             return m;
         }
         for (nr, nc, d) in dirs(r, c, rows, cols) {
@@ -91,17 +95,6 @@ fn get_min_movement<const R: usize, const C: usize>(from: (usize, usize), to: (u
     panic!("failed: from {from:?}, to: {to:?}");
 }
 
-const GAP: char = 'G';
-const nkeypad: [[char; 3]; 4] = [
-    ['7', '8', '9'],
-    ['4', '5', '6'],
-    ['1', '2', '3'],
-    [GAP, '0', 'A'],
-];
-const dkeypad: [[char; 3]; 2] = [
-    [GAP, '^', 'A'],
-    ['<', 'v', '>'],
-];
 
 fn get_path<const R: usize, const C: usize>(g: &[[char; C]; R])
         -> (HashMap<char, usize>, Vec<Vec<String>>) {
@@ -115,11 +108,7 @@ fn get_path<const R: usize, const C: usize>(g: &[[char; C]; R])
             let mut iv: Vec<String> = vec![];
             for nr in 0..R {
                 for nc in 0..C {
-                    if r == nr && c == nc {
-                        iv.push("".into());
-                    } else {
-                        iv.push(get_min_movement((r, c), (nr, nc), g));
-                    }
+                    iv.push(get_min_movement((r, c), (nr, nc), g));
                 }
             }
             v.push(iv);
@@ -128,64 +117,74 @@ fn get_path<const R: usize, const C: usize>(g: &[[char; C]; R])
     (map, v)
 }
 
-fn solve_directional_keypad(c: char, robot_idx: usize, rp: &mut [char; 4],
-        dmap: &HashMap<char, usize>, ddist: &[Vec<String>]) -> String {
+
+fn solve_directional_keypad(dest: char, robot_idx: usize, rp: &mut [char; NUM_ROBOTS],
+        dmap: &HashMap<char, usize>, ddist: &[Vec<String>],
+        robots_path: &mut Vec<String>) -> String {
     let from_idx = dmap[&rp[robot_idx]];
-    let to_idx = dmap[&c];
+    let to_idx = dmap[&dest];
     let p = &ddist[from_idx][to_idx];
-    if robot_idx == 0 {
-        if let Some(c) = p.chars().last() {
-            rp[robot_idx] = c;
-        }
+    let mut ret = if robot_idx == 0 {
         p.to_string()
     } else {
         let mut s = String::new();
         for c in p.chars() {
-            let from_idx = dmap[&rp[robot_idx]];
-            let to_idx = dmap[&c];
-            let p = &ddist[from_idx][to_idx];
-            // dbg!(nk_r, nk_c, from_idx, to_idx, p);
-            for c2 in p.chars() {
-                s.push_str(&mut solve_directional_keypad(c2, robot_idx - 1, rp, dmap, ddist));
-            }
-            rp[robot_idx] = c;
+            s.push_str(&mut solve_directional_keypad(c, robot_idx - 1, rp, dmap, ddist, robots_path));
         }
         s
-    }
+    };
+
+    rp[robot_idx] = dest;
+    ret.push('A');
+    robots_path[robot_idx].push_str(&ret);
+
+    ret
 }
 
 pub fn p1(input: &str) -> usize {
     let (nmap, ndist) = get_path(&nkeypad);
-    let (dmap, ddist) = get_path(&dkeypad);
+    let (dmap, mut ddist) = get_path(&dkeypad);
+
+    // make ddist A to v be equals problem description for debugging
+    ddist[2][4] = "<v".into();
+
     // dbg!(nmap, ndist);
     // dbg!(dmap, ddist);
 
-    const NIDX: usize = 3;
-    // robots position
-    let mut rp = ['A'; 4];
+    let mut rp = ['A'; NUM_ROBOTS]; // robots position
+    let mut robots_path: Vec<String> = vec![String::new(); NUM_ROBOTS]; // for debugging
+    let nidx = rp.len() - 1;
 
-    let solve = |code: &str, rp: &mut [char; 4]| -> usize {
+    let mut solve = |code: &str, rp: &mut [char; NUM_ROBOTS]| -> usize {
         println!("Solving code: {code}");
         let mut s = String::new();
         for c in code.chars() {
-            let from_idx = nmap[&rp[NIDX]];
+            let from_idx = nmap[&rp[nidx]];
             let to_idx = nmap[&c];
             let p = &ndist[from_idx][to_idx];
+            robots_path[nidx].push_str(p);
+            // robots_path[nidx].push('A');
             // dbg!(nk_r, nk_c, from_idx, to_idx, p);
             for c2 in p.chars() {
-                s.push_str(&mut solve_directional_keypad(c2, NIDX - 1, rp, &dmap, &ddist));      
+                s.push_str(&mut solve_directional_keypad(c2, nidx - 1, rp, &dmap, &ddist, &mut robots_path));
             }
-            rp[NIDX] = c;
+            s.push_str(&mut solve_directional_keypad('A', nidx - 1, rp, &dmap, &ddist, &mut robots_path));
+            rp[nidx] = c;
         }
         let n = (&code[..3]).parse::<usize>().unwrap();
         let v = s.len() * n;
-        dbg!(s.len(), n, v);
+        dbg!(&s, s.len(), n, v);
         v
     };
 
-    input.lines()
-        .map(|l| solve(l, &mut rp))
-        .sum()
+    // let sum = input.lines()
+    //     .map(|l| solve(l, &mut rp))
+    //     .sum();
+    let sum = solve("029A", &mut rp);
+
+    dbg!(robots_path);
+
+    sum
 }
 
 pub fn p2(input: &str) -> usize {

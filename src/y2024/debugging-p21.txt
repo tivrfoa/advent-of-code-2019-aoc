@@ -1,0 +1,25 @@
+you
+    1 robot
+        2 robot
+            3 numeric robot
+
+
+numeric robot
+<A^A>^^AvvvA, <A^A^>^AvvvA, and <A^A^^>AvvvA
+
+2 robot
+v<<A|>>^A|<A|>A|vA|<^A|A|>A|<vA|A|A|>^A
+
+    v<<A - <
+    >>^A - A
+    <A   - ^
+    >A   - A
+    vA   - >
+    <^A  - ^
+    A    - ^
+    >A   - A
+    <vA  - v
+    A    - v
+    A    - v
+    >^A  - A
+
