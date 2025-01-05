@@ -68,12 +68,16 @@ const nkeypad: [[u8; 3]; 4] = [
     [1, 2, 3],
     [11,0, A],
 ];
-pub fn p1(input: &str) -> usize {
 
+pub fn p1(input: &str) -> usize {
+    let mut nkeypad_idx_map: [usize; 12] = [0; 12];
     let nkeypad_distances: Vec<Vec<String>> = {
         let mut v: Vec<Vec<String>> = vec![];
+        let mut idx = 0;
         for r in 0..4 {
             for c in 0..3 {
+                nkeypad_idx_map[nkeypad[r][c] as usize] = idx;
+                idx += 1;
                 v.push((0..=9)
                     .map(|t| get_min_movement((r, c), t, &nkeypad))
                     .collect());
@@ -82,7 +86,8 @@ pub fn p1(input: &str) -> usize {
         v
     };
 
-    dbg!(nkeypad_distances);
+    // dbg!(nkeypad_idx_map);
+    // dbg!(nkeypad_distances);
     0
 }
 
