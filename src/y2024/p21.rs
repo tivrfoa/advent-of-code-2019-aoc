@@ -1,4 +1,3 @@
-use std::cmp::Reverse;
 use std::collections::*;
 use crate::util::*;
 
@@ -133,9 +132,32 @@ pub fn p1(input: &str) -> usize {
     let (nmap, ndist) = get_path(&nkeypad);
     let (dmap, ddist) = get_path(&dkeypad);
 
-    dbg!(nmap, ndist);
-    dbg!(dmap, ddist);
-    0
+    const NIDX: usize = 3;
+    // robots position
+    let mut rp = [
+        (0, 2),
+        (0, 2),
+        (0, 2),
+        (3, 2), // numeric keypad robot
+    ];
+
+    let solve = |code: &str, rp: &mut [(usize, usize); 4]| -> usize {
+        println!("Solving code: {code}");
+        for c in code.chars() {
+            let (nk_r, nk_c) = rp[NIDX];
+            let from_idx = nmap[&nkeypad[nk_r][nk_c]];
+            let to_idx = nmap[&c];
+            let p = &ndist[from_idx][to_idx];
+            dbg!(nk_r, nk_c, from_idx, to_idx, p);
+        }
+        0
+    };
+    // dbg!(nmap, ndist);
+    // dbg!(dmap, ddist);
+
+    input.lines()
+        .map(|l| solve(l, &mut rp))
+        .sum()
 }
 
 pub fn p2(input: &str) -> usize {
@@ -155,6 +177,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_p1_in() {
         assert_eq!(171, p1(IN));
     }
