@@ -207,10 +207,6 @@ fn get_ways(code: &str,
         }
         ways = new_ways;
         curr_pos = dest;
-
-        // ret.push_str(p);
-        // ret.push('A');
-        // rp[robot_idx] = dest;
     }
     ways
 }
@@ -222,7 +218,21 @@ pub fn p1(input: &str) -> usize {
     // lets try 029A first
     let code = "029A";
     let num_ways = get_ways(code, &nmap, &ndist);
-    dbg!(num_ways);
+    // dbg!(num_ways);
+ 
+    let mut ways = vec![];
+    for w in num_ways {
+        ways.append(&mut get_ways(&w, &dmap, &ddist));
+    }
+
+    let mut you_ways = vec![];
+    for w in ways {
+        you_ways.append(&mut get_ways(&w, &dmap, &ddist));
+    }
+
+    // dbg!(you_ways);
+    let min = you_ways.iter().min_by_key(|s| s.len()).unwrap();
+    dbg!(min);
 
     todo!();
     // let mut solve = |code: &str| -> usize {
