@@ -63,60 +63,6 @@ fn get_dir_char(d: i8) -> char {
     }
 }
 
-fn get_min_movement<const R: usize, const C: usize>(from: (usize, usize), to: (usize, usize), g: &[[char; C]; R]) -> String {
-    if g[from.0][from.1] == GAP || g[to.0][to.1] == GAP {
-        return "PANIC".into();
-    }
-    if from == to {
-        // println!("WARNING: from {from:?} is target:  {to:?}");
-        return "".into();
-    }
-
-    let rows = g.len();
-    let cols = g[0].len();
-    let mut pq = VecDeque::new();
-    let mut vis: [[bool; C]; R] = [[false; C]; R];
-    pq.push_front(("".to_string(), from));
-
-    while let Some((mut m, pos)) = pq.pop_front() {
-        let (r, c) = pos;
-        if vis[r][c] { continue; }
-        vis[r][c] = true;
-        if pos == to {
-            return m;
-        }
-        for (nr, nc, d) in dirs(r, c, rows, cols) {
-            if g[nr][nc] == GAP { continue; }
-            let mut nm = m.clone();
-            nm.push(get_dir_char(d));
-            pq.push_back((nm, (nr, nc)));
-        }
-    }
-    panic!("failed: from {from:?}, to: {to:?}");
-}
-
-
-fn get_path<const R: usize, const C: usize>(g: &[[char; C]; R])
-        -> (HashMap<char, usize>, Vec<Vec<String>>) {
-    let mut map: HashMap<char, usize> = HashMap::new();
-    let mut v: Vec<Vec<String>> = vec![];
-    let mut idx = 0;
-    for r in 0..R {
-        for c in 0..C {
-            map.insert(g[r][c], idx);
-            idx += 1;
-            let mut iv: Vec<String> = vec![];
-            for nr in 0..R {
-                for nc in 0..C {
-                    iv.push(get_min_movement((r, c), (nr, nc), g));
-                }
-            }
-            v.push(iv);
-        }
-    }
-    (map, v)
-}
-
 fn paths<const R: usize, const C: usize>(g: &[[char; C]; R])
         -> (HashMap<char, usize>, Vec<Vec<Vec<String>>>) {
     let mut map: HashMap<char, usize> = HashMap::new();
@@ -175,18 +121,6 @@ fn get_min_movements<const R: usize, const C: usize>(from: (usize, usize), to: (
     ret
 }
 
-fn s3(dest: char, robot_idx: usize, rp: &mut [char; NUM_ROBOTS],
-        dmap: &HashMap<char, usize>, ddist: &[Vec<String>]) -> String {
-    let mut ret = String::new();
-    let from_idx = dmap[&rp[robot_idx]];
-    let to_idx = dmap[&dest];
-    let p = &ddist[from_idx][to_idx];
-    ret.push_str(p);
-    ret.push('A');
-    rp[robot_idx] = dest;
-    ret
-}
-
 fn get_ways(code: &str, 
         map: &HashMap<char, usize>, dist: &[Vec<Vec<String>>]) -> Vec<String> {
     let mut ways = vec![String::new()];
@@ -226,7 +160,8 @@ pub fn p1(input: &str) -> usize {
 
         let mut you_ways = vec![];
         for w in ways {
-            you_ways.append(&mut get_ways(&w, &dmap, &ddist));
+            let min = get_ways(&w, &dmap, &ddist).into_iter().min_by_key(|s| s.len()).unwrap();
+            you_ways.push(min);
         }
 
         // dbg!(you_ways);
