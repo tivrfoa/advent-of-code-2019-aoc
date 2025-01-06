@@ -197,7 +197,7 @@ fn get_ways(code: &str,
         let to_idx   = map[&dest];
         let mut new_ways = vec![];
         for d in &dist[from_idx][to_idx] {
-            println!("{from_idx} -> {to_idx}: {d:?}");
+            // println!("{from_idx} -> {to_idx}: {d:?}");
             for w in &ways {
                 let mut s = w.clone();
                 s.push_str(d);
@@ -212,58 +212,31 @@ fn get_ways(code: &str,
 }
 
 pub fn p1(input: &str) -> usize {
+    let mut sum = 0;
     let (nmap, ndist) = paths(&nkeypad);
     let (dmap, ddist) = paths(&dkeypad);
 
-    // lets try 029A first
-    let code = "029A";
-    let num_ways = get_ways(code, &nmap, &ndist);
-    // dbg!(num_ways);
- 
-    let mut ways = vec![];
-    for w in num_ways {
-        ways.append(&mut get_ways(&w, &dmap, &ddist));
+    for code in input.lines() {
+        let num_ways = get_ways(code, &nmap, &ndist);
+     
+        let mut ways = vec![];
+        for w in num_ways {
+            ways.append(&mut get_ways(&w, &dmap, &ddist));
+        }
+
+        let mut you_ways = vec![];
+        for w in ways {
+            you_ways.append(&mut get_ways(&w, &dmap, &ddist));
+        }
+
+        // dbg!(you_ways);
+        let min = you_ways.iter().min_by_key(|s| s.len()).unwrap();
+        dbg!(min);
+        let n = (&code[..3]).parse::<usize>().unwrap();
+        sum += min.len() * n;
     }
 
-    let mut you_ways = vec![];
-    for w in ways {
-        you_ways.append(&mut get_ways(&w, &dmap, &ddist));
-    }
-
-    // dbg!(you_ways);
-    let min = you_ways.iter().min_by_key(|s| s.len()).unwrap();
-    dbg!(min);
-
-    todo!();
-    // let mut solve = |code: &str| -> usize {
-    //     println!("Solving code: {code}");
-    //     let mut rp = ['A'; NUM_ROBOTS]; // robots position
-    //     let nidx = rp.len() - 1;
-    //     let mut curr = code.to_string();
-    //     for i in (0..=nidx).rev() {
-    //         let mut s = String::new();
-    //         for c in curr.chars() {
-    //             if i == nidx {
-    //                 s.push_str(&mut s3(c, i, &mut rp, &nmap, &ndist));
-    //             } else {
-    //                 s.push_str(&mut s3(c, i, &mut rp, &dmap, &ddist));
-    //             }
-    //         }
-    //         println!("{i}: {s} - {}", s.len());
-    //         curr = s;
-    //     }
-    //     let n = (&code[..3]).parse::<usize>().unwrap();
-    //     let v = curr.len() * n;
-    //     dbg!(&curr, curr.len(), n, v);
-    //     v
-    // };
-
-    // let sum = input.lines()
-    //     .map(|l| solve(l))
-    //     .sum();
-
-    // sum
-    0
+    sum
 }
 
 pub fn p2(input: &str) -> usize {
@@ -279,13 +252,12 @@ mod tests {
 
     #[test]
     fn test_p1_sample() {
-        assert_eq!(171, p1(SAMPLE));
+        assert_eq!(126384, p1(SAMPLE));
     }
 
     #[test]
-    #[ignore]
     fn test_p1_in() {
-        assert_eq!(171, p1(IN));
+        assert_eq!(248108, p1(IN));
     }
 
     #[test]
