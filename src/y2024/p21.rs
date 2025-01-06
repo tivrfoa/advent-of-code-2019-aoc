@@ -187,42 +187,73 @@ fn s3(dest: char, robot_idx: usize, rp: &mut [char; NUM_ROBOTS],
     ret
 }
 
-pub fn p1(input: &str) -> usize {
-    let (nmap, ndist) = get_path(&nkeypad);
-    let (dmap, ddist) = get_path(&dkeypad);
+fn get_ways(code: &str, 
+        map: &HashMap<char, usize>, dist: &[Vec<Vec<String>>]) -> Vec<String> {
+    let mut ways = vec![String::new()];
+    let mut curr_pos = 'A';
 
-    dbg!(paths(&nkeypad));
-    dbg!(paths(&dkeypad));
-    todo!();
-
-    let mut solve = |code: &str| -> usize {
-        println!("Solving code: {code}");
-        let mut rp = ['A'; NUM_ROBOTS]; // robots position
-        let nidx = rp.len() - 1;
-        let mut curr = code.to_string();
-        for i in (0..=nidx).rev() {
-            let mut s = String::new();
-            for c in curr.chars() {
-                if i == nidx {
-                    s.push_str(&mut s3(c, i, &mut rp, &nmap, &ndist));
-                } else {
-                    s.push_str(&mut s3(c, i, &mut rp, &dmap, &ddist));
-                }
+    for dest in code.chars() {
+        let from_idx = map[&curr_pos];
+        let to_idx   = map[&dest];
+        let mut new_ways = vec![];
+        for d in &dist[from_idx][to_idx] {
+            println!("{from_idx} -> {to_idx}: {d:?}");
+            for w in &ways {
+                let mut s = w.clone();
+                s.push_str(d);
+                s.push('A');
+                new_ways.push(s);
             }
-            println!("{i}: {s} - {}", s.len());
-            curr = s;
         }
-        let n = (&code[..3]).parse::<usize>().unwrap();
-        let v = curr.len() * n;
-        dbg!(&curr, curr.len(), n, v);
-        v
-    };
+        ways = new_ways;
+        curr_pos = dest;
 
-    let sum = input.lines()
-        .map(|l| solve(l))
-        .sum();
+        // ret.push_str(p);
+        // ret.push('A');
+        // rp[robot_idx] = dest;
+    }
+    ways
+}
 
-    sum
+pub fn p1(input: &str) -> usize {
+    let (nmap, ndist) = paths(&nkeypad);
+    let (dmap, ddist) = paths(&dkeypad);
+
+    // lets try 029A first
+    let code = "029A";
+    let num_ways = get_ways(code, &nmap, &ndist);
+    dbg!(num_ways);
+
+    todo!();
+    // let mut solve = |code: &str| -> usize {
+    //     println!("Solving code: {code}");
+    //     let mut rp = ['A'; NUM_ROBOTS]; // robots position
+    //     let nidx = rp.len() - 1;
+    //     let mut curr = code.to_string();
+    //     for i in (0..=nidx).rev() {
+    //         let mut s = String::new();
+    //         for c in curr.chars() {
+    //             if i == nidx {
+    //                 s.push_str(&mut s3(c, i, &mut rp, &nmap, &ndist));
+    //             } else {
+    //                 s.push_str(&mut s3(c, i, &mut rp, &dmap, &ddist));
+    //             }
+    //         }
+    //         println!("{i}: {s} - {}", s.len());
+    //         curr = s;
+    //     }
+    //     let n = (&code[..3]).parse::<usize>().unwrap();
+    //     let v = curr.len() * n;
+    //     dbg!(&curr, curr.len(), n, v);
+    //     v
+    // };
+
+    // let sum = input.lines()
+    //     .map(|l| solve(l))
+    //     .sum();
+
+    // sum
+    0
 }
 
 pub fn p2(input: &str) -> usize {
