@@ -124,7 +124,7 @@ fn get_min_movements<const R: usize, const C: usize>(from: (usize, usize), to: (
 fn get_ways2(mem_ways: &mut HashMap<(char, char, String), Vec<String>>, curr_pos: char, dest: char, remainder: &str, 
         map: &HashMap<char, usize>, dist: &[Vec<Vec<String>>]) -> Vec<String> {
     if let Some(w) = mem_ways.get(&(curr_pos, dest, remainder.to_string())) {
-        println!("Found in cache");
+        // println!("Found in cache");
         return w.clone();
     }
 
@@ -160,7 +160,7 @@ fn get_ways2(mem_ways: &mut HashMap<(char, char, String), Vec<String>>, curr_pos
 fn get_ways(mem_ways: &mut HashMap<String, Vec<String>>, code: &str, 
         map: &HashMap<char, usize>, dist: &[Vec<Vec<String>>]) -> Vec<String> {
     if let Some(w) = mem_ways.get(code) {
-        println!("Found in cache");
+        // println!("Found in cache");
         return w.clone();
     }
     let mut ways = vec![String::new()];
@@ -220,26 +220,34 @@ pub fn p1(input: &str) -> usize {
 }
 
 pub fn p2(input: &str) -> usize {
+    println!("========= PART 2 ===============");
     let mut sum = 0;
     let (nmap, ndist) = paths(&nkeypad);
     let (dmap, ddist) = paths(&dkeypad);
-    let mut mem_ways: HashMap<String, Vec<String>> = HashMap::new();
+    let mut mem_ways_useless: HashMap<String, Vec<String>> = HashMap::new();
+    let mut mem_ways: HashMap<(char, char, String), Vec<String>> = HashMap::new();
 
     for code in input.lines() {
-        let num_ways = get_ways(&mut mem_ways, code, &nmap, &ndist);
+        println!("==== Code: {code}");
+        let num_ways = get_ways(&mut mem_ways_useless, code, &nmap, &ndist);
      
         let mut ways = num_ways;
-        for _ in 0..25 {
+        for robot in 0..25 {
+            println!("===== ROBOT {robot}");
             let mut new_ways = vec![];
             for w in ways {
-                new_ways.append(&mut get_ways(&mut mem_ways, &w, &dmap, &ddist));
+                // new_ways.append(&mut get_ways(&mut mem_ways, &w, &dmap, &ddist));
+                let dest = w.chars().next().unwrap();
+                new_ways.append(&mut get_ways2(&mut mem_ways, 'A', dest, &w[1..], &dmap, &ddist));
             }
             ways = new_ways;
         }
 
+        println!("==== You Ways");
         let mut you_ways = vec![];
         for w in ways {
-            let min = get_ways(&mut mem_ways, &w, &dmap, &ddist).into_iter().min_by_key(|s| s.len()).unwrap();
+            let dest = w.chars().next().unwrap();
+            let min = get_ways2(&mut mem_ways, 'A', dest, &w[1..], &dmap, &ddist).into_iter().min_by_key(|s| s.len()).unwrap();
             you_ways.push(min);
         }
 
