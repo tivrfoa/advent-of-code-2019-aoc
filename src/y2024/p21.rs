@@ -121,8 +121,48 @@ fn get_min_movements<const R: usize, const C: usize>(from: (usize, usize), to: (
     ret
 }
 
-fn get_ways(code: &str, 
+fn get_ways2(mem_ways: &mut HashMap<(char, char, String), Vec<String>>, curr_pos: char, dest: char, remainder: &str, 
         map: &HashMap<char, usize>, dist: &[Vec<Vec<String>>]) -> Vec<String> {
+    if let Some(w) = mem_ways.get(&(curr_pos, dest, remainder.to_string())) {
+        println!("Found in cache");
+        return w.clone();
+    }
+
+    let from_idx = map[&curr_pos];
+    let to_idx   = map[&dest];
+    let mut ways = vec![];
+    for d in &dist[from_idx][to_idx] {
+        // println!("{from_idx} -> {to_idx}: {d:?}");
+        let mut s = String::from(d);
+        s.push('A');
+        ways.push(s);
+    }
+
+    // If remainder is empty, return current paths
+    if remainder.is_empty() {
+        mem_ways.insert((curr_pos, dest, remainder.into()), ways.clone());
+        return ways;
+    }
+
+    let mut final_ways = vec![];
+    let next_dest = remainder.chars().next().unwrap();
+    for rem_path in get_ways2(mem_ways, dest, next_dest, &remainder[1..], map, dist) {
+        for w in &ways {
+            let mut s = w.clone();
+            s.push_str(&rem_path);
+            final_ways.push(s);
+        }
+    }
+    mem_ways.insert((curr_pos, dest, remainder.into()), final_ways.clone());
+    final_ways
+}
+
+fn get_ways(mem_ways: &mut HashMap<String, Vec<String>>, code: &str, 
+        map: &HashMap<char, usize>, dist: &[Vec<Vec<String>>]) -> Vec<String> {
+    if let Some(w) = mem_ways.get(code) {
+        println!("Found in cache");
+        return w.clone();
+    }
     let mut ways = vec![String::new()];
     let mut curr_pos = 'A';
 
@@ -142,6 +182,7 @@ fn get_ways(code: &str,
         ways = new_ways;
         curr_pos = dest;
     }
+    mem_ways.insert(code.into(), ways.clone());
     ways
 }
 
@@ -149,18 +190,22 @@ pub fn p1(input: &str) -> usize {
     let mut sum = 0;
     let (nmap, ndist) = paths(&nkeypad);
     let (dmap, ddist) = paths(&dkeypad);
+    let mut mem_ways_useless: HashMap<String, Vec<String>> = HashMap::new();
+    let mut mem_ways: HashMap<(char, char, String), Vec<String>> = HashMap::new();
 
     for code in input.lines() {
-        let num_ways = get_ways(code, &nmap, &ndist);
+        let num_ways = get_ways(&mut mem_ways_useless, code, &nmap, &ndist);
      
         let mut ways = vec![];
         for w in num_ways {
-            ways.append(&mut get_ways(&w, &dmap, &ddist));
+            // ways.append(&mut get_ways(&mut mem_ways, &w, &dmap, &ddist));
+            let dest = w.chars().next().unwrap();
+            ways.append(&mut get_ways2(&mut mem_ways, 'A', dest, &w[1..], &dmap, &ddist));
         }
 
         let mut you_ways = vec![];
         for w in ways {
-            let min = get_ways(&w, &dmap, &ddist).into_iter().min_by_key(|s| s.len()).unwrap();
+            let min = get_ways(&mut mem_ways_useless, &w, &dmap, &ddist).into_iter().min_by_key(|s| s.len()).unwrap();
             you_ways.push(min);
         }
 
@@ -175,9 +220,37 @@ pub fn p1(input: &str) -> usize {
 }
 
 pub fn p2(input: &str) -> usize {
+    let mut sum = 0;
+    let (nmap, ndist) = paths(&nkeypad);
+    let (dmap, ddist) = paths(&dkeypad);
+    let mut mem_ways: HashMap<String, Vec<String>> = HashMap::new();
 
+    for code in input.lines() {
+        let num_ways = get_ways(&mut mem_ways, code, &nmap, &ndist);
+     
+        let mut ways = num_ways;
+        for _ in 0..25 {
+            let mut new_ways = vec![];
+            for w in ways {
+                new_ways.append(&mut get_ways(&mut mem_ways, &w, &dmap, &ddist));
+            }
+            ways = new_ways;
+        }
 
-    0
+        let mut you_ways = vec![];
+        for w in ways {
+            let min = get_ways(&mut mem_ways, &w, &dmap, &ddist).into_iter().min_by_key(|s| s.len()).unwrap();
+            you_ways.push(min);
+        }
+
+        // dbg!(you_ways);
+        let min = you_ways.iter().min_by_key(|s| s.len()).unwrap();
+        dbg!(min);
+        let n = (&code[..3]).parse::<usize>().unwrap();
+        sum += min.len() * n;
+    }
+
+    sum
 }
 
 
@@ -202,7 +275,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_p2_in() {
         assert_eq!(171, p2(IN));
     }
