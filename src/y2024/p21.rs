@@ -197,10 +197,18 @@ pub fn p1(input: &str) -> usize {
         let num_ways = get_ways(&mut mem_ways_useless, code, &nmap, &ndist);
      
         let mut ways = vec![];
+        let mut min_len = usize::MAX;
         for w in num_ways {
             // ways.append(&mut get_ways(&mut mem_ways, &w, &dmap, &ddist));
             let dest = w.chars().next().unwrap();
-            ways.append(&mut get_ways2(&mut mem_ways, 'A', dest, &w[1..], &dmap, &ddist));
+            let mut rem_ways = get_ways2(&mut mem_ways, 'A', dest, &w[1..], &dmap, &ddist);
+            let len = rem_ways.iter().map(|s| s.len()).min().unwrap();
+            if len <= min_len {
+                min_len = len;
+                for rw in rem_ways.into_iter().filter(|s| s.len() == min_len) {
+                    ways.push(rw);
+                }
+            }
         }
 
         let mut you_ways = vec![];
@@ -235,10 +243,18 @@ pub fn p2(input: &str) -> usize {
         for robot in 0..25 {
             println!("===== ROBOT {robot}");
             let mut new_ways = vec![];
+            let mut min_len = usize::MAX;
             for w in ways {
                 // new_ways.append(&mut get_ways(&mut mem_ways, &w, &dmap, &ddist));
                 let dest = w.chars().next().unwrap();
-                new_ways.append(&mut get_ways2(&mut mem_ways, 'A', dest, &w[1..], &dmap, &ddist));
+                let mut rem_ways = get_ways2(&mut mem_ways, 'A', dest, &w[1..], &dmap, &ddist);
+                let len = rem_ways.iter().map(|s| s.len()).min().unwrap();
+                if len <= min_len {
+                    min_len = len;
+                    for rw in rem_ways.into_iter().filter(|s| s.len() == min_len) {
+                        new_ways.push(rw);
+                    }
+                }
             }
             ways = new_ways;
         }
