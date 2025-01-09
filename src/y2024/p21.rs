@@ -291,7 +291,7 @@ pub fn p2_depth(input: &str) -> usize {
     let mut min = usize::MAX;
     let (nmap, ndist) = paths(&nkeypad);
     let (dmap, ddist) = paths(&dkeypad);
-    let mut mem: HashMap<(char, char), usize> = HashMap::new();
+    let mut mem: HashMap<(char, Vec<char>), usize> = HashMap::new();
 
     for code in input.lines() {
         println!("==== Code: {code}");
@@ -304,12 +304,12 @@ pub fn p2_depth(input: &str) -> usize {
                 let mut new_robots_positions = vec![];
                 for rp in robots_positions {
                     let from = rp[ROBOTS_COUNT - 1];
-                    if from == to {
-                        println!("{from} to {to} -> len: 1");
-                        len += 1;
-                        continue;
-                    }
-                    if let Some(v) = mem.get(&(from, to)) {
+                    // if from == to {
+                    //     println!("{from} to {to} -> len: 1");
+                    //     len += 1;
+                    //     continue;
+                    // }
+                    if let Some(v) = mem.get(&(to, rp.clone())) {
                         println!("Found cache from {from} to {to} = {v}");
                         len += v;
                     } else {
@@ -318,7 +318,7 @@ pub fn p2_depth(input: &str) -> usize {
                         let l = ret[0].0.len();
                         println!("{from} to {to} = {} -> len: {}", ret[0].0, l);
                         len += l;
-                        mem.insert((from, to), l);
+                        mem.insert((to, rp), l);
                         for (_, pos) in ret {
                             new_robots_positions.push(pos);
                         }
