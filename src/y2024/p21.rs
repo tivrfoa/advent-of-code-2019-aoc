@@ -135,18 +135,31 @@ fn simple_ways(from: char, to: char,
     ways
 }
 
-/// example of a first call: 'A', '0', 25, map, dist
-fn get_ways_depth(from: char, to: char, depth: u8,
-        map: &HashMap<char, usize>, dist: &[Vec<Vec<String>>]) -> Vec<String> {
-    if depth == 1 {
-        let ways = simple_ways(from, to, map, dist);
-        return ways;
-    }
+const ROBOTS_COUNT: usize = 2;
 
-    let mut input = get_ways_depth(from, to, depth - 1, map, dist);
+fn get_last_char_not_A(s: &str) -> char {
+    assert!(!s.is_empty());
+    if s.len() == 1 { return s.chars().next().unwrap(); }
+    s.chars().rev().skip(1).next().unwrap()
+}
+
+/// example of a first call: 'A', '0', 25, map, dist
+fn get_ways_depth(robots_positions: &[char], to: char, depth: usize,
+        map: &HashMap<char, usize>, dist: &[Vec<Vec<String>>]) -> Vec<(String, Vec<char>)> {
+    let from = robots_positions[depth];
+    if depth == 0 {
+        let ways = simple_ways(from, to, map, dist);
+        let mut ret: Vec<(String, Vec<char>)>= vec![];
+        for w in ways {
+            let c = get_last_char_not_A(&w);
+            ret.push((w, vec![c]));
+        }
+        return ret;
+    }
+    let mut input = get_ways_depth(robots_positions, to, depth - 1, map, dist);
     let mut min_len = usize::MAX;
-    let mut final_ways = vec![String::new()];
-    for s in input {
+    let mut final_ways = vec![];
+    for (s, path) in input {
         let mut ways = vec![String::new()];
         let mut prev = from;
         for c in s.chars() {
@@ -164,12 +177,14 @@ fn get_ways_depth(from: char, to: char, depth: u8,
         for w in ways {
             if w.len() <= min_len {
                 min_len = w.len();
-                final_ways.push(w);
+                let c = get_last_char_not_A(&w);
+                let mut new_path = path.clone();
+                new_path.push(c);
+                final_ways.push((w, new_path));
             }
         }
     }
-
-    final_ways.into_iter().filter(|s| s.len() == min_len).collect()
+    final_ways.into_iter().filter(|(s, _)| s.len() == min_len).collect()
 }
 
 fn get_ways2(mem_ways: &mut HashMap<(char, char, String), Vec<String>>, curr_pos: char, dest: char, remainder: &str, 
@@ -281,27 +296,35 @@ pub fn p2_depth(input: &str) -> usize {
     for code in input.lines() {
         println!("==== Code: {code}");
         let num_ways = get_ways(code, &nmap, &ndist);
-     
         for w in num_ways {
             dbg!(&w);
+            let mut robots_positions = vec![vec!['A'; ROBOTS_COUNT]];
             let mut len = 0;
-            let mut from = 'A';
             for to in w.chars() {
-                if from == to {
-                    println!("{from} to {to} -> len: 1");
-                    len += 1;
-                    continue;
+                let mut new_robots_positions = vec![];
+                for rp in robots_positions {
+                    let from = rp[ROBOTS_COUNT - 1];
+                    if from == to {
+                        println!("{from} to {to} -> len: 1");
+                        len += 1;
+                        continue;
+                    }
+                    if let Some(v) = mem.get(&(from, to)) {
+                        println!("Found cache from {from} to {to} = {v}");
+                        len += v;
+                    } else {
+                        let ret = get_ways_depth(&rp, to, 1, &dmap, &ddist);
+                        // dbg!(&ret);
+                        let l = ret[0].0.len();
+                        println!("{from} to {to} = {} -> len: {}", ret[0].0, l);
+                        len += l;
+                        mem.insert((from, to), l);
+                        for (_, pos) in ret {
+                            new_robots_positions.push(pos);
+                        }
+                    }
                 }
-                if let Some(v) = mem.get(&(from, to)) {
-                    println!("Found cache from {from} to {to} = {v}");
-                    len += v;
-                } else {
-                    let ret = get_ways_depth(from, to, 2, &dmap, &ddist);
-                    println!("{from} to {to} = {} -> len: {}", ret[0], ret[0].len());
-                    len += ret[0].len();
-                    mem.insert((from, to), ret[0].len());
-                }
-                from = to;
+                robots_positions = new_robots_positions;
             }
             println!("{w} len is {len}");
             min = min.min(len);
