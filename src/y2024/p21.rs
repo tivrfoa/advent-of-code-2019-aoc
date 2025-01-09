@@ -123,6 +123,7 @@ fn get_min_movements<const R: usize, const C: usize>(from: (usize, usize), to: (
 
 fn simple_ways(from: char, to: char,
         map: &HashMap<char, usize>, dist: &[Vec<Vec<String>>]) -> Vec<String> {
+    if from == to { return vec!["A".into()]; }
     let mut ways = vec![];
     let from_idx = map[&from];
     let to_idx   = map[&to];
@@ -137,7 +138,7 @@ fn simple_ways(from: char, to: char,
 /// example of a first call: 'A', '0', 25, map, dist
 fn get_ways_depth(from: char, to: char, depth: u8,
         map: &HashMap<char, usize>, dist: &[Vec<Vec<String>>]) -> Vec<String> {
-    if depth == 0 {
+    if depth == 1 {
         let ways = simple_ways(from, to, map, dist);
         return ways;
     }
@@ -272,49 +273,46 @@ pub fn p1(input: &str) -> usize {
 pub fn p2_depth(input: &str) -> usize {
     println!("========= PART 2 ===============");
     let mut sum = 0;
+    let mut min = usize::MAX;
     let (nmap, ndist) = paths(&nkeypad);
     let (dmap, ddist) = paths(&dkeypad);
-    let mut mem: HashMap<(char, char, u8), usize> = HashMap::new();
+    let mut mem: HashMap<(char, char), usize> = HashMap::new();
 
     for code in input.lines() {
         println!("==== Code: {code}");
         let num_ways = get_ways(code, &nmap, &ndist);
      
-        let mut ways = num_ways;
-        // for robot in 0..25 {
-        //     println!("===== ROBOT {robot}");
-        //     let mut new_ways = vec![];
-        //     let mut min_len = usize::MAX;
-        //     for w in ways {
-        //         // new_ways.append(&mut get_ways(&mut mem_ways, &w, &dmap, &ddist));
-        //         let dest = w.chars().next().unwrap();
-        //         let mut rem_ways = get_ways2(&mut mem_ways, 'A', dest, &w[1..], &dmap, &ddist);
-        //         let len = rem_ways.iter().map(|s| s.len()).min().unwrap();
-        //         if len <= min_len {
-        //             min_len = len;
-        //             for rw in rem_ways.into_iter().filter(|s| s.len() == min_len) {
-        //                 new_ways.push(rw);
-        //             }
-        //         }
-        //     }
-        //     ways = new_ways;
-        // }
+        for w in num_ways {
+            dbg!(&w);
+            let mut len = 0;
+            let mut from = 'A';
+            for to in w.chars() {
+                if from == to {
+                    println!("{from} to {to} -> len: 1");
+                    len += 1;
+                    continue;
+                }
+                if let Some(v) = mem.get(&(from, to)) {
+                    println!("Found cache from {from} to {to} = {v}");
+                    len += v;
+                } else {
+                    let ret = get_ways_depth(from, to, 2, &dmap, &ddist);
+                    println!("{from} to {to} = {} -> len: {}", ret[0], ret[0].len());
+                    len += ret[0].len();
+                    mem.insert((from, to), ret[0].len());
+                }
+                from = to;
+            }
+            println!("{w} len is {len}");
+            min = min.min(len);
+        }
 
-        // println!("==== You Ways");
-        // let mut you_ways = vec![];
-        // for w in ways {
-        //     let dest = w.chars().next().unwrap();
-        //     let min = get_ways2(&mut mem_ways, 'A', dest, &w[1..], &dmap, &ddist).into_iter().min_by_key(|s| s.len()).unwrap();
-        //     you_ways.push(min);
-        // }
-
-        // // dbg!(you_ways);
-        // let min = you_ways.iter().min_by_key(|s| s.len()).unwrap();
-        // dbg!(min);
-        // let n = (&code[..3]).parse::<usize>().unwrap();
-        // sum += min.len() * n;
+        let n = (&code[..3]).parse::<usize>().unwrap();
+        println!("{n} * {min} = {}", n * min);
+        sum += min * n;
     }
 
+    dbg!(mem);
     sum
 }
 
@@ -385,7 +383,7 @@ mod tests {
 
     #[test]
     fn test_p2_depth_sample() {
-        assert_eq!(171, p2_depth(SAMPLE));
+        assert_eq!(126384, p2_depth(SAMPLE));
     }
 
     #[test]
