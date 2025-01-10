@@ -172,11 +172,7 @@ fn solve(s: &str, seqs: &HashMap<(char, char), Vec<String>>) -> Vec<String> {
     for (x, y) in string.chars().zip(s.chars()) {
         options.push(seqs[&(x, y)].clone());
     }
-    dbg!(options.len());
-    dbg!(&options);
     let ret: Vec<String> = product(&options);
-    dbg!(ret.len());
-    dbg!(&ret);
     ret
 }
 
@@ -209,12 +205,9 @@ fn compute_length(seq: &str, depth: usize,
 pub fn p2(input: &str) -> usize {
     let (nmap, ndist) = paths(&nkeypad);
     let (dmap, ddist) = paths(&dkeypad);
-
     let num_seqs: HashMap<(char, char), Vec<String>> = compute_seqs(&nkeypad, &nmap, &ndist);
     let dir_seqs: HashMap<(char, char), Vec<String>> = compute_seqs(&dkeypad, &dmap, &ddist);
     let dir_lengths = get_dir_lengths(&dir_seqs);
-    dbg!(dir_lengths.len());
-
     let mut memo: HashMap<(String, usize), usize> = HashMap::new();
     let mut total = 0;
     for code in input.lines() {
