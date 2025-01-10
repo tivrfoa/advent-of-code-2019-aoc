@@ -40,7 +40,6 @@ v<<A -> down, left, left, activate
   - makes robot 3 push the button
 
 */
-const NUM_ROBOTS: usize = 3;
 const GAP: char = 'G';
 const nkeypad: [[char; 3]; 4] = [
     ['7', '8', '9'],
@@ -139,25 +138,6 @@ fn compute_seqs<const R: usize, const C: usize>(g: &[[char; C]; R], map: &HashMa
         }
     }
     seqs
-}
-
-// Helper function for Cartesian product
-fn cartesian_product(options: &[Vec<String>]) -> Vec<Vec<String>> {
-    let mut result = Vec::new();
-    let first = &options[0];
-    let rest = &options[1..];
-    if rest.is_empty() {
-        return vec![first.clone()];
-    }
-    let sub_product = cartesian_product(rest);
-    for value in first {
-        for sub in &sub_product {
-            let mut combined = vec![value.clone()];
-            combined.extend(sub.clone());
-            result.push(combined);
-        }
-    }
-    result
 }
 
 fn product(options: &[Vec<String>]) -> Vec<String> {
