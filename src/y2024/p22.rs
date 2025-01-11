@@ -14,9 +14,12 @@ fn prune(n: usize) -> usize {
 
 #[inline(always)]
 fn next_secret(mut n: usize) -> usize {
-    let n = prune(mix(n, n * 64));
-    let n = prune(mix(n, n / 32));
-    prune(mix(n, n * 2048))
+    // let n = prune(mix(n, n * 64));
+    // let n = prune(mix(n, n / 32));
+    // prune(mix(n, n * 2048))
+    n = ((n << 6) ^ n) & 0xffffff;
+    n = ((n >> 5) ^ n) & 0xffffff;
+    ((n << 11) ^ n) & 0xffffff
 }
 
 pub fn p1(input: &str) -> usize {
