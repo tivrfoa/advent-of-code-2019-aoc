@@ -21,7 +21,6 @@ fn next_secret(mut n: usize) -> usize {
 
 pub fn p1(input: &str) -> usize {
     let mut sum = 0;
-
     for line in input.lines() {
         let mut n = line.to_usize();;
         for _ in 0..2000 {
@@ -32,10 +31,61 @@ pub fn p1(input: &str) -> usize {
     sum
 }
 
+fn get_combinations() -> Vec<(i32, i32, i32, i32)> {
+    let numbers: Vec<i32> = (-9..=9).collect();
+    let mut combinations: Vec<(i32, i32, i32, i32)> = Vec::new();
+    for a in &numbers {
+        for b in &numbers {
+            for c in &numbers {
+                for d in &numbers {
+                    combinations.push((*a, *b, *c, *d));
+                }
+            }
+        }
+    }
+    combinations
+}
+
 pub fn p2(input: &str) -> usize {
-
-
-    0
+    let mut buyers: Vec<HashMap<(i32, i32, i32, i32), usize>> = vec![];
+    for line in input.lines() {
+        let mut n = line.to_usize();;
+        let mut map = HashMap::new();
+        let mut a = [0; 4];
+        let (mut s, mut pos) = (0, 0);
+        for i in 0..2000 {
+            let prev_last_digit = (n % 10) as i32;
+            n = next_secret(n);
+            let last_digit = n % 10;
+            let diff = last_digit as i32 - prev_last_digit;
+            a[pos] = diff;
+            pos = (pos + 1) % 4;
+            if i >= 4 {
+                let key = (a[s], a[(s+1)%4], a[(s+2)%4], a[(s+3)%4]);
+                map.push(key, last_digit);
+                s = (s + 1) % 4;
+            }
+        }
+        buyers.push(map);
+    }
+    let mut max = 0;
+    for (a, x, c, d) in get_combinations() {
+    // for (a, x, c, d) in vec![(-2, 1, -1, 3)] {
+        let mut sum = 0;
+        for b in &buyers {
+            for i in 0..b.len() - 3 {
+                if a == b[i].1 && x == b[i+1].1 && c == b[i+2].1 && d == b[i+3].1 {
+                    sum += b[i+3].0;
+                    break;;
+                }
+            }
+        }
+        if sum > max {
+            println!("Best sequence is: {a} {x} {c} {d}");
+            max = sum;
+        }
+    }
+    max
 }
 
 
@@ -54,9 +104,8 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_p2_sample() {
-        assert_eq!(171, p2(SAMPLE));
+        assert_eq!(23, p2(SAMPLE_P2));
     }
 
     #[test]
@@ -72,6 +121,11 @@ mod tests {
 pub static SAMPLE: &str = "1
 10
 100
+2024";
+
+pub static SAMPLE_P2: &str = "1
+2
+3
 2024";
 
 pub static IN: &str = "16373349
