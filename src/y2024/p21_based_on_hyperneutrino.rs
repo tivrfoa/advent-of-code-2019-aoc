@@ -190,6 +190,9 @@ fn compute_length(seq: &str, depth: usize,
             .map(|(x, y)| dir_lengths[&(x, y)])
             .sum();
     }
+    if depth == 24 {
+        dbg!(seq, &string);
+    }
     let mut length = 0;
     for (x, y) in string.chars().zip(seq.chars()) {
         let mut min = usize::MAX;
@@ -211,6 +214,7 @@ pub fn p2(input: &str) -> usize {
     let mut memo: HashMap<(String, usize), usize> = HashMap::new();
     let mut total = 0;
     for code in input.lines() {
+        println!("--------------------- {code} ------------");
         let inputs = solve(code, &num_seqs);
         let length = inputs
             .iter()

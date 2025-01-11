@@ -34,6 +34,7 @@ def compute_seqs(keypad):
     return seqs
 
 def solve(string, seqs):
+    print("--- Solving: ", string)
     options = [seqs[(x, y)] for x, y in zip("A" + string, string)]
     print(len(options))
     print('options: ', options)
@@ -74,6 +75,7 @@ def compute_length(seq, depth=25):
 total = 0
 
 for line in open(0).read().splitlines():
+    print("============= Line", line)
     inputs = solve(line, num_seqs)
     length = min(map(compute_length, inputs))
     total += length * int(line[:-1])
