@@ -16,11 +16,11 @@
 pub mod y2024;
 mod util;
 
-use y2024::p21_based_on_hyperneutrino as Main;
+use y2024::p22 as Main;
 // use p16 as Main;
 
 fn main() {
     // Main::p1(Main::IN);
-    Main::p2(Main::SAMPLE);
+    Main::p2(Main::IN);
 }
  

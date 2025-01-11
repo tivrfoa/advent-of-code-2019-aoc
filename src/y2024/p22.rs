@@ -72,6 +72,7 @@ pub fn p2(input: &str) -> usize {
         }
         buyers.push(map);
     }
+    dbg!(combs.len());
     let mut max = 0;
     // for (a, x, c, d) in vec![(-2, 1, -1, 3)] {
     // for key in get_combinations() {
@@ -83,7 +84,6 @@ pub fn p2(input: &str) -> usize {
             }
         }
         if sum > max {
-            println!("Best sequence is: {key:?}");
             max = sum;
         }
     }
