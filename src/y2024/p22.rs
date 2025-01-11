@@ -62,26 +62,23 @@ pub fn p2(input: &str) -> usize {
             pos = (pos + 1) % 4;
             if i >= 4 {
                 let key = (a[s], a[(s+1)%4], a[(s+2)%4], a[(s+3)%4]);
-                map.push(key, last_digit);
+                map.insert(key, last_digit);
                 s = (s + 1) % 4;
             }
         }
         buyers.push(map);
     }
     let mut max = 0;
-    for (a, x, c, d) in get_combinations() {
+    for key in get_combinations() {
     // for (a, x, c, d) in vec![(-2, 1, -1, 3)] {
         let mut sum = 0;
-        for b in &buyers {
-            for i in 0..b.len() - 3 {
-                if a == b[i].1 && x == b[i+1].1 && c == b[i+2].1 && d == b[i+3].1 {
-                    sum += b[i+3].0;
-                    break;;
-                }
+        for i in 0..buyers.len() {
+            if let Some(v) = buyers[i].get(&key) {
+                sum += v;
             }
         }
         if sum > max {
-            println!("Best sequence is: {a} {x} {c} {d}");
+            println!("Best sequence is: {key:?}");
             max = sum;
         }
     }
@@ -109,7 +106,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_p2_in() {
         assert_eq!(171, p2(IN));
     }
