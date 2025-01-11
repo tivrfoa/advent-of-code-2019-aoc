@@ -47,11 +47,10 @@ fn get_combinations() -> Vec<(i32, i32, i32, i32)> {
 }
 
 pub fn p2(input: &str) -> usize {
-    let mut buyers: Vec<HashMap<(i32, i32, i32, i32), usize>> = vec![];
-    let mut combs = HashSet::new();
+    let mut seq_map = HashMap::new();
     for line in input.lines() {
         let mut n = line.to_usize();;
-        let mut map = HashMap::new();
+        let mut seen: HashSet<(i32, i32, i32, i32)> = HashSet::new();
         let mut a = [0; 4];
         let (mut s, mut pos) = (0, 0);
         for i in 0..2000 {
@@ -63,33 +62,17 @@ pub fn p2(input: &str) -> usize {
             pos = (pos + 1) % 4;
             if i >= 3 {
                 let key = (a[s], a[(s+1)%4], a[(s+2)%4], a[(s+3)%4]);
-                if !map.contains_key(&key) {
-                    map.insert(key, last_digit);
-                    combs.insert(key);
+                if !seen.contains(&key) {
+                    seen.insert(key);
+                    seq_map.entry(key).and_modify(|v| *v += last_digit).or_insert(last_digit);
                 }
                 s = (s + 1) % 4;
             }
         }
-        buyers.push(map);
     }
-    dbg!(combs.len());
-    let mut max = 0;
-    // for (a, x, c, d) in vec![(-2, 1, -1, 3)] {
-    // for key in get_combinations() {
-    for key in combs {
-        let mut sum = 0;
-        for i in 0..buyers.len() {
-            if let Some(v) = buyers[i].get(&key) {
-                sum += v;
-            }
-        }
-        if sum > max {
-            max = sum;
-        }
-    }
-    max
+    dbg!(seq_map.len());
+    *seq_map.values().max().unwrap()
 }
-
 
 #[cfg(test)]
 mod tests {
