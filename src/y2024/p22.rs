@@ -60,9 +60,11 @@ pub fn p2(input: &str) -> usize {
             let diff = last_digit as i32 - prev_last_digit;
             a[pos] = diff;
             pos = (pos + 1) % 4;
-            if i >= 4 {
+            if i >= 3 {
                 let key = (a[s], a[(s+1)%4], a[(s+2)%4], a[(s+3)%4]);
-                map.insert(key, last_digit);
+                if !map.contains_key(&key) {
+                    map.insert(key, last_digit);
+                }
                 s = (s + 1) % 4;
             }
         }
@@ -107,7 +109,7 @@ mod tests {
 
     #[test]
     fn test_p2_in() {
-        assert_eq!(171, p2(IN));
+        assert_eq!(1619, p2(IN));
     }
 }
 
