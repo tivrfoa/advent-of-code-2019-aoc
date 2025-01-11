@@ -48,6 +48,7 @@ fn get_combinations() -> Vec<(i32, i32, i32, i32)> {
 
 pub fn p2(input: &str) -> usize {
     let mut buyers: Vec<HashMap<(i32, i32, i32, i32), usize>> = vec![];
+    let mut combs = HashSet::new();
     for line in input.lines() {
         let mut n = line.to_usize();;
         let mut map = HashMap::new();
@@ -64,6 +65,7 @@ pub fn p2(input: &str) -> usize {
                 let key = (a[s], a[(s+1)%4], a[(s+2)%4], a[(s+3)%4]);
                 if !map.contains_key(&key) {
                     map.insert(key, last_digit);
+                    combs.insert(key);
                 }
                 s = (s + 1) % 4;
             }
@@ -71,8 +73,9 @@ pub fn p2(input: &str) -> usize {
         buyers.push(map);
     }
     let mut max = 0;
-    for key in get_combinations() {
     // for (a, x, c, d) in vec![(-2, 1, -1, 3)] {
+    // for key in get_combinations() {
+    for key in combs {
         let mut sum = 0;
         for i in 0..buyers.len() {
             if let Some(v) = buyers[i].get(&key) {
