@@ -46,11 +46,10 @@ pub fn p2(input: &str) -> String {
         map.entry(b).and_modify(|v| v.push(a)).or_insert(vec![a]);
     }
     const S: usize = 3;
-    let mut sets: Vec<BTreeSet<&str>> = vec![];
+    let mut sets: Vec<Vec<&str>> = vec![];
     for (k, v) in &map {
-        let mut set: BTreeSet<&str> = BTreeSet::new();
-        set.insert(k);
-        let mut curr: Vec<BTreeSet<&str>> = vec![set];
+        let mut set: Vec<&str> = vec![k];
+        let mut curr: Vec<Vec<&str>> = vec![set];
         for n in v {
             let mut next = curr.clone();
             's: for mut s in curr {
@@ -60,7 +59,7 @@ pub fn p2(input: &str) -> String {
                     if !map[n].contains(prev) { continue 's; }
                 }
                 // if got here, then it's fine
-                s.insert(n);
+                s.push(n);
                 if s.len() > S {
                     sets.push(s.clone());
                 }
@@ -70,14 +69,14 @@ pub fn p2(input: &str) -> String {
         }
     }
     let mut max = 0;
-    let dummy: BTreeSet<&str> = BTreeSet::new();
-    let mut ans = &dummy;
-    for set in &sets {
+    let mut ans = vec![];
+    for set in sets {
         if set.len() > max {
             max = set.len();
             ans = set;
         }
     }
+    ans.sort();
     let mut ret = String::new();
     for pc in ans {
         ret.push_str(pc);
