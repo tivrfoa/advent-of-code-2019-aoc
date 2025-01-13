@@ -10,7 +10,6 @@ pub fn p1(input: &str) -> usize {
         map.entry(a).and_modify(|v| v.push(b)).or_insert(vec![b]);
         map.entry(b).and_modify(|v| v.push(a)).or_insert(vec![a]);
     }
-    // dbg!(map);
     const S: usize = 3;
     let mut sets: HashSet<BTreeSet<&str>> = HashSet::new();
     for (k, v) in &map {
@@ -39,10 +38,52 @@ pub fn p1(input: &str) -> usize {
     sets.iter().filter(|ss| ss.iter().filter(|s| s.starts_with('t')).count() >= 1).count()
 }
 
-pub fn p2(input: &str) -> usize {
-
-
-    0
+pub fn p2(input: &str) -> String {
+    let mut map: HashMap<&str, Vec<&str>> = HashMap::new();
+    for line in input.lines() {
+        let (a, b) = line.split_once('-').unwrap();
+        map.entry(a).and_modify(|v| v.push(b)).or_insert(vec![b]);
+        map.entry(b).and_modify(|v| v.push(a)).or_insert(vec![a]);
+    }
+    const S: usize = 3;
+    let mut sets: HashSet<BTreeSet<&str>> = HashSet::new();
+    for (k, v) in &map {
+        let mut set: BTreeSet<&str> = BTreeSet::new();
+        set.insert(k);
+        let mut curr: Vec<BTreeSet<&str>> = vec![set];
+        for n in v {
+            let mut next = curr.clone();
+            's: for mut s in curr {
+                // check if n is connected to all previous pcs different from k
+                for prev in &s {
+                    if prev == k { continue; }
+                    if !map[n].contains(prev) { continue 's; }
+                }
+                // if got here, then it's fine
+                s.insert(n);
+                if s.len() > S {
+                    sets.insert(s.clone());
+                }
+                next.push(s);
+            }
+            curr = next;
+        }
+    }
+    let mut max = 0;
+    let dummy: BTreeSet<&str> = BTreeSet::new();
+    let mut ans = &dummy;
+    for set in &sets {
+        if set.len() > max {
+            max = set.len();
+            ans = set;
+        }
+    }
+    let mut ret = String::new();
+    for pc in ans {
+        ret.push_str(pc);
+        ret.push(',');
+    }
+    ret
 }
 
 
@@ -61,15 +102,13 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn test_p2_sample() {
-        assert_eq!(171, p2(SAMPLE));
+        assert_eq!("co,de,ka,ta,".to_string(), p2(SAMPLE));
     }
 
     #[test]
-    #[ignore]
     fn test_p2_in() {
-        assert_eq!(171, p2(IN));
+        assert_eq!("ab,cp,ep,fj,fl,ij,in,ng,pl,qr,rx,va,vf,".to_string(), p2(IN));
     }
 }
 
