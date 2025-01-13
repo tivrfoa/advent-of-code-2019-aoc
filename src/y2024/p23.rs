@@ -46,7 +46,7 @@ pub fn p2(input: &str) -> String {
         map.entry(b).and_modify(|v| v.push(a)).or_insert(vec![a]);
     }
     let mut max = 3;
-    let mut sets: Vec<Vec<&str>> = vec![];
+    let mut ans: Vec<&str> = vec![];
     for (k, v) in &map {
         let mut set: Vec<&str> = vec![k];
         let mut curr: Vec<Vec<&str>> = vec![set];
@@ -62,14 +62,13 @@ pub fn p2(input: &str) -> String {
                 s.push(n);
                 if s.len() > max {
                     max = s.len();
-                    sets.push(s.clone());
+                    ans = s.clone();
                 }
                 next.push(s);
             }
             curr = next;
         }
     }
-    let mut ans = sets.into_iter().find(|s| s.len() == max).unwrap();
     ans.sort();
     let mut ret = String::new();
     for pc in ans {
