@@ -70,12 +70,7 @@ pub fn p2(input: &str) -> String {
         }
     }
     ans.sort();
-    let mut ret = String::new();
-    for pc in ans {
-        ret.push_str(pc);
-        ret.push(',');
-    }
-    ret
+    ans.join(",")
 }
 
 
@@ -95,12 +90,12 @@ mod tests {
 
     #[test]
     fn test_p2_sample() {
-        assert_eq!("co,de,ka,ta,".to_string(), p2(SAMPLE));
+        assert_eq!("co,de,ka,ta".to_string(), p2(SAMPLE));
     }
 
     #[test]
     fn test_p2_in() {
-        assert_eq!("ab,cp,ep,fj,fl,ij,in,ng,pl,qr,rx,va,vf,".to_string(), p2(IN));
+        assert_eq!("ab,cp,ep,fj,fl,ij,in,ng,pl,qr,rx,va,vf".to_string(), p2(IN));
     }
 }
 
