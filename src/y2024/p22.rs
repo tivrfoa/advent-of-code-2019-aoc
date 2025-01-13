@@ -25,7 +25,7 @@ fn next_secret(mut n: usize) -> usize {
 pub fn p1(input: &str) -> usize {
     let mut sum = 0;
     for line in input.lines() {
-        let mut n = line.to_usize();;
+        let mut n = line.to_usize();
         for _ in 0..2000 {
             n = next_secret(n);
         }
@@ -52,7 +52,7 @@ fn get_combinations() -> Vec<(i32, i32, i32, i32)> {
 pub fn p2(input: &str) -> usize {
     let mut seq_map = HashMap::new();
     for line in input.lines() {
-        let mut n = line.to_usize();;
+        let mut n = line.to_usize();
         let mut seen: HashSet<(i32, i32, i32, i32)> = HashSet::new();
         let mut a = [0; 4];
         let (mut s, mut pos) = (0, 0);
