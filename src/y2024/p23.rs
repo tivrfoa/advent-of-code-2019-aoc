@@ -46,7 +46,7 @@ pub fn p2(input: &str) -> String {
         map.entry(b).and_modify(|v| v.push(a)).or_insert(vec![a]);
     }
     const S: usize = 3;
-    let mut sets: HashSet<BTreeSet<&str>> = HashSet::new();
+    let mut sets: Vec<BTreeSet<&str>> = vec![];
     for (k, v) in &map {
         let mut set: BTreeSet<&str> = BTreeSet::new();
         set.insert(k);
@@ -62,7 +62,7 @@ pub fn p2(input: &str) -> String {
                 // if got here, then it's fine
                 s.insert(n);
                 if s.len() > S {
-                    sets.insert(s.clone());
+                    sets.push(s.clone());
                 }
                 next.push(s);
             }
