@@ -45,7 +45,7 @@ pub fn p2(input: &str) -> String {
         map.entry(a).and_modify(|v| v.push(b)).or_insert(vec![b]);
         map.entry(b).and_modify(|v| v.push(a)).or_insert(vec![a]);
     }
-    const S: usize = 3;
+    let mut max = 3;
     let mut sets: Vec<Vec<&str>> = vec![];
     for (k, v) in &map {
         let mut set: Vec<&str> = vec![k];
@@ -60,7 +60,8 @@ pub fn p2(input: &str) -> String {
                 }
                 // if got here, then it's fine
                 s.push(n);
-                if s.len() > S {
+                if s.len() > max {
+                    max = s.len();
                     sets.push(s.clone());
                 }
                 next.push(s);
@@ -68,14 +69,7 @@ pub fn p2(input: &str) -> String {
             curr = next;
         }
     }
-    let mut max = 0;
-    let mut ans = vec![];
-    for set in sets {
-        if set.len() > max {
-            max = set.len();
-            ans = set;
-        }
-    }
+    let mut ans = sets.into_iter().find(|s| s.len() == max).unwrap();
     ans.sort();
     let mut ret = String::new();
     for pc in ans {
