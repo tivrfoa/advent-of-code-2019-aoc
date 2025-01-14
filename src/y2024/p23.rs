@@ -73,10 +73,29 @@ pub fn p2(input: &str) -> String {
     ans.join(",")
 }
 
+fn insert_sorted<T: Ord>(vec: &mut Vec<T>, element: T) {
+    // Find the correct insertion point using binary search
+    let index = match vec.binary_search(&element) {
+        Ok(_) => return, // Element already exists
+        Err(index) => index,
+    };
+
+    // Insert the element at the found index
+    vec.insert(index, element);
+}
+
+fn remove_sorted<T: Ord>(vec: &mut Vec<T>, value: &T) {
+    match vec.binary_search(value) {
+        Ok(index) => {
+            vec.remove(index);
+        }
+        Err(_) => {} // Element not found
+    }
+}
+
 fn solve<'a>(k: &'a str, map: &HashMap<&'a str, HashSet<&'a str>>, ans: &mut Vec<&'a str>,
         max: &mut usize, mut path: Vec<&'a str>, sets: &mut HashSet<Vec<&'a str>>) {
-    path.push(k);
-    path.sort();
+    insert_sorted(&mut path, k);
     if sets.contains(&path) { return; }
     sets.insert(path.clone());
     if path.len() > *max {
@@ -87,6 +106,45 @@ fn solve<'a>(k: &'a str, map: &HashMap<&'a str, HashSet<&'a str>>, ans: &mut Vec
     for n in &map[k] {
         if !path.contains(&n) && !path.iter().any(|p| !map[p].contains(n)) {
             solve(n, map, ans, max, path.clone(), sets);
+        }
+    }
+}
+
+fn solve2<'a>(k: &'a str, map: &HashMap<&'a str, HashSet<&'a str>>, ans: &mut Vec<&'a str>,
+        max: &mut usize, path: &mut Vec<&'a str>, sets: &mut HashSet<Vec<&'a str>>) {
+    insert_sorted(path, k);
+    if sets.contains(path) { return; }
+    sets.insert(path.clone());
+    if path.len() > *max {
+        *max = path.len();
+        ans.clear();
+        ans.extend_from_slice(path);
+    }
+    for n in &map[k] {
+        if !path.contains(&n) && !path.iter().any(|p| !map[p].contains(n)) {
+            solve2(n, map, ans, max, path, sets);
+            remove_sorted(path, n);
+        }
+    }
+}
+
+fn solve3<'a>(k: &'a str, map: &HashMap<&'a str, HashSet<&'a str>>, ans: &mut Vec<&'a str>,
+        max: &mut usize, path: &mut Vec<&'a str>, sets: &mut HashSet<Vec<&'a str>>) {
+    sets.insert(path.clone());
+    if path.len() > *max {
+        *max = path.len();
+        ans.clear();
+        ans.extend_from_slice(path);
+    }
+    for n in &map[k] {
+        if !path.contains(&n) && !path.iter().any(|p| !map[p].contains(n)) {
+            insert_sorted(path, n);
+            if sets.contains(path) {
+                remove_sorted(path, n);
+                continue;
+            }
+            solve3(n, map, ans, max, path, sets);
+            remove_sorted(path, n);
         }
     }
 }
@@ -102,7 +160,9 @@ pub fn p2_recursive(input: &str) -> String {
     let mut ans: Vec<&str> = vec![];
     let mut sets: HashSet<Vec<&str>> = HashSet::new();
     for k in map.keys() {
-        solve(k, &map, &mut ans, &mut max, vec![], &mut sets);
+        // solve(k, &map, &mut ans, &mut max, vec![], &mut sets);
+        // solve2(k, &map, &mut ans, &mut max, &mut vec![], &mut sets);
+        solve3(k, &map, &mut ans, &mut max, &mut vec![k], &mut sets);
     }
     ans.join(",")
 }
