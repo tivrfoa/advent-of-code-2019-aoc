@@ -73,6 +73,38 @@ pub fn p2(input: &str) -> String {
     ans.join(",")
 }
 
+fn solve<'a>(k: &'a str, map: &'a HashMap<&'a str, Vec<&'a str>>, ans: &mut Vec<&'a str>,
+        max: &mut usize, set: &'a mut Vec<&'a str>) {
+    if set.len() > *max {
+        *max = set.len();
+        *ans = set.clone();
+    }
+
+    for n in &map[k] {
+        if set.contains(&n) || map[n].iter().any(|next| !set.contains(next)) { continue; }
+        set.push(n);
+        solve(n, map, ans, max, set);
+        set.pop();
+    }
+}
+
+pub fn p2_recursive(input: &str) -> String {
+    let mut map: HashMap<&str, Vec<&str>> = HashMap::new();
+    for line in input.lines() {
+        let (a, b) = line.split_once('-').unwrap();
+        map.entry(a).and_modify(|v| v.push(b)).or_insert(vec![b]);
+        map.entry(b).and_modify(|v| v.push(a)).or_insert(vec![a]);
+    }
+    let mut max = 3;
+    let mut ans: Vec<&str> = vec![];
+    for (k, v) in &map {
+        let mut set: Vec<&str> = vec![k];
+        solve(k, &map, &mut ans, &mut max, &mut set);
+    }
+    ans.sort();
+    ans.join(",")
+}
+
 
 #[cfg(test)]
 mod tests {
