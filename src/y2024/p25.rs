@@ -58,14 +58,9 @@ pub fn p1(input: &str) -> usize {
     let mut qt = 0;
     for (rows, lhh) in locks {
         for khh in &keys {
-            let mut good = true;
-            for i in 0..lhh.len() {
-                if lhh[i] + khh[i] > rows {
-                    good = false;
-                    break;
-                }
+            if lhh.iter().zip(khh.iter()).all(|(l, k)| l + k <= rows) {
+                qt += 1;
             }
-            if good { qt += 1; }
         }
     }
     qt
