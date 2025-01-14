@@ -73,19 +73,20 @@ pub fn p2(input: &str) -> String {
     ans.join(",")
 }
 
-fn solve<'a>(k: &'a str, map: &'a HashMap<&'a str, Vec<&'a str>>, ans: &mut Vec<&'a str>,
-        max: &mut usize, set: &Vec<&'a str>) {
-    if set.len() > *max {
-        *max = set.len();
-        *ans = set.clone();
+fn solve<'a>(k: &'a str, map: &HashMap<&'a str, Vec<&'a str>>, ans: &mut Vec<&'a str>,
+        max: &mut usize, path: &mut Vec<&'a str>) {
+    path.push(k);
+    if path.len() > *max {
+        *max = path.len();
+        ans.clear();
+        ans.extend_from_slice(path);
     }
-
     for n in &map[k] {
-        if set.contains(&n) || set.iter().any(|prev| !map[prev].contains(n)) { continue; }
-        let mut s2 = set.clone();
-        s2.push(n);
-        solve(n, map, ans, max, &s2);
+        if !path.contains(&n) && !path.iter().any(|p| !map[p].contains(n)) {
+            solve(n, map, ans, max, path);
+        }
     }
+    path.pop();
 }
 
 pub fn p2_recursive(input: &str) -> String {
@@ -97,8 +98,9 @@ pub fn p2_recursive(input: &str) -> String {
     }
     let mut max = 3;
     let mut ans: Vec<&str> = vec![];
-    for (k, v) in &map {
-        solve(k, &map, &mut ans, &mut max, &vec![k]);
+    let mut path = vec![];
+    for k in map.keys() {
+        solve(k, &map, &mut ans, &mut max, &mut path);
     }
     ans.sort();
     ans.join(",")
