@@ -74,17 +74,17 @@ pub fn p2(input: &str) -> String {
 }
 
 fn solve<'a>(k: &'a str, map: &'a HashMap<&'a str, Vec<&'a str>>, ans: &mut Vec<&'a str>,
-        max: &mut usize, set: &'a mut Vec<&'a str>) {
+        max: &mut usize, set: &Vec<&'a str>) {
     if set.len() > *max {
         *max = set.len();
         *ans = set.clone();
     }
 
     for n in &map[k] {
-        if set.contains(&n) || map[n].iter().any(|next| !set.contains(next)) { continue; }
-        set.push(n);
-        solve(n, map, ans, max, set);
-        set.pop();
+        if set.contains(&n) || set.iter().any(|prev| !map[prev].contains(n)) { continue; }
+        let mut s2 = set.clone();
+        s2.push(n);
+        solve(n, map, ans, max, &s2);
     }
 }
 
@@ -98,8 +98,7 @@ pub fn p2_recursive(input: &str) -> String {
     let mut max = 3;
     let mut ans: Vec<&str> = vec![];
     for (k, v) in &map {
-        let mut set: Vec<&str> = vec![k];
-        solve(k, &map, &mut ans, &mut max, &mut set);
+        solve(k, &map, &mut ans, &mut max, &vec![k]);
     }
     ans.sort();
     ans.join(",")
@@ -126,8 +125,18 @@ mod tests {
     }
 
     #[test]
+    fn test_p2_recursive() {
+        assert_eq!("co,de,ka,ta".to_string(), p2_recursive(SAMPLE));
+    }
+
+    #[test]
     fn test_p2_in() {
         assert_eq!("ab,cp,ep,fj,fl,ij,in,ng,pl,qr,rx,va,vf".to_string(), p2(IN));
+    }
+
+    #[test]
+    fn test_p2_recursive_in() {
+        assert_eq!("ab,cp,ep,fj,fl,ij,in,ng,pl,qr,rx,va,vf".to_string(), p2_recursive(IN));
     }
 }
 
