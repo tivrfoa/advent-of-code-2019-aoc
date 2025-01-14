@@ -73,36 +73,37 @@ pub fn p2(input: &str) -> String {
     ans.join(",")
 }
 
-fn solve<'a>(k: &'a str, map: &HashMap<&'a str, Vec<&'a str>>, ans: &mut Vec<&'a str>,
-        max: &mut usize, path: &mut Vec<&'a str>) {
+fn solve<'a>(k: &'a str, map: &HashMap<&'a str, HashSet<&'a str>>, ans: &mut Vec<&'a str>,
+        max: &mut usize, mut path: Vec<&'a str>, sets: &mut HashSet<Vec<&'a str>>) {
     path.push(k);
+    path.sort();
+    if sets.contains(&path) { return; }
+    sets.insert(path.clone());
     if path.len() > *max {
         *max = path.len();
         ans.clear();
-        ans.extend_from_slice(path);
+        ans.extend_from_slice(&path);
     }
     for n in &map[k] {
         if !path.contains(&n) && !path.iter().any(|p| !map[p].contains(n)) {
-            solve(n, map, ans, max, path);
+            solve(n, map, ans, max, path.clone(), sets);
         }
     }
-    path.pop();
 }
 
 pub fn p2_recursive(input: &str) -> String {
-    let mut map: HashMap<&str, Vec<&str>> = HashMap::new();
+    let mut map: HashMap<&str, HashSet<&str>> = HashMap::new();
     for line in input.lines() {
         let (a, b) = line.split_once('-').unwrap();
-        map.entry(a).and_modify(|v| v.push(b)).or_insert(vec![b]);
-        map.entry(b).and_modify(|v| v.push(a)).or_insert(vec![a]);
+        map.entry(a).and_modify(|v| { v.insert(b); }).or_insert(HashSet::from([b]));
+        map.entry(b).and_modify(|v| { v.insert(a); }).or_insert(HashSet::from([a]));
     }
     let mut max = 3;
     let mut ans: Vec<&str> = vec![];
-    let mut path = vec![];
+    let mut sets: HashSet<Vec<&str>> = HashSet::new();
     for k in map.keys() {
-        solve(k, &map, &mut ans, &mut max, &mut path);
+        solve(k, &map, &mut ans, &mut max, vec![], &mut sets);
     }
-    ans.sort();
     ans.join(",")
 }
 
